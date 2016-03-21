@@ -38,9 +38,9 @@ import (
 	"strings"
 
 	"git.torproject.org/pluggable-transports/goptlib.git"
-	"git.torproject.org/pluggable-transports/obfs4.git/common/csrand"
-	"git.torproject.org/pluggable-transports/obfs4.git/common/drbg"
-	"git.torproject.org/pluggable-transports/obfs4.git/common/ntor"
+	"github.com/OperatorFoundation/obfs4/common/csrand"
+	"github.com/OperatorFoundation/obfs4/common/drbg"
+	"github.com/OperatorFoundation/obfs4/common/ntor"
 )
 
 const (

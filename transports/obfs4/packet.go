@@ -33,8 +33,8 @@ import (
 	"fmt"
 	"io"
 
-	"git.torproject.org/pluggable-transports/obfs4.git/common/drbg"
-	"git.torproject.org/pluggable-transports/obfs4.git/transports/obfs4/framing"
+	"github.com/OperatorFoundation/obfs4/common/drbg"
+	"github.com/OperatorFoundation/obfs4/transports/obfs4/framing"
 )
 
 const (

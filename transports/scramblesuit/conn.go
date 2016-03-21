@@ -43,10 +43,10 @@ import (
 	"time"
 
 	"git.torproject.org/pluggable-transports/goptlib.git"
-	"git.torproject.org/pluggable-transports/obfs4.git/common/csrand"
-	"git.torproject.org/pluggable-transports/obfs4.git/common/drbg"
-	"git.torproject.org/pluggable-transports/obfs4.git/common/probdist"
-	"git.torproject.org/pluggable-transports/obfs4.git/common/uniformdh"
+	"github.com/OperatorFoundation/obfs4/common/csrand"
+	"github.com/OperatorFoundation/obfs4/common/drbg"
+	"github.com/OperatorFoundation/obfs4/common/probdist"
+	"github.com/OperatorFoundation/obfs4/common/uniformdh"
 )
 
 const (

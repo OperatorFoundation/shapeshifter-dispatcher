@@ -37,7 +37,7 @@ import (
 	"net"
 
 	"git.torproject.org/pluggable-transports/goptlib.git"
-	"git.torproject.org/pluggable-transports/obfs4.git/transports/base"
+	"github.com/OperatorFoundation/obfs4/transports/base"
 )
 
 const transportName = "meek_lite"
