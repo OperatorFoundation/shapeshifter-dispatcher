@@ -43,7 +43,7 @@ listed for clarity.
 ### Installation
 
 To build:
-`go get git.torproject.org/pluggable-transports/obfs4.git/obfs4proxy`
+`go get github.com/OperatorFoundation/obfs4/obfs4proxy`
 
 To install:
 Copy `$GOPATH/bin/obfs4proxy` to a permanent location (Eg: `/usr/local/bin`)
