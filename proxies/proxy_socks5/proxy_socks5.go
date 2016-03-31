@@ -30,8 +30,8 @@
 package proxy_socks5
 
 import (
-	"io"
 	"fmt"
+	"io"
 	golog "log"
 	"net"
 	"net/url"
@@ -41,9 +41,9 @@ import (
 
 	"git.torproject.org/pluggable-transports/goptlib.git"
 	"github.com/OperatorFoundation/obfs4/common/log"
+	"github.com/OperatorFoundation/obfs4/common/pt_extras"
 	"github.com/OperatorFoundation/obfs4/common/socks5"
 	"github.com/OperatorFoundation/obfs4/common/termmon"
-	"github.com/OperatorFoundation/obfs4/common/pt_extras"
 	"github.com/OperatorFoundation/obfs4/transports"
 	"github.com/OperatorFoundation/obfs4/transports/base"
 )
@@ -154,7 +154,7 @@ func clientHandler(termMon *termmon.TermMonitor, f base.ClientFactory, conn net.
 		dialFn = dialer.Dial
 	}
 
-  fmt.Println("Got dialer", dialFn, proxyURI, proxy.Direct)
+	fmt.Println("Got dialer", dialFn, proxyURI, proxy.Direct)
 
 	remote, err := f.Dial("tcp", socksReq.Target, dialFn, args)
 	if err != nil {

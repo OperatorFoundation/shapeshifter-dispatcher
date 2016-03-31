@@ -40,8 +40,8 @@ import (
 
 	"git.torproject.org/pluggable-transports/goptlib.git"
 	"github.com/OperatorFoundation/obfs4/common/log"
-	"github.com/OperatorFoundation/obfs4/common/termmon"
 	"github.com/OperatorFoundation/obfs4/common/pt_extras"
+	"github.com/OperatorFoundation/obfs4/common/termmon"
 	"github.com/OperatorFoundation/obfs4/transports"
 
 	"github.com/OperatorFoundation/obfs4/proxies/proxy_socks5"
@@ -109,7 +109,7 @@ func main() {
 
 	log.Noticef("%s - launched", getVersion())
 
-  if *transparent {
+	if *transparent {
 		// Do the transparent proxy configuration.
 		log.Infof("%s - initializing transparent proxy", execName)
 		if *udp {

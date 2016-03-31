@@ -30,14 +30,14 @@
 package proxy_transparent_udp
 
 import (
-	"io"
 	"fmt"
+	"io"
 	golog "log"
 	"net"
 	"net/url"
-	"sync"
-	"strings"
 	"strconv"
+	"strings"
+	"sync"
 
 	"golang.org/x/net/proxy"
 
@@ -74,7 +74,7 @@ func ClientSetup(termMon *termmon.TermMonitor, target string) bool {
 			continue
 		}
 
-    udpAddr, err := net.ResolveUDPAddr("udp", socksAddr)
+		udpAddr, err := net.ResolveUDPAddr("udp", socksAddr)
 		if err != nil {
 			fmt.Println("Error resolving address", socksAddr)
 		}
@@ -99,11 +99,11 @@ func clientHandler(target string, termMon *termmon.TermMonitor, f base.ClientFac
 	termMon.OnHandlerStart()
 	defer termMon.OnHandlerFinish()
 
-  fmt.Println("handling...")
+	fmt.Println("handling...")
 
 	name := f.Transport().Name()
 
-  fmt.Println("Transport is", name)
+	fmt.Println("Transport is", name)
 
 	// Deal with arguments.
 	args, err := f.ParseArgs(&pt.Args{})
@@ -139,7 +139,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, f base.ClientFac
 	}
 	defer remote.Close()
 
-  fmt.Println("copying...")
+	fmt.Println("copying...")
 
 	if err = copyLoopUDP(conn, remote); err != nil {
 		log.Warnf("%s(%s) - closed connection: %s", name, target, log.ElideError(err))
@@ -147,7 +147,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, f base.ClientFac
 		log.Infof("%s(%s) - closed connection", name, target)
 	}
 
-  fmt.Println("done")
+	fmt.Println("done")
 
 	return
 }
@@ -158,9 +158,9 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string) bool {
 		golog.Fatal(err)
 	}
 
-  fmt.Println("ServerSetup")
+	fmt.Println("ServerSetup")
 
-  bindaddrs, _ := getServerBindaddrs(bindaddrString)
+	bindaddrs, _ := getServerBindaddrs(bindaddrString)
 
 	for _, bindaddr := range bindaddrs {
 		name := bindaddr.MethodName
@@ -192,7 +192,7 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string) bool {
 }
 
 func getServerBindaddrs(serverBindaddr string) ([]pt.Bindaddr, error) {
-  var result []pt.Bindaddr;
+	var result []pt.Bindaddr
 
 	for _, spec := range strings.Split(serverBindaddr, ",") {
 		var bindaddr pt.Bindaddr
@@ -209,7 +209,7 @@ func getServerBindaddrs(serverBindaddr string) ([]pt.Bindaddr, error) {
 			return nil, nil
 		}
 		bindaddr.Addr = addr
-//		bindaddr.Options = optionsMap[bindaddr.MethodName]
+		//		bindaddr.Options = optionsMap[bindaddr.MethodName]
 		result = append(result, bindaddr)
 	}
 
