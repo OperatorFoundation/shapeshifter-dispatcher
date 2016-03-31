@@ -31,7 +31,7 @@ import (
 	"fmt"
 	"testing"
 
-	"git.torproject.org/pluggable-transports/obfs4.git/common/drbg"
+	"github.com/OperatorFoundation/obfs4/common/drbg"
 )
 
 const debug = false

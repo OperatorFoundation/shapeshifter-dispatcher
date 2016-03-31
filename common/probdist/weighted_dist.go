@@ -37,8 +37,8 @@ import (
 	"math/rand"
 	"sync"
 
-	"git.torproject.org/pluggable-transports/obfs4.git/common/csrand"
-	"git.torproject.org/pluggable-transports/obfs4.git/common/drbg"
+	"github.com/OperatorFoundation/obfs4/common/csrand"
+	"github.com/OperatorFoundation/obfs4/common/drbg"
 )
 
 const (

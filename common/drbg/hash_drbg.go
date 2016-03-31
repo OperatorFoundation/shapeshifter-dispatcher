@@ -37,7 +37,7 @@ import (
 
 	"github.com/dchest/siphash"
 
-	"git.torproject.org/pluggable-transports/obfs4.git/common/csrand"
+	"github.com/OperatorFoundation/obfs4/common/csrand"
 )
 
 // Size is the length of the HashDrbg output.
