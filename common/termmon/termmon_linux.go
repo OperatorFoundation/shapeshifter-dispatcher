@@ -25,7 +25,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package main
+package termmon
 
 import (
 	"fmt"
