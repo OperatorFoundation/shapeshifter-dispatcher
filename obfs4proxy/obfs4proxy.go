@@ -47,6 +47,9 @@ import (
 	"github.com/OperatorFoundation/obfs4/modes/pt_socks5"
 	"github.com/OperatorFoundation/obfs4/modes/transparent_tcp"
 	"github.com/OperatorFoundation/obfs4/modes/transparent_udp"
+
+	_ "github.com/OperatorFoundation/obfs4/proxy_dialers/proxy_socks4"
+	_ "github.com/OperatorFoundation/obfs4/proxy_dialers/proxy_http"
 )
 
 const (
