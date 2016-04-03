@@ -27,7 +27,7 @@
 
 // Go language Tor Pluggable Transport suite.  Works only as a managed
 // client/server.
-package proxy_transparent_udp
+package transparent_udp
 
 import (
 	"fmt"

@@ -27,7 +27,7 @@
 
 // Go language Tor Pluggable Transport suite.  Works only as a managed
 // client/server.
-package proxy_socks5
+package pt_socks5
 
 import (
 	"fmt"

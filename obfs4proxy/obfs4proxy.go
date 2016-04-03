@@ -44,9 +44,9 @@ import (
 	"github.com/OperatorFoundation/obfs4/common/termmon"
 	"github.com/OperatorFoundation/obfs4/transports"
 
-	"github.com/OperatorFoundation/obfs4/proxies/proxy_socks5"
-	"github.com/OperatorFoundation/obfs4/proxies/proxy_transparent"
-	"github.com/OperatorFoundation/obfs4/proxies/proxy_transparent_udp"
+	"github.com/OperatorFoundation/obfs4/modes/pt_socks5"
+	"github.com/OperatorFoundation/obfs4/modes/transparent_tcp"
+	"github.com/OperatorFoundation/obfs4/modes/transparent_udp"
 )
 
 const (
@@ -119,14 +119,14 @@ func main() {
 				if *target == "" {
 					log.Errorf("%s - transparent mode requires a target", execName)
 				} else {
-					launched = proxy_transparent_udp.ClientSetup(termMon, *target)
+					launched = transparent_udp.ClientSetup(termMon, *target)
 				}
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
 				if *bindAddr == "" {
 					fmt.Println("%s - transparent mode requires a bindaddr", execName)
 				} else {
-					launched = proxy_transparent_udp.ServerSetup(termMon, *bindAddr)
+					launched = transparent_udp.ServerSetup(termMon, *bindAddr)
 					fmt.Println("launched", launched, ptListeners)
 				}
 			}
@@ -137,14 +137,14 @@ func main() {
 				if *target == "" {
 					log.Errorf("%s - transparent mode requires a target", execName)
 				} else {
-					launched, ptListeners = proxy_transparent.ClientSetup(termMon, *target)
+					launched, ptListeners = transparent_tcp.ClientSetup(termMon, *target)
 				}
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
 				if *bindAddr == "" {
 					fmt.Println("%s - transparent mode requires a bindaddr", execName)
 				} else {
-					launched, ptListeners = proxy_transparent.ServerSetup(termMon, *bindAddr)
+					launched, ptListeners = transparent_tcp.ServerSetup(termMon, *bindAddr)
 					fmt.Println("launched", launched, ptListeners)
 				}
 			}
@@ -154,10 +154,10 @@ func main() {
 		log.Infof("%s - initializing PT 1.0 proxy", execName)
 		if isClient {
 			log.Infof("%s - initializing client transport listeners", execName)
-			launched, ptListeners = proxy_socks5.ClientSetup(termMon)
+			launched, ptListeners = pt_socks5.ClientSetup(termMon)
 		} else {
 			log.Infof("%s - initializing server transport listeners", execName)
-			launched, ptListeners = proxy_socks5.ServerSetup(termMon)
+			launched, ptListeners = pt_socks5.ServerSetup(termMon)
 		}
 	}
 
