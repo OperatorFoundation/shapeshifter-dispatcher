@@ -47,6 +47,7 @@ import (
 	"github.com/OperatorFoundation/obfs4/modes/pt_socks5"
 	"github.com/OperatorFoundation/obfs4/modes/transparent_tcp"
 	"github.com/OperatorFoundation/obfs4/modes/transparent_udp"
+	"github.com/OperatorFoundation/obfs4/modes/stun_udp"
 
 	_ "github.com/OperatorFoundation/obfs4/proxy_dialers/proxy_socks4"
 	_ "github.com/OperatorFoundation/obfs4/proxy_dialers/proxy_http"
@@ -89,6 +90,7 @@ func main() {
 		os.Exit(0)
 	}
 	if err := log.SetLogLevel(*logLevelStr); err != nil {
+		fmt.Println("failed to set log level")
 		golog.Fatalf("[ERROR]: %s - failed to set log level: %s", execName, err)
 	}
 
@@ -111,6 +113,7 @@ func main() {
 	}
 
 	log.Noticef("%s - launched", getVersion())
+	fmt.Println("launching")
 
 	if *transparent {
 		// Do the transparent proxy configuration.
@@ -122,6 +125,7 @@ func main() {
 				if *target == "" {
 					log.Errorf("%s - transparent mode requires a target", execName)
 				} else {
+					fmt.Println("transparent udp client")
 					launched = transparent_udp.ClientSetup(termMon, *target)
 				}
 			} else {
@@ -129,7 +133,8 @@ func main() {
 				if *bindAddr == "" {
 					fmt.Println("%s - transparent mode requires a bindaddr", execName)
 				} else {
-					launched = transparent_udp.ServerSetup(termMon, *bindAddr)
+					fmt.Println("transparent udp server")
+					launched = transparent_udp.ServerSetup(termMon, *bindAddr, *target)
 					fmt.Println("launched", launched, ptListeners)
 				}
 			}
@@ -153,14 +158,36 @@ func main() {
 			}
 		}
 	} else {
-		// Do the managed pluggable transport protocol configuration.
-		log.Infof("%s - initializing PT 1.0 proxy", execName)
-		if isClient {
-			log.Infof("%s - initializing client transport listeners", execName)
-			launched, ptListeners = pt_socks5.ClientSetup(termMon)
+		if *udp {
+			log.Infof("%s - initializing STUN UDP proxy", execName)
+			if isClient {
+				log.Infof("%s - initializing client transport listeners", execName)
+				if *target == "" {
+					log.Errorf("%s - STUN mode requires a target", execName)
+				} else {
+					fmt.Println("STUN udp client")
+					launched = stun_udp.ClientSetup(termMon, *target)
+				}
+			} else {
+				log.Infof("%s - initializing server transport listeners", execName)
+				if *bindAddr == "" {
+					fmt.Println("%s - STUN mode requires a bindaddr", execName)
+				} else {
+					fmt.Println("STUN udp server")
+					launched = stun_udp.ServerSetup(termMon, *bindAddr, *target)
+					fmt.Println("launched", launched, ptListeners)
+				}
+			}
 		} else {
-			log.Infof("%s - initializing server transport listeners", execName)
-			launched, ptListeners = pt_socks5.ServerSetup(termMon)
+			// Do the managed pluggable transport protocol configuration.
+			log.Infof("%s - initializing PT 1.0 proxy", execName)
+			if isClient {
+				log.Infof("%s - initializing client transport listeners", execName)
+				launched, ptListeners = pt_socks5.ClientSetup(termMon)
+			} else {
+				log.Infof("%s - initializing server transport listeners", execName)
+				launched, ptListeners = pt_socks5.ServerSetup(termMon)
+			}
 		}
 	}
 
@@ -169,6 +196,8 @@ func main() {
 		// have logged, so just exit here.
 		os.Exit(-1)
 	}
+
+	fmt.Println("launched")
 
 	log.Infof("%s - accepting connections", execName)
 	defer func() {
@@ -191,6 +220,11 @@ func main() {
 	}
 
 	termMon.Wait(true)
+
+  fmt.Println("waiting")
+	for {
+		// FIXME - block because termMon.Wait is not blocking
+	}
 }
 
 func checkIsClient(client bool, server bool) (bool, error) {
