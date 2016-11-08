@@ -40,6 +40,8 @@ import (
 
 	"golang.org/x/net/proxy"
 
+	common "github.com/willscott/goturn/common"
+
 	"github.com/willscott/goturn"
 
 	"git.torproject.org/pluggable-transports/goptlib.git"
@@ -326,7 +328,7 @@ func serverAcceptLoop(termMon *termmon.TermMonitor, f base.ServerFactory, ln net
 }
 
 func serverHandler(termMon *termmon.TermMonitor, f base.ServerFactory, conn net.Conn, target string) {
-	var header *turn.StunHeader
+	var header *common.Message
 
 	defer conn.Close()
 	termMon.OnHandlerStart()
@@ -375,8 +377,11 @@ func serverHandler(termMon *termmon.TermMonitor, f base.ServerFactory, conn net.
 			break
 		}
 
-		header=&turn.StunHeader{}
-		header.Decode(headerBuffer)
+		header, err = goturn.ParseStun(headerBuffer)
+		if err != nil {
+			fmt.Println("parse error")
+			break
+		}
 
 		fmt.Println(header.Length)
 
