@@ -33,12 +33,12 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/OperatorFoundation/obfs4/transports/base"
-	"github.com/OperatorFoundation/obfs4/transports/meeklite"
-	"github.com/OperatorFoundation/obfs4/transports/obfs2"
-	"github.com/OperatorFoundation/obfs4/transports/obfs3"
-	"github.com/OperatorFoundation/obfs4/transports/obfs4"
-	"github.com/OperatorFoundation/obfs4/transports/scramblesuit"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/base"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs3"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/scramblesuit"
 )
 
 var transportMapLock sync.Mutex
