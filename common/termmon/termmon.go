@@ -36,8 +36,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/OperatorFoundation/obfs4/common/log"
-	"github.com/OperatorFoundation/obfs4/common/pt_extras"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 )
 
 var TermMonitorOSInit func(*TermMonitor) error
