@@ -41,7 +41,6 @@ import (
 
 	"git.torproject.org/pluggable-transports/goptlib.git"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
@@ -49,41 +48,14 @@ import (
 )
 
 const (
-	obfs4proxyVersion = "0.0.7-dev"
-	obfs4proxyLogFile = "obfs4proxy.log"
-	socksAddr         = "127.0.0.1:0"
+	socksAddr = "127.0.0.1:0"
 )
 
 var stateDir string
 
-func ClientSetup(termMon *termmon.TermMonitor) (launched bool, listeners []net.Listener) {
-	ptClientInfo, err := pt.ClientSetup(transports.Transports())
-	if err != nil {
-		golog.Fatal(err)
-	}
-
-	ptClientProxy, err := pt_extras.PtGetProxy()
-	fmt.Println("ptclientproxy", ptClientProxy)
-	if err != nil {
-		golog.Fatal(err)
-	} else if ptClientProxy != nil {
-		pt_extras.PtProxyDone()
-	}
-
+func ClientSetup(termMon *termmon.TermMonitor, ptClientProxy *url.URL, factories map[string]base.ClientFactory) (launched bool, listeners []net.Listener) {
 	// Launch each of the client listeners.
-	for _, name := range ptClientInfo.MethodNames {
-		t := transports.Get(name)
-		if t == nil {
-			pt.CmethodError(name, "no such transport is supported")
-			continue
-		}
-
-		f, err := t.ClientFactory(stateDir)
-		if err != nil {
-			pt.CmethodError(name, "failed to get ClientFactory")
-			continue
-		}
-
+	for name, f := range factories {
 		ln, err := net.Listen("tcp", socksAddr)
 		if err != nil {
 			pt.CmethodError(name, err.Error())

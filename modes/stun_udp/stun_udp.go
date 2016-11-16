@@ -30,8 +30,8 @@
 package stun_udp
 
 import (
-	"io"
 	"fmt"
+	"io"
 	golog "log"
 	"net"
 	"net/url"
@@ -52,15 +52,13 @@ import (
 )
 
 const (
-	obfs4proxyVersion = "0.0.7-dev"
-	obfs4proxyLogFile = "obfs4proxy.log"
-	socksAddr         = "127.0.0.1:1234"
+	socksAddr = "127.0.0.1:1234"
 )
 
 var stateDir string
 
 type ConnState struct {
-	Conn *net.Conn
+	Conn    *net.Conn
 	Waiting bool
 }
 
@@ -70,24 +68,9 @@ func NewConnState() ConnState {
 
 type ConnTracker map[string]ConnState
 
-func ClientSetup(termMon *termmon.TermMonitor, target string) bool {
-	methodNames := [...]string{"obfs2"}
-	var ptClientProxy *url.URL = nil
-
+func ClientSetup(termMon *termmon.TermMonitor, target string, ptClientProxy *url.URL, factories map[string]base.ClientFactory) bool {
 	// Launch each of the client listeners.
-	for _, name := range methodNames {
-		t := transports.Get(name)
-		if t == nil {
-			log.Errorf("no such transport is supported: %s", name)
-			continue
-		}
-
-		f, err := t.ClientFactory(stateDir)
-		if err != nil {
-			log.Errorf("failed to get ClientFactory: %s", name)
-			continue
-		}
-
+	for name, f := range factories {
 		udpAddr, err := net.ResolveUDPAddr("udp", socksAddr)
 		if err != nil {
 			fmt.Println("Error resolving address", socksAddr)
@@ -115,24 +98,24 @@ func clientHandler(target string, termMon *termmon.TermMonitor, f base.ClientFac
 
 	fmt.Println("@@@ handling...")
 
-  tracker := make(ConnTracker)
+	tracker := make(ConnTracker)
 
 	name := f.Transport().Name()
 
 	fmt.Println("Transport is", name)
 
-  buf := make([]byte, 1024)
+	buf := make([]byte, 1024)
 
-  // Receive UDP packets and forward them over transport connections forever
+	// Receive UDP packets and forward them over transport connections forever
 	for {
 		n, addr, err := conn.ReadFromUDP(buf)
-		fmt.Println("Received ",string(buf[0:n]), " from ",addr)
+		fmt.Println("Received ", string(buf[0:n]), " from ", addr)
 
 		if err != nil {
-      fmt.Println("Error: ",err)
+			fmt.Println("Error: ", err)
 		}
 
-    fmt.Println(tracker)
+		fmt.Println(tracker)
 
 		if state, ok := tracker[addr.String()]; ok {
 			// There is an open transport connection, or a connection attempt is in progress.
@@ -148,11 +131,11 @@ func clientHandler(target string, termMon *termmon.TermMonitor, f base.ClientFac
 				fmt.Println("writing...")
 				(*state.Conn).Write(buf)
 			}
-    } else {
+		} else {
 			// There is not an open transport connection and a connection attempt is not in progress.
 			// Open a transport connection.
 
-      fmt.Println("Opening connection to ", target)
+			fmt.Println("Opening connection to ", target)
 
 			openConnection(&tracker, addr.String(), target, termMon, f, proxyURI)
 
@@ -166,7 +149,7 @@ func openConnection(tracker *ConnTracker, addr string, target string, termMon *t
 	fmt.Println("Making dialer...")
 
 	newConn := NewConnState()
-	(*tracker)[addr]=newConn
+	(*tracker)[addr] = newConn
 
 	go dialConn(tracker, addr, target, f, proxyURI)
 }
@@ -209,7 +192,7 @@ func dialConn(tracker *ConnTracker, addr string, target string, f base.ClientFac
 
 	fmt.Println("Success")
 
-	(*tracker)[addr]=ConnState{&remote, false}
+	(*tracker)[addr] = ConnState{&remote, false}
 }
 
 func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, target string) bool {
@@ -347,7 +330,7 @@ func serverHandler(termMon *termmon.TermMonitor, f base.ServerFactory, conn net.
 		return
 	}
 
-	serverAddr, err := net.ResolveUDPAddr("udp",target)
+	serverAddr, err := net.ResolveUDPAddr("udp", target)
 	if err != nil {
 		golog.Fatal(err)
 	}
@@ -362,7 +345,7 @@ func serverHandler(termMon *termmon.TermMonitor, f base.ServerFactory, conn net.
 		golog.Fatal(err)
 	}
 
-  fmt.Println("pumping")
+	fmt.Println("pumping")
 
 	defer dest.Close()
 
@@ -371,7 +354,7 @@ func serverHandler(termMon *termmon.TermMonitor, f base.ServerFactory, conn net.
 	for {
 		fmt.Println("reading...")
 		// Read the incoming connection into the buffer.
-	  _, err := io.ReadFull(remote, headerBuffer)
+		_, err := io.ReadFull(remote, headerBuffer)
 		if err != nil {
 			fmt.Println("read error")
 			break
@@ -394,8 +377,8 @@ func serverHandler(termMon *termmon.TermMonitor, f base.ServerFactory, conn net.
 			break
 		}
 
-    writeBuffer := append(headerBuffer, readBuffer...)
+		writeBuffer := append(headerBuffer, readBuffer...)
 
 		dest.Write(writeBuffer)
-  }
+	}
 }

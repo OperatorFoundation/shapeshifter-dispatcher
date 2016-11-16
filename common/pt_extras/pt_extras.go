@@ -71,8 +71,14 @@ func PtIsClient() (bool, error) {
 	return false, errors.New("not launched as a managed transport")
 }
 
-func PtGetProxy() (*url.URL, error) {
-	specString := os.Getenv("TOR_PT_PROXY")
+func PtGetProxy(proxy *string) (*url.URL, error) {
+  var specString string
+
+	if proxy != nil {
+		specString = *proxy
+	} else {
+		specString = os.Getenv("TOR_PT_PROXY")
+	}
 	if specString == "" {
 		return nil, nil
 	}

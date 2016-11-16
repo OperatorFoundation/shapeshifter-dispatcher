@@ -49,31 +49,14 @@ import (
 )
 
 const (
-	obfs4proxyVersion = "0.0.7-dev"
-	obfs4proxyLogFile = "obfs4proxy.log"
-	socksAddr         = "127.0.0.1:1234"
+	socksAddr = "127.0.0.1:1234"
 )
 
 var stateDir string
 
-func ClientSetup(termMon *termmon.TermMonitor, target string) (launched bool, listeners []net.Listener) {
-	methodNames := [...]string{"obfs2"}
-	var ptClientProxy *url.URL = nil
-
+func ClientSetup(termMon *termmon.TermMonitor, target string, ptClientProxy *url.URL, factories map[string]base.ClientFactory) (launched bool, listeners []net.Listener) {
 	// Launch each of the client listeners.
-	for _, name := range methodNames {
-		t := transports.Get(name)
-		if t == nil {
-			log.Errorf("no such transport is supported: %s", name)
-			continue
-		}
-
-		f, err := t.ClientFactory(stateDir)
-		if err != nil {
-			log.Errorf("failed to get ClientFactory: %s", name)
-			continue
-		}
-
+	for name, f := range factories {
 		fmt.Println("Listening ", socksAddr)
 		ln, err := net.Listen("tcp", socksAddr)
 		if err != nil {

@@ -34,23 +34,26 @@ import (
 	"fmt"
 	golog "log"
 	"net"
+	"net/url"
 	"os"
 	"path"
+	"strings"
 	"syscall"
 
 	"git.torproject.org/pluggable-transports/goptlib.git"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/pt_socks5"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/stun_udp"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/transparent_tcp"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/transparent_udp"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/stun_udp"
 
-	_ "github.com/OperatorFoundation/obfs4/proxy_dialers/proxy_socks4"
 	_ "github.com/OperatorFoundation/obfs4/proxy_dialers/proxy_http"
+	_ "github.com/OperatorFoundation/obfs4/proxy_dialers/proxy_socks4"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/base"
 )
 
 const (
@@ -72,6 +75,15 @@ func main() {
 
 	// Handle the command line arguments.
 	_, execName := path.Split(os.Args[0])
+
+	flag.Usage = func() {
+		fmt.Fprintf(os.Stderr, "shapeshifter-dispatcher is a PT v2.0 proxy supporting multiple transports and proxy modes\n\n")
+		fmt.Fprintf(os.Stderr, "Usage:\n\t%s --client --state [statedir] --ptversion 2 --transports [transport1,transport2,...]\n\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Example:\n\t%s --client --state state --ptversion 2 --transports obfs2\n\n", os.Args[0])
+		fmt.Fprintf(os.Stderr, "Flags:\n\n")
+		flag.PrintDefaults()
+	}
+
 	showVer := flag.Bool("version", false, "Print version and exit")
 	logLevelStr := flag.String("logLevel", "ERROR", "Log level (ERROR/WARN/INFO/DEBUG)")
 	enableLogging := flag.Bool("enableLogging", false, "Log to TOR_PT_STATE_LOCATION/"+dispatcherLogFile)
@@ -83,6 +95,9 @@ func main() {
 	serverMode := flag.Bool("server", false, "Enable server mode")
 	statePath := flag.String("state", "", "Specify transport server destination address")
 	bindAddr := flag.String("bindaddr", "", "Specify the bind address for transparent server")
+	ptversion := flag.String("ptversion", "", "Specify the Pluggable Transport protocol version to use")
+	proxy := flag.String("proxy", "", "Specify an HTTP or SOCKS4a proxy that the PT needs to use to reach the Internet")
+	transportsList := flag.String("transports", "", "Specify transports to enable")
 	flag.Parse()
 
 	if *showVer {
@@ -99,10 +114,10 @@ func main() {
 	launched := false
 	isClient, err := checkIsClient(*clientMode, *serverMode)
 	if err != nil {
-		golog.Fatalf("[ERROR]: %s - must be run as a managed transport", execName)
+		golog.Fatalf("[ERROR]: %s - either --client or --server is required, or configure using PT 2.0 environment variables", execName)
 	}
 	if stateDir, err = makeStateDir(*statePath); err != nil {
-		golog.Fatalf("[ERROR]: %s - No state directory: %s", execName, err)
+		golog.Fatalf("[ERROR]: %s - No state directory: Use --state or TOR_PT_STATE_LOCATION environment variable", execName)
 	}
 	if err = log.Init(*enableLogging, path.Join(stateDir, dispatcherLogFile), *unsafeLogging); err != nil {
 		golog.Fatalf("[ERROR]: %s - failed to initialize logging", execName)
@@ -126,7 +141,8 @@ func main() {
 					log.Errorf("%s - transparent mode requires a target", execName)
 				} else {
 					fmt.Println("transparent udp client")
-					launched = transparent_udp.ClientSetup(termMon, *target)
+					factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
+					launched = transparent_udp.ClientSetup(termMon, *target, factories, ptClientProxy)
 				}
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
@@ -145,7 +161,8 @@ func main() {
 				if *target == "" {
 					log.Errorf("%s - transparent mode requires a target", execName)
 				} else {
-					launched, ptListeners = transparent_tcp.ClientSetup(termMon, *target)
+					factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
+					launched, ptListeners = transparent_tcp.ClientSetup(termMon, *target, factories, ptClientProxy)
 				}
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
@@ -166,7 +183,8 @@ func main() {
 					log.Errorf("%s - STUN mode requires a target", execName)
 				} else {
 					fmt.Println("STUN udp client")
-					launched = stun_udp.ClientSetup(termMon, *target)
+					factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
+					launched = stun_udp.ClientSetup(termMon, *target, factories, ptClientProxy)
 				}
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
@@ -183,7 +201,8 @@ func main() {
 			log.Infof("%s - initializing PT 1.0 proxy", execName)
 			if isClient {
 				log.Infof("%s - initializing client transport listeners", execName)
-				launched, ptListeners = pt_socks5.ClientSetup(termMon)
+				factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
+				launched, ptListeners = pt_socks5.ClientSetup(termMon, factories, ptClientProxy)
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
 				launched, ptListeners = pt_socks5.ServerSetup(termMon)
@@ -221,7 +240,7 @@ func main() {
 
 	termMon.Wait(true)
 
-  fmt.Println("waiting")
+	fmt.Println("waiting")
 	for {
 		// FIXME - block because termMon.Wait is not blocking
 	}
@@ -244,4 +263,54 @@ func makeStateDir(statePath string) (string, error) {
 	} else {
 		return pt.MakeStateDir()
 	}
+}
+
+func getClientFactories(ptversion *string, transportsList *string, proxy *string) (clientProxy *url.URL, factories map[string]base.ClientFactory) {
+	var ptClientInfo pt.ClientInfo
+	var err error
+
+	// FIXME - instead of this, goptlib should be modified to accept command line flag override of EITHER ptversion or transports (or both)
+	if ptversion == nil || transportsList == nil {
+		fmt.Println("Falling back to environment variables for ptversion/transports", ptversion, transportsList)
+		ptClientInfo, err = pt.ClientSetup(transports.Transports())
+		if err != nil {
+			// FIXME - print a more useful error, specifying --ptversion and --transports flags
+			golog.Fatal(err)
+		}
+	} else {
+		if *transportsList == "*" {
+			ptClientInfo = pt.ClientInfo{MethodNames: transports.Transports()}
+		} else {
+			ptClientInfo = pt.ClientInfo{MethodNames: strings.Split(*transportsList, ",")}
+		}
+	}
+
+	ptClientProxy, err := pt_extras.PtGetProxy(proxy)
+	fmt.Println("ptclientproxy", ptClientProxy)
+	if err != nil {
+		golog.Fatal(err)
+	} else if ptClientProxy != nil {
+		pt_extras.PtProxyDone()
+	}
+
+	factories = make(map[string]base.ClientFactory)
+
+	// Launch each of the client listeners.
+	for _, name := range ptClientInfo.MethodNames {
+		t := transports.Get(name)
+		if t == nil {
+			pt.CmethodError(name, "no such transport is supported")
+			continue
+		}
+
+		f, err := t.ClientFactory(stateDir)
+		if err != nil {
+			pt.CmethodError(name, "failed to get ClientFactory")
+			continue
+		}
+
+		factories[name] = f
+	}
+
+	return ptClientProxy, factories
 }
