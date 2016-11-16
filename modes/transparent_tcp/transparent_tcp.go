@@ -42,10 +42,10 @@ import (
 	"golang.org/x/net/proxy"
 
 	"git.torproject.org/pluggable-transports/goptlib.git"
-	"github.com/OperatorFoundation/obfs4/common/log"
-	"github.com/OperatorFoundation/obfs4/common/termmon"
-	"github.com/OperatorFoundation/obfs4/transports"
-	"github.com/OperatorFoundation/obfs4/transports/base"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/base"
 )
 
 const (

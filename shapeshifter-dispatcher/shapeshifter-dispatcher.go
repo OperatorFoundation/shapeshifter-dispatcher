@@ -39,18 +39,18 @@ import (
 	"syscall"
 
 	"git.torproject.org/pluggable-transports/goptlib.git"
-	"github.com/OperatorFoundation/obfs4/common/log"
-	"github.com/OperatorFoundation/obfs4/common/pt_extras"
-	"github.com/OperatorFoundation/obfs4/common/termmon"
-	"github.com/OperatorFoundation/obfs4/transports"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 
-	"github.com/OperatorFoundation/obfs4/modes/pt_socks5"
-	"github.com/OperatorFoundation/obfs4/modes/transparent_tcp"
-	"github.com/OperatorFoundation/obfs4/modes/transparent_udp"
-	"github.com/OperatorFoundation/obfs4/modes/stun_udp"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/pt_socks5"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/transparent_tcp"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/transparent_udp"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/stun_udp"
 
-	_ "github.com/OperatorFoundation/obfs4/proxy_dialers/proxy_socks4"
-	_ "github.com/OperatorFoundation/obfs4/proxy_dialers/proxy_http"
+	_ "github.com/OperatorFoundation/shapeshifter-dispatcher/proxy_dialers/proxy_socks4"
+	_ "github.com/OperatorFoundation/shapeshifter-dispatcher/proxy_dialers/proxy_http"
 )
 
 const (
