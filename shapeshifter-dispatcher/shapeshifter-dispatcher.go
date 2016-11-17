@@ -84,20 +84,37 @@ func main() {
 		flag.PrintDefaults()
 	}
 
+	// PT 2.0 specification, 3.3.1.1. Common Configuration Parameters
+	// FIXME: in the spec, this is -version, which is already used for printing the version number
+	ptversion := flag.String("ptversion", "", "Specify the Pluggable Transport protocol version to use")
+	statePath := flag.String("state", "", "Specify transport server destination address")
+	// FIXME: -exit-on-stdin-close
+
+	// NOTE: -transports is parsed as a common command line flag that overrides either TOR_PT_SERVER_TRANSPORTS or TOR_PT_CLIENT_TRANSPORTS
+	transportsList := flag.String("transports", "", "Specify transports to enable")
+
+	// PT 2.0 specification, 3.3.1.2. Pluggable PT Client Configuration Parameters
+	proxy := flag.String("proxy", "", "Specify an HTTP or SOCKS4a proxy that the PT needs to use to reach the Internet")
+
+	// PT 2.0 specification, 3.3.1.3. Pluggable PT Server Environment Variables
+	// FIXME: -options
+	bindAddr := flag.String("bindaddr", "", "Specify the bind address for transparent server")
+	// FIXME: -orport
+	// FIXME: -extorport
+	// FIXME: -authcookie
+
+	// Additional command line flags inherited from obfs4proxy
 	showVer := flag.Bool("version", false, "Print version and exit")
 	logLevelStr := flag.String("logLevel", "ERROR", "Log level (ERROR/WARN/INFO/DEBUG)")
 	enableLogging := flag.Bool("enableLogging", false, "Log to TOR_PT_STATE_LOCATION/"+dispatcherLogFile)
 	unsafeLogging := flag.Bool("unsafeLogging", false, "Disable the address scrubber")
-	transparent := flag.Bool("transparent", false, "Enable transparent proxy mode")
-	udp := flag.Bool("udp", false, "Enable UDP proxy mode")
-	target := flag.String("target", "", "Specify transport server destination address")
+
+	// Additional command line flags added to shapeshifter-dispatcher
 	clientMode := flag.Bool("client", false, "Enable client mode")
 	serverMode := flag.Bool("server", false, "Enable server mode")
-	statePath := flag.String("state", "", "Specify transport server destination address")
-	bindAddr := flag.String("bindaddr", "", "Specify the bind address for transparent server")
-	ptversion := flag.String("ptversion", "", "Specify the Pluggable Transport protocol version to use")
-	proxy := flag.String("proxy", "", "Specify an HTTP or SOCKS4a proxy that the PT needs to use to reach the Internet")
-	transportsList := flag.String("transports", "", "Specify transports to enable")
+	transparent := flag.Bool("transparent", false, "Enable transparent proxy mode. The default is protocol-aware proxy mode (SOCKS5 for TCP, STUN for UDP)")
+	udp := flag.Bool("udp", false, "Enable UDP proxy mode. The default is TCP proxy mode.")
+	target := flag.String("target", "", "Specify transport server destination address")
 	flag.Parse()
 
 	if *showVer {
