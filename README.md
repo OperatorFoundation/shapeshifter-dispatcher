@@ -29,7 +29,7 @@ line is necessary to use this tool.
 
 If you are looking for a complete, easy-to-use VPN that incorporates
 shapeshifting technology and has a graphical user interface, consider
-Moonbounce, an application for macOS which incorporates shapeshifting without
+[Moonbounce](https://github.com/OperatorFoundation/Moonbounce), an application for macOS which incorporates shapeshifting without
 the need to write code or use the command line.
 
 ### Shapeshifter Dispatcher
