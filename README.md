@@ -1,6 +1,6 @@
 # The Operator Foundation
 
-Operator makes useable tools to help people around the world with censorship, security, and privacy.
+[Operator](https://operatorfoundation.org) makes useable tools to help people around the world with censorship, security, and privacy.
 
 ## Shapeshifter
 
@@ -18,14 +18,14 @@ TCP and UDP traffic.
 
 If you are a tool developer working in the Go programming language, then you
 probably want to use the transports library directly in your application.
-[https://github.com/OperatorFoundation/shapeshifter-transports]
+<https://github.com/OperatorFoundation/shapeshifter-transports>
 
 If you want a end user that is trying to circumvent filtering on your network or
 you are a developer that wants to add pluggable transports to an existing tool
 that is not written in the Go programming language, then you probably want the
 dispatcher. Please note that familiarity with executing programs on the command
 line is necessary to use this tool.
-[https://github.com/OperatorFoundation/shapeshifter-dispatcher]
+<https://github.com/OperatorFoundation/shapeshifter-dispatcher>
 
 If you are looking for a complete, easy-to-use VPN that incorporates
 shapeshifting technology and has a graphical user interface, consider
@@ -36,10 +36,10 @@ the need to write code or use the command line.
 
 This is the repository for the shapeshifter-dispatcher command line proxy tool.
 If you are looking for the transports is provides, they are here:
-[https://github.com/OperatorFoundation/shapeshifter-transports]
+<https://github.com/OperatorFoundation/shapeshifter-transports>
 
 The dispatcher implements the Pluggable Transports 2.0 draft 1 specification available here:
-[http://www.pluggabletransports.info/assets/PTSpecV2Draft1.pdf]
+<http://www.pluggabletransports.info/assets/PTSpecV2Draft1.pdf>
 
 The purpose of the dispatcher is to provide different proxy interfaces to using
 transports. Through the use of these proxies, application traffic can be sent
@@ -65,18 +65,18 @@ The dispatcher currently supports the following transports:
 The dispatcher is written in the Go programming language. To compile it you need
 to install Go:
 
-[https://golang.org/doc/install]
+<https://golang.org/doc/install>
 
 If you just installed Go for the first time, you will need to create a directory
 to keep all of your Go source code:
 
-mkdir ~/go
-export GOPATH=~/go
-cd ~/go
+    mkdir ~/go
+    export GOPATH=~/go
+    cd ~/go
 
-Software written in Go is installed using the "go get" command:
+Software written in Go is installed using the `go get` command:
 
-go get github.com/OperatorFoundation/shapeshifter-dispatcher
+    go get github.com/OperatorFoundation/shapeshifter-dispatcher
 
 This will fetch the source code for shapeshifter-dispatcher, and all the
 dependencies, compile everything, and put the result in
@@ -86,12 +86,12 @@ bin/shapeshifter-dispatcher.
 
 Run without argument to get usage information:
 
-bin/shapeshifter-dispatcher
+    bin/shapeshifter-dispatcher
 
 A minimal configuration requires at least --client, --state, and --transports.
 Example:
 
-bin/shapeshifter-dispatcher --client --state state --transports obfs2
+    bin/shapeshifter-dispatcher --client --state state --transports obfs2
 
 Use either --client or --server to place the proxy into client or server mode,
 respectively. Use --state to specify a directory to put transports state
@@ -118,7 +118,7 @@ Only one proxy mode can be used at a time.
 
 The full set of command line flags is specified in the Pluggable Transport 2.0
 draft 1 specification.
-[http://www.pluggabletransports.info/assets/PTSpecV2Draft1.pdf]
+<http://www.pluggabletransports.info/assets/PTSpecV2Draft1.pdf>
 
 ##### Environment Variables
 
@@ -129,7 +129,7 @@ flags can also be set using environment variables instead.
 
 The full set of environment variables is specified in the Pluggable Transport
 2.0 draft 1 specification.
-[http://www.pluggabletransports.info/assets/PTSpecV2Draft1.pdf]
+<http://www.pluggabletransports.info/assets/PTSpecV2Draft1.pdf>
 
 ### Credits
 
