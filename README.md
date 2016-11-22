@@ -1,96 +1,141 @@
-## obfs4 - The obfourscator
-#### Yawning Angel (yawning at torproject dot org)
+# The Operator Foundation
 
-### What?
+Operator makes useable tools to help people around the world with censorship, security, and privacy.
 
-This is a look-like nothing obfuscation protocol that incorporates ideas and
-concepts from Philipp Winter's ScrambleSuit protocol.  The obfs naming was
-chosen primarily because it was shorter, in terms of protocol ancestery obfs4
-is much closer to ScrambleSuit than obfs2/obfs3.
+## Shapeshifter
 
-The notable differences between ScrambleSuit and obfs4:
+The Shapeshifter project provides network protocol shapeshifting technology
+(also sometimes referred to as obfuscation). The purpose of this technology is
+to change the characteristics of network traffic so that it is not identified
+and subsequently blocked by network filtering devices.
 
- * The handshake always does a full key exchange (no such thing as a Session
-   Ticket Handshake).
- * The handshake uses the Tor Project's ntor handshake with public keys
-   obfuscated via the Elligator 2 mapping.
- * The link layer encryption uses NaCl secret boxes (Poly1305/XSalsa20).
+There are two components to Shapeshifter: transports and the dispatcher. Each
+transport provide different approach to shapeshifting. These transports are
+provided as a Go library which can be integrated directly into applications.
+The dispatcher is a command line tool which provides a proxy that wraps the
+transport library. It has several different proxy modes and can proxy both
+TCP and UDP traffic.
 
-As an added bonus, obfs4proxy also supports acting as an obfs2/3 client and
-bridge to ease the transition to the new protocol.
+If you are a tool developer working in the Go programming language, then you
+probably want to use the transports library directly in your application.
+[https://github.com/OperatorFoundation/shapeshifter-transports]
 
-### Why not extend ScrambleSuit?
+If you want a end user that is trying to circumvent filtering on your network or
+you are a developer that wants to add pluggable transports to an existing tool
+that is not written in the Go programming language, then you probably want the
+dispatcher. Please note that familiarity with executing programs on the command
+line is necessary to use this tool.
+[https://github.com/OperatorFoundation/shapeshifter-dispatcher]
 
-It's my protocol and I'll obfuscate if I want to.
+If you are looking for a complete, easy-to-use VPN that incorporates
+shapeshifting technology and has a graphical user interface, consider
+Moonbounce, an application for macOS which incorporates shapeshifting without
+the need to write code or use the command line.
 
-Since a lot of the changes are to the handshaking process, it didn't make sense
-to extend ScrambleSuit as writing a server implementation that supported both
-handshake variants without being obscenely slow is non-trivial.
+### Shapeshifter Dispatcher
 
-### Dependencies
+This is the repository for the shapeshifter-dispatcher command line proxy tool.
+If you are looking for the transports is provides, they are here:
+[https://github.com/OperatorFoundation/shapeshifter-transports]
 
-Build time library dependencies are handled by go get automatically but are
-listed for clarity.
+The dispatcher implements the Pluggable Transports 2.0 draft 1 specification available here:
+[http://www.pluggabletransports.info/assets/PTSpecV2Draft1.pdf]
 
- * Go 1.2.0 or later.   Prior versions of Go (Eg: 1.0.2) are missing certain
-   important parts of the runtime library like a SHA256 implementation.
- * go.crypto (https://golang.org/x/crypto)
- * go.net (https://golang.org/x/net)
- * ed25519/extra25519 (https://github.com/agl/ed25519/extra25519)
- * SipHash-2-4 (https://github.com/dchest/siphash)
- * goptlib (https://git.torproject.org/pluggable-transports/goptlib.git)
+The purpose of the dispatcher is to provide different proxy interfaces to using
+transports. Through the use of these proxies, application traffic can be sent
+over the network in a shapeshifted form that bypasses network filtering, allowing
+the application to work on networks where it would otherwise be blocked or
+heavily throttled.
 
-### Installation
+The dispatcher currently supports the following proxy modes:
+ * SOCKS5 (with optional PT 1.0 authentication protocol)
+ * Transparent TCP
+ * Transparent UDP
+ * STUN UDP
 
-To build:
-`go get github.com/OperatorFoundation/obfs4/obfs4proxy`
+The dispatcher currently supports the following transports:
+ * meek
+ * obfs4
+ * obfs3
+ * obfs2
+ * scramblesuit
 
-To install:
-Copy `$GOPATH/bin/obfs4proxy` to a permanent location (Eg: `/usr/local/bin`)
+#### Installation
 
-Client side torrc configuration:
-```
-ClientTransportPlugin obfs4 exec /usr/local/bin/obfs4proxy
-```
+The dispatcher is written in the Go programming language. To compile it you need
+to install Go:
 
-Bridge side torrc configuration:
-```
-# Act as a bridge relay.
-BridgeRelay 1
+[https://golang.org/doc/install]
 
-# Enable the Extended ORPort
-ExtORPort auto
+If you just installed Go for the first time, you will need to create a directory
+to keep all of your Go source code:
 
-# Use obfs4proxy to provide the obfs4 protocol.
-ServerTransportPlugin obfs4 exec /usr/local/bin/obfs4proxy
+mkdir ~/go
+export GOPATH=~/go
+cd ~/go
 
-# (Optional) Listen on the specified address/port for obfs4 connections as
-# opposed to picking a port automatically.
-#ServerTransportListenAddr obfs4 0.0.0.0:443
-```
+Software written in Go is installed using the "go get" command:
 
-### Tips and tricks
+go get github.com/OperatorFoundation/shapeshifter-dispatcher
 
- * On modern Linux systems it is possible to have obfs4proxy bind to reserved
-   ports (<=1024) even when not running as root by granting the
-   `CAP_NET_BIND_SERVICE` capability with setcap:
+This will fetch the source code for shapeshifter-dispatcher, and all the
+dependencies, compile everything, and put the result in
+bin/shapeshifter-dispatcher.
 
-   `# setcap 'cap_net_bind_service=+ep' /usr/local/bin/obfs4proxy`
+#### Running
 
- * obfs4proxy can also act as an obfs2 and obfs3 client or server.  Adjust the
-   `ClientTransportPlugin` and `ServerTransportPlugin` lines in the torrc as
-   appropriate.
+Run without argument to get usage information:
 
- * obfs4proxy can also act as a ScrambleSuit client.  Adjust the
-   `ClientTransportPlugin` line in the torrc as appropriate.
+bin/shapeshifter-dispatcher
 
- * The autogenerated obfs4 bridge parameters are placed in
-   `DataDir/pt_state/obfs4_state.json`.  To ease deployment, the client side
-   bridge line is written to `DataDir/pt_state/obfs4_bridgeline.txt`.
+A minimal configuration requires at least --client, --state, and --transports.
+Example:
 
-### Thanks
+bin/shapeshifter-dispatcher --client --state state --transports obfs2
 
- * David Fifield for goptlib.
- * Adam Langley for his Elligator implementation.
- * Philipp Winter for the ScrambleSuit protocol which provided much of the
-   design.
+Use either --client or --server to place the proxy into client or server mode,
+respectively. Use --state to specify a directory to put transports state
+information. Use --transports to specify which transports to launch.
+
+The default proxy mode is SOCKS5 (with optional PT 1.0 authentication protocol),
+which can only proxy SOCKS5-aware TCP connections. For some transports, the
+proxied connection will also need to know how to speak the PT 1.0 authentication
+protocol. This requirement varies by the transport used.
+
+Another TCP proxy mode is available, Transparent TCP, by using the --transparent
+flag. In this mode, the proxy listens on a socket and any data from incoming
+connections is forwarded over the transport.
+
+UDP proxying can be enabled with the --udp flag. The default UDP mode is STUN
+packet proxying. This requires that the application only send STUN packets, so
+works for protocols such as WebRTC, which are based on top of STUN.
+
+Another UDP proxy mode is available, Transparent UDP, by using the --transparent
+flag with the --udp flag. In this mode, the proxy listens on a UDP socket and
+any incoming packets are forwarded over the transport.
+
+Only one proxy mode can be used at a time.
+
+The full set of command line flags is specified in the Pluggable Transport 2.0
+draft 1 specification.
+[http://www.pluggabletransports.info/assets/PTSpecV2Draft1.pdf]
+
+##### Environment Variables
+
+Using command line flags is convenient for testing. However, when launching the
+dispatcher automatically from inside of an application, another option is to
+use environment variables. Most of the functionality specified by command line
+flags can also be set using environment variables instead.
+
+The full set of environment variables is specified in the Pluggable Transport
+2.0 draft 1 specification.
+[http://www.pluggabletransports.info/assets/PTSpecV2Draft1.pdf]
+
+### Credits
+
+shapeshifter-dispatcher is based on the Tor project's "obfs4proxy" tool.
+
+ * Yawning Angel for obfs4proxy
+ * David Fifield for goptlib
+ * Adam Langley for the Go Elligator implementation.
+ * Philipp Winter for the ScrambleSuit protocol.
