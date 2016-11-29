@@ -76,7 +76,7 @@ to keep all of your Go source code:
 
 Software written in Go is installed using the `go get` command:
 
-    go get github.com/OperatorFoundation/shapeshifter-dispatcher
+    go get -u github.com/OperatorFoundation/shapeshifter-dispatcher/shapeshifter-dispatcher
 
 This will fetch the source code for shapeshifter-dispatcher, and all the
 dependencies, compile everything, and put the result in
