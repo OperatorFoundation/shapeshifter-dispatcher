@@ -63,7 +63,7 @@ The dispatcher currently supports the following transports:
 #### Installation
 
 The dispatcher is written in the Go programming language. To compile it you need
-to install Go:
+to install Go 1.5.1 or higher:
 
 <https://golang.org/doc/install>
 
@@ -71,8 +71,18 @@ If you just installed Go for the first time, you will need to create a directory
 to keep all of your Go source code:
 
     mkdir ~/go
-    export GOPATH=~/go
+
+If you already have Go installed, make sure it is a compatible version:
+
+    go version
+
+The version should be 1.5.1 or higher.
+
+If you have a compatible Go installed, you should go to the directory where you
+keep all of your Go source code and set your GOPATH:
+
     cd ~/go
+    export GOPATH=~/go
 
 Software written in Go is installed using the `go get` command:
 
