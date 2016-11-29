@@ -87,7 +87,7 @@ func main() {
 	// PT 2.0 specification, 3.3.1.1. Common Configuration Parameters
 	// FIXME: in the spec, this is -version, which is already used for printing the version number
 	ptversion := flag.String("ptversion", "", "Specify the Pluggable Transport protocol version to use")
-	statePath := flag.String("state", "", "Specify transport server destination address")
+	statePath := flag.String("state", "", "Specify the directory to use to store state information required by the transports")
 	// FIXME: -exit-on-stdin-close
 
 	// NOTE: -transports is parsed as a common command line flag that overrides either TOR_PT_SERVER_TRANSPORTS or TOR_PT_CLIENT_TRANSPORTS
