@@ -78,6 +78,9 @@ If you already have Go installed, make sure it is a compatible version:
 
 The version should be 1.5.1 or higher.
 
+If you get the error "go: command not found", then trying exiting your terminal
+and starting a new one.
+
 If you have a compatible Go installed, you should go to the directory where you
 keep all of your Go source code and set your GOPATH:
 
