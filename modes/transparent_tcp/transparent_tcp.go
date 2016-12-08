@@ -32,7 +32,6 @@ package transparent_tcp
 import (
 	"fmt"
 	"io"
-	golog "log"
 	"net"
 	"net/url"
 	"strconv"
@@ -44,7 +43,6 @@ import (
 	"git.torproject.org/pluggable-transports/goptlib.git"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/base"
 )
 
@@ -148,28 +146,16 @@ func clientHandler(target string, termMon *termmon.TermMonitor, f base.ClientFac
 	return
 }
 
-func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string) (launched bool, listeners []net.Listener) {
-	ptServerInfo, err := pt.ServerSetup(transports.Transports())
-	if err != nil {
-		golog.Fatal(err)
-	}
+func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, factories map[string]base.ServerFactory, ptServerInfo pt.ServerInfo) (launched bool, listeners []net.Listener) {
+	fmt.Println("ServerSetup", bindaddrString, factories, ptServerInfo)
 
-	fmt.Println("ServerSetup")
-
-	bindaddrs, _ := getServerBindaddrs(bindaddrString)
-
-	for _, bindaddr := range bindaddrs {
+	// Launch each of the server listeners.
+	for _, bindaddr := range ptServerInfo.Bindaddrs {
 		name := bindaddr.MethodName
 		fmt.Println("bindaddr", bindaddr)
-		t := transports.Get(name)
-		if t == nil {
+		f := factories[name]
+		if f == nil {
 			fmt.Println(name, "no such transport is supported")
-			continue
-		}
-
-		f, err := t.ServerFactory(stateDir, &bindaddr.Options)
-		if err != nil {
-			fmt.Println(name, err.Error())
 			continue
 		}
 
