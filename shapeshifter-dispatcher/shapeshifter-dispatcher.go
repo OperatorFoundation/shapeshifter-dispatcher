@@ -350,7 +350,7 @@ func getServerFactories(ptversion *string, bindaddrList *string, options *string
 	}
 
 	ptServerInfo = pt.ServerInfo{Bindaddrs: bindaddrs}
-	ptServerInfo.OrAddr, err = resolveAddr(*orport)
+	ptServerInfo.OrAddr, err = pt.ResolveAddr(*orport)
 	if err != nil {
 		fmt.Println("Error resolving OR address", orport, err)
 		return nil, ptServerInfo
@@ -396,7 +396,7 @@ func getServerBindaddrs(bindaddrList *string, options *string, transports *strin
 
 	if serverTransportOptions != "" {
 		fmt.Println(serverTransportOptions)
-		optionsMap, err = args.ParseServerTransportOptions(serverTransportOptions)
+		optionsMap, err = pt.ParseServerTransportOptions(serverTransportOptions)
 		if err != nil {
 			fmt.Println("Error parsing options map")
 			return nil, errors.New(fmt.Sprintf("TOR_PT_SERVER_TRANSPORT_OPTIONS: %q: %s", serverTransportOptions, err.Error()))
