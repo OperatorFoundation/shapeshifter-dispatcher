@@ -30,6 +30,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	golog "log"
@@ -40,10 +41,10 @@ import (
 	"strings"
 	"syscall"
 
-	"git.torproject.org/pluggable-transports/goptlib.git"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
+	"github.com/OperatorFoundation/shapeshifter-ipc"
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/pt_socks5"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/stun_udp"
@@ -97,9 +98,9 @@ func main() {
 	proxy := flag.String("proxy", "", "Specify an HTTP or SOCKS4a proxy that the PT needs to use to reach the Internet")
 
 	// PT 2.0 specification, 3.3.1.3. Pluggable PT Server Environment Variables
-	// FIXME: -options
+	options := flag.String("options", "", "Specify the transport options for the server")
 	bindAddr := flag.String("bindaddr", "", "Specify the bind address for transparent server")
-	// FIXME: -orport
+	orport := flag.String("orport", "", "Specify the address the server should forward traffic to in host:port format")
 	// FIXME: -extorport
 	// FIXME: -authcookie
 
@@ -188,7 +189,8 @@ func main() {
 				if *bindAddr == "" {
 					fmt.Println("%s - transparent mode requires a bindaddr", execName)
 				} else {
-					launched, ptListeners = transparent_tcp.ServerSetup(termMon, *bindAddr)
+					factories, ptServerInfo := getServerFactories(ptversion, bindAddr, options, transportsList, orport)
+					launched, ptListeners = transparent_tcp.ServerSetup(termMon, *bindAddr, factories, ptServerInfo)
 					fmt.Println("launched", launched, ptListeners)
 				}
 			}
@@ -332,4 +334,112 @@ func getClientFactories(ptversion *string, transportsList *string, proxy *string
 	}
 
 	return ptClientProxy, factories
+}
+
+func getServerFactories(ptversion *string, bindaddrList *string, options *string, transportList *string, orport *string) (map[string]base.ServerFactory, pt.ServerInfo) {
+	var ptServerInfo pt.ServerInfo
+	var err error
+	var bindaddrs []pt.Bindaddr
+
+	var factories map[string]base.ServerFactory = make(map[string]base.ServerFactory)
+
+	bindaddrs, err = getServerBindaddrs(bindaddrList, options, transportList)
+	if err != nil {
+		fmt.Println("Error parsing bindaddrs")
+		return nil, ptServerInfo
+	}
+
+	ptServerInfo = pt.ServerInfo{Bindaddrs: bindaddrs}
+	ptServerInfo.OrAddr, err = resolveAddr(*orport)
+	if err != nil {
+		fmt.Println("Error resolving OR address", orport, err)
+		return nil, ptServerInfo
+	}
+
+	for _, bindaddr := range ptServerInfo.Bindaddrs {
+		name := bindaddr.MethodName
+		t := transports.Get(name)
+		if t == nil {
+			pt.SmethodError(name, "no such transport is supported")
+			continue
+		}
+
+		f, err := t.ServerFactory(stateDir, &bindaddr.Options)
+		if err != nil {
+			pt.SmethodError(name, err.Error())
+			continue
+		}
+
+		factories[name] = f
+	}
+
+	return factories, ptServerInfo
+}
+
+// Return an array of Bindaddrs, being the contents of TOR_PT_SERVER_BINDADDR
+// with keys filtered by TOR_PT_SERVER_TRANSPORTS. Transport-specific options
+// from TOR_PT_SERVER_TRANSPORT_OPTIONS are assigned to the Options member.
+func getServerBindaddrs(bindaddrList *string, options *string, transports *string) ([]pt.Bindaddr, error) {
+	var result []pt.Bindaddr
+	var serverTransportOptions string
+	var serverBindaddr string
+	var serverTransports string
+	var optionsMap map[string]pt.Args
+	var err error
+
+	// Parse the list of server transport options.
+	if options == nil {
+		serverTransportOptions = pt.Getenv("TOR_PT_SERVER_TRANSPORT_OPTIONS")
+	} else {
+		serverTransportOptions = *options
+	}
+
+	if serverTransportOptions != "" {
+		fmt.Println(serverTransportOptions)
+		optionsMap, err = args.ParseServerTransportOptions(serverTransportOptions)
+		if err != nil {
+			fmt.Println("Error parsing options map")
+			return nil, errors.New(fmt.Sprintf("TOR_PT_SERVER_TRANSPORT_OPTIONS: %q: %s", serverTransportOptions, err.Error()))
+		}
+	}
+
+	// Get the list of all requested bindaddrs.
+	if bindaddrList == nil {
+		serverBindaddr, err = pt.GetenvRequired("TOR_PT_SERVER_BINDADDR")
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		serverBindaddr = *bindaddrList
+	}
+	for _, spec := range strings.Split(serverBindaddr, ",") {
+		fmt.Println(spec)
+		var bindaddr pt.Bindaddr
+
+		parts := strings.SplitN(spec, "-", 2)
+		if len(parts) != 2 {
+			return nil, errors.New(fmt.Sprintf("TOR_PT_SERVER_BINDADDR: %q: doesn't contain \"-\"", spec))
+		}
+		bindaddr.MethodName = parts[0]
+		addr, err := pt.ResolveAddr(parts[1])
+		if err != nil {
+			return nil, errors.New(fmt.Sprintf("TOR_PT_SERVER_BINDADDR: %q: %s", spec, err.Error()))
+		}
+		bindaddr.Addr = addr
+		bindaddr.Options = optionsMap[bindaddr.MethodName]
+		result = append(result, bindaddr)
+	}
+
+	// Filter by TOR_PT_SERVER_TRANSPORTS.
+	if transports == nil {
+		serverTransports, err = pt.GetenvRequired("TOR_PT_SERVER_TRANSPORTS")
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		serverTransports = *transports
+	}
+	result = pt.FilterBindaddrs(result, strings.Split(serverTransports, ","))
+
+	return result, nil
 }
