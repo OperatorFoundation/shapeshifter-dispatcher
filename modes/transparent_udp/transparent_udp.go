@@ -42,7 +42,7 @@ import (
 
 	"golang.org/x/net/proxy"
 
-	"git.torproject.org/pluggable-transports/goptlib.git"
+	"github.com/OperatorFoundation/shapeshifter-ipc"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"

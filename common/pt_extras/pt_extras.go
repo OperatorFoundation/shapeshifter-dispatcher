@@ -35,7 +35,7 @@ import (
 	"os"
 	"strconv"
 
-	"git.torproject.org/pluggable-transports/goptlib.git"
+	"github.com/OperatorFoundation/shapeshifter-ipc"
 )
 
 // This file contains things that probably should be in goptlib but are not
