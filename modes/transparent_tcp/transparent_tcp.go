@@ -34,15 +34,14 @@ import (
 	"io"
 	"net"
 	"net/url"
-	"strconv"
 	"strings"
 	"sync"
 
 	"golang.org/x/net/proxy"
 
-	"github.com/OperatorFoundation/shapeshifter-ipc"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
+	"github.com/OperatorFoundation/shapeshifter-ipc"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/base"
 )
 
@@ -188,7 +187,7 @@ func getServerBindaddrs(serverBindaddr string) ([]pt.Bindaddr, error) {
 			return nil, nil
 		}
 		bindaddr.MethodName = parts[0]
-		addr, err := resolveAddr(parts[1])
+		addr, err := pt.ResolveAddr(parts[1])
 		if err != nil {
 			fmt.Println("TOR_PT_SERVER_BINDADDR: ", spec, err.Error())
 			return nil, nil
@@ -199,47 +198,6 @@ func getServerBindaddrs(serverBindaddr string) ([]pt.Bindaddr, error) {
 	}
 
 	return result, nil
-}
-
-// Resolve an address string into a net.TCPAddr. We are a bit more strict than
-// net.ResolveTCPAddr; we don't allow an empty host or port, and the host part
-// must be a literal IP address.
-func resolveAddr(addrStr string) (*net.TCPAddr, error) {
-	ipStr, portStr, err := net.SplitHostPort(addrStr)
-	if err != nil {
-		// Before the fixing of bug #7011, tor doesn't put brackets around IPv6
-		// addresses. Split after the last colon, assuming it is a port
-		// separator, and try adding the brackets.
-		parts := strings.Split(addrStr, ":")
-		if len(parts) <= 2 {
-			return nil, err
-		}
-		addrStr := "[" + strings.Join(parts[:len(parts)-1], ":") + "]:" + parts[len(parts)-1]
-		ipStr, portStr, err = net.SplitHostPort(addrStr)
-	}
-	if err != nil {
-		return nil, err
-	}
-	if ipStr == "" {
-		return nil, net.InvalidAddrError(fmt.Sprintf("address string %q lacks a host part", addrStr))
-	}
-	if portStr == "" {
-		return nil, net.InvalidAddrError(fmt.Sprintf("address string %q lacks a port part", addrStr))
-	}
-	ip := net.ParseIP(ipStr)
-	if ip == nil {
-		return nil, net.InvalidAddrError(fmt.Sprintf("not an IP string: %q", ipStr))
-	}
-	port, err := parsePort(portStr)
-	if err != nil {
-		return nil, err
-	}
-	return &net.TCPAddr{IP: ip, Port: port}, nil
-}
-
-func parsePort(portStr string) (int, error) {
-	port, err := strconv.ParseUint(portStr, 10, 16)
-	return int(port), err
 }
 
 func serverAcceptLoop(termMon *termmon.TermMonitor, f base.ServerFactory, ln net.Listener, info *pt.ServerInfo) error {
