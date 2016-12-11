@@ -37,8 +37,6 @@ import (
 	"strings"
 	"sync"
 
-	"golang.org/x/net/proxy"
-
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
@@ -61,7 +59,7 @@ func ClientSetup(termMon *termmon.TermMonitor, target string, ptClientProxy *url
 			continue
 		}
 
-		go clientAcceptLoop(target, termMon, f, ln, ptClientProxy)
+		go clientAcceptLoop(target, termMon, name, f, ln, ptClientProxy)
 
 		log.Infof("%s - registered listener: %s", name, ln.Addr())
 
@@ -72,7 +70,7 @@ func ClientSetup(termMon *termmon.TermMonitor, target string, ptClientProxy *url
 	return
 }
 
-func clientAcceptLoop(target string, termMon *termmon.TermMonitor, f base.ClientFactory, ln net.Listener, proxyURI *url.URL) error {
+func clientAcceptLoop(target string, termMon *termmon.TermMonitor, name string, f base.ClientFactory, ln net.Listener, proxyURI *url.URL) error {
 	defer ln.Close()
 	for {
 		conn, err := ln.Accept()
@@ -83,58 +81,58 @@ func clientAcceptLoop(target string, termMon *termmon.TermMonitor, f base.Client
 			}
 			continue
 		}
-		go clientHandler(target, termMon, f, conn, proxyURI)
+		go clientHandler(target, termMon, name, f, conn, proxyURI)
 	}
 }
 
-func clientHandler(target string, termMon *termmon.TermMonitor, f base.ClientFactory, conn net.Conn, proxyURI *url.URL) {
+func clientHandler(target string, termMon *termmon.TermMonitor, name string, f base.ClientFactory, conn net.Conn, proxyURI *url.URL) {
 	defer conn.Close()
 	termMon.OnHandlerStart()
 	defer termMon.OnHandlerFinish()
 
 	fmt.Println("handling...")
 
-	name := f.Transport().Name()
-
 	fmt.Println("Transport is", name)
 
 	// Deal with arguments.
-	args, err := f.ParseArgs(&pt.Args{})
-	if err != nil {
-		fmt.Println("Invalid arguments")
-		log.Errorf("%s(%s) - invalid arguments: %s", name, target, err)
-		return
-	}
+	// FIXME - deal with args for transports that have args
+	// args, err := f.ParseArgs(&pt.Args{})
+	// if err != nil {
+	// 	fmt.Println("Invalid arguments")
+	// 	log.Errorf("%s(%s) - invalid arguments: %s", name, target, err)
+	// 	return
+	// }
 
 	fmt.Println("Making dialer...")
 
 	// Obtain the proxy dialer if any, and create the outgoing TCP connection.
-	dialFn := proxy.Direct.Dial
-	if proxyURI != nil {
-		dialer, err := proxy.FromURL(proxyURI, proxy.Direct)
-		if err != nil {
-			// This should basically never happen, since config protocol
-			// verifies this.
-			fmt.Println("failed to obtain dialer", proxyURI, proxy.Direct)
-			log.Errorf("%s(%s) - failed to obtain proxy dialer: %s", name, target, log.ElideError(err))
-			return
-		}
-		dialFn = dialer.Dial
-	}
+	// dialFn := proxy.Direct.Dial
+	// if proxyURI != nil {
+	// 	dialer, err := proxy.FromURL(proxyURI, proxy.Direct)
+	// 	if err != nil {
+	// 		// This should basically never happen, since config protocol
+	// 		// verifies this.
+	// 		fmt.Println("failed to obtain dialer", proxyURI, proxy.Direct)
+	// 		log.Errorf("%s(%s) - failed to obtain proxy dialer: %s", name, target, log.ElideError(err))
+	// 		return
+	// 	}
+	// 	dialFn = dialer.Dial
+	// }
 
 	fmt.Println("Dialing...")
 
-	remote, err := f.Dial("tcp", target, dialFn, args)
-	if err != nil {
-		fmt.Println("outgoing connection failed")
-		log.Errorf("%s(%s) - outgoing connection failed: %s", name, target, log.ElideError(err))
-		return
-	}
+	// FIXME - use dialFn if a proxy is needed to connect to the network
+	remote := f(target)
+	// if err != nil {
+	// 	fmt.Println("outgoing connection failed")
+	// 	log.Errorf("%s(%s) - outgoing connection failed: %s", name, target, log.ElideError(err))
+	// 	return
+	// }
 	defer remote.Close()
 
 	fmt.Println("copying...")
 
-	if err = copyLoop(conn, remote); err != nil {
+	if err := copyLoop(conn, remote); err != nil {
 		log.Warnf("%s(%s) - closed connection: %s", name, target, log.ElideError(err))
 	} else {
 		log.Infof("%s(%s) - closed connection", name, target)
@@ -145,7 +143,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, f base.ClientFac
 	return
 }
 
-func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, factories map[string]base.ServerFactory, ptServerInfo pt.ServerInfo) (launched bool, listeners []net.Listener) {
+func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, factories map[string]base.ServerFactory, ptServerInfo pt.ServerInfo) (launched bool, listeners []base.TransportListener) {
 	fmt.Println("ServerSetup", bindaddrString, factories, ptServerInfo)
 
 	// Launch each of the server listeners.
@@ -158,17 +156,13 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, factories 
 			continue
 		}
 
-		ln, err := net.ListenTCP("tcp", bindaddr.Addr)
-		if err != nil {
-			fmt.Println(name, err.Error())
-			continue
-		}
+		transportLn := f(bindaddr.Addr.String())
 
-		go serverAcceptLoop(termMon, f, ln, &ptServerInfo)
+		go serverAcceptLoop(termMon, name, transportLn, &ptServerInfo)
 
-		log.Infof("%s - registered listener: %s", name, log.ElideAddr(ln.Addr().String()))
+		log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
 
-		listeners = append(listeners, ln)
+		listeners = append(listeners, transportLn)
 		launched = true
 	}
 
@@ -200,10 +194,10 @@ func getServerBindaddrs(serverBindaddr string) ([]pt.Bindaddr, error) {
 	return result, nil
 }
 
-func serverAcceptLoop(termMon *termmon.TermMonitor, f base.ServerFactory, ln net.Listener, info *pt.ServerInfo) error {
+func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln base.TransportListener, info *pt.ServerInfo) error {
 	defer ln.Close()
 	for {
-		conn, err := ln.Accept()
+		conn, err := ln.TransportAccept()
 		fmt.Println("accepted")
 		if err != nil {
 			if e, ok := err.(net.Error); ok && !e.Temporary() {
@@ -211,32 +205,23 @@ func serverAcceptLoop(termMon *termmon.TermMonitor, f base.ServerFactory, ln net
 			}
 			continue
 		}
-		go serverHandler(termMon, f, conn, info)
+		go serverHandler(termMon, name, conn, info)
 	}
 }
 
-func serverHandler(termMon *termmon.TermMonitor, f base.ServerFactory, conn net.Conn, info *pt.ServerInfo) {
-	defer conn.Close()
+func serverHandler(termMon *termmon.TermMonitor, name string, remote base.TransportConn, info *pt.ServerInfo) {
+	defer remote.NetworkConn().Close()
 	termMon.OnHandlerStart()
 	defer termMon.OnHandlerFinish()
 
-	name := f.Transport().Name()
-	addrStr := log.ElideAddr(conn.RemoteAddr().String())
+	addrStr := log.ElideAddr(remote.NetworkConn().RemoteAddr().String())
 	fmt.Println("handling", name)
 	log.Infof("%s(%s) - new connection", name, addrStr)
 
-	// Instantiate the server transport method and handshake.
-	remote, err := f.WrapConn(conn)
-	if err != nil {
-		fmt.Println("handshake failed")
-		log.Warnf("%s(%s) - handshake failed: %s", name, addrStr, log.ElideError(err))
-		return
-	}
-
 	// Connect to the orport.
-	orConn, err := pt.DialOr(info, conn.RemoteAddr().String(), name)
+	orConn, err := pt.DialOr(info, remote.NetworkConn().RemoteAddr().String(), name)
 	if err != nil {
-		fmt.Println("OR conn failed", info, conn.RemoteAddr(), name)
+		fmt.Println("OR conn failed", info, remote.NetworkConn().RemoteAddr(), name)
 		log.Errorf("%s(%s) - failed to connect to ORPort: %s", name, addrStr, log.ElideError(err))
 		return
 	}
