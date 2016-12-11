@@ -46,10 +46,10 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
 
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/pt_socks5"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/stun_udp"
+	//	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/pt_socks5"
+	//	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/stun_udp"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/transparent_tcp"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/transparent_udp"
+	//	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/transparent_udp"
 
 	_ "github.com/OperatorFoundation/obfs4/proxy_dialers/proxy_http"
 	_ "github.com/OperatorFoundation/obfs4/proxy_dialers/proxy_socks4"
@@ -128,7 +128,8 @@ func main() {
 	}
 
 	// Determine if this is a client or server, initialize the common state.
-	var ptListeners []net.Listener
+	var clientListeners []net.Listener
+	var serverListeners []base.TransportListener
 	launched := false
 	isClient, err := checkIsClient(*clientMode, *serverMode)
 	if err != nil {
@@ -154,26 +155,26 @@ func main() {
 		// Do the transparent proxy configuration.
 		log.Infof("%s - initializing transparent proxy", execName)
 		if *udp {
-			log.Infof("%s - initializing UDP transparent proxy", execName)
-			if isClient {
-				log.Infof("%s - initializing client transport listeners", execName)
-				if *target == "" {
-					log.Errorf("%s - transparent mode requires a target", execName)
-				} else {
-					fmt.Println("transparent udp client")
-					factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
-					launched = transparent_udp.ClientSetup(termMon, *target, factories, ptClientProxy)
-				}
-			} else {
-				log.Infof("%s - initializing server transport listeners", execName)
-				if *bindAddr == "" {
-					fmt.Println("%s - transparent mode requires a bindaddr", execName)
-				} else {
-					fmt.Println("transparent udp server")
-					launched = transparent_udp.ServerSetup(termMon, *bindAddr, *target)
-					fmt.Println("launched", launched, ptListeners)
-				}
-			}
+			// log.Infof("%s - initializing UDP transparent proxy", execName)
+			// if isClient {
+			// 	log.Infof("%s - initializing client transport listeners", execName)
+			// 	if *target == "" {
+			// 		log.Errorf("%s - transparent mode requires a target", execName)
+			// 	} else {
+			// 		fmt.Println("transparent udp client")
+			// 		factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
+			// 		launched = transparent_udp.ClientSetup(termMon, *target, factories, ptClientProxy)
+			// 	}
+			// } else {
+			// 	log.Infof("%s - initializing server transport listeners", execName)
+			// 	if *bindAddr == "" {
+			// 		fmt.Println("%s - transparent mode requires a bindaddr", execName)
+			// 	} else {
+			// 		fmt.Println("transparent udp server")
+			// 		launched = transparent_udp.ServerSetup(termMon, *bindAddr, *target)
+			// 		fmt.Println("launched", launched, ptListeners)
+			// 	}
+			// }
 		} else {
 			log.Infof("%s - initializing TCP transparent proxy", execName)
 			if isClient {
@@ -182,7 +183,7 @@ func main() {
 					log.Errorf("%s - transparent mode requires a target", execName)
 				} else {
 					factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
-					launched, ptListeners = transparent_tcp.ClientSetup(termMon, *target, factories, ptClientProxy)
+					launched, clientListeners = transparent_tcp.ClientSetup(termMon, *target, factories, ptClientProxy)
 				}
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
@@ -190,45 +191,45 @@ func main() {
 					fmt.Println("%s - transparent mode requires a bindaddr", execName)
 				} else {
 					factories, ptServerInfo := getServerFactories(ptversion, bindAddr, options, transportsList, orport)
-					launched, ptListeners = transparent_tcp.ServerSetup(termMon, *bindAddr, factories, ptServerInfo)
-					fmt.Println("launched", launched, ptListeners)
+					launched, serverListeners = transparent_tcp.ServerSetup(termMon, *bindAddr, factories, ptServerInfo)
+					fmt.Println("launched", launched, serverListeners)
 				}
 			}
 		}
 	} else {
-		if *udp {
-			log.Infof("%s - initializing STUN UDP proxy", execName)
-			if isClient {
-				log.Infof("%s - initializing client transport listeners", execName)
-				if *target == "" {
-					log.Errorf("%s - STUN mode requires a target", execName)
-				} else {
-					fmt.Println("STUN udp client")
-					factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
-					launched = stun_udp.ClientSetup(termMon, *target, factories, ptClientProxy)
-				}
-			} else {
-				log.Infof("%s - initializing server transport listeners", execName)
-				if *bindAddr == "" {
-					fmt.Println("%s - STUN mode requires a bindaddr", execName)
-				} else {
-					fmt.Println("STUN udp server")
-					launched = stun_udp.ServerSetup(termMon, *bindAddr, *target)
-					fmt.Println("launched", launched, ptListeners)
-				}
-			}
-		} else {
-			// Do the managed pluggable transport protocol configuration.
-			log.Infof("%s - initializing PT 1.0 proxy", execName)
-			if isClient {
-				log.Infof("%s - initializing client transport listeners", execName)
-				factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
-				launched, ptListeners = pt_socks5.ClientSetup(termMon, factories, ptClientProxy)
-			} else {
-				log.Infof("%s - initializing server transport listeners", execName)
-				launched, ptListeners = pt_socks5.ServerSetup(termMon)
-			}
-		}
+		// if *udp {
+		// 	log.Infof("%s - initializing STUN UDP proxy", execName)
+		// 	if isClient {
+		// 		log.Infof("%s - initializing client transport listeners", execName)
+		// 		if *target == "" {
+		// 			log.Errorf("%s - STUN mode requires a target", execName)
+		// 		} else {
+		// 			fmt.Println("STUN udp client")
+		// 			factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
+		// 			launched = stun_udp.ClientSetup(termMon, *target, factories, ptClientProxy)
+		// 		}
+		// 	} else {
+		// 		log.Infof("%s - initializing server transport listeners", execName)
+		// 		if *bindAddr == "" {
+		// 			fmt.Println("%s - STUN mode requires a bindaddr", execName)
+		// 		} else {
+		// 			fmt.Println("STUN udp server")
+		// 			launched = stun_udp.ServerSetup(termMon, *bindAddr, *target)
+		// 			fmt.Println("launched", launched, ptListeners)
+		// 		}
+		// 	}
+		// } else {
+		// 	// Do the managed pluggable transport protocol configuration.
+		// 	log.Infof("%s - initializing PT 1.0 proxy", execName)
+		// 	if isClient {
+		// 		log.Infof("%s - initializing client transport listeners", execName)
+		// 		factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
+		// 		launched, ptListeners = pt_socks5.ClientSetup(termMon, factories, ptClientProxy)
+		// 	} else {
+		// 		log.Infof("%s - initializing server transport listeners", execName)
+		// 		launched, ptListeners = pt_socks5.ServerSetup(termMon)
+		// 	}
+		// }
 	}
 
 	if !launched {
@@ -255,7 +256,11 @@ func main() {
 	// Ok, it was the first SIGINT, close all listeners, and wait till,
 	// the parent dies, all the current connections are closed, or either
 	// a SIGINT/SIGTERM is received, and exit.
-	for _, ln := range ptListeners {
+	for _, ln := range clientListeners {
+		ln.Close()
+	}
+
+	for _, ln := range serverListeners {
 		ln.Close()
 	}
 
@@ -324,7 +329,8 @@ func getClientFactories(ptversion *string, transportsList *string, proxy *string
 			continue
 		}
 
-		f, err := t.ClientFactory(stateDir)
+		// FIXME - stateDir parameter must be moved to transport initializer
+		f := t.Dial
 		if err != nil {
 			pt.CmethodError(name, "failed to get ClientFactory")
 			continue
@@ -364,7 +370,8 @@ func getServerFactories(ptversion *string, bindaddrList *string, options *string
 			continue
 		}
 
-		f, err := t.ServerFactory(stateDir, &bindaddr.Options)
+		// FIXME - stateDir and &bindaddr.Options must be moved to transport initializer
+		f := t.Listen
 		if err != nil {
 			pt.SmethodError(name, err.Error())
 			continue
