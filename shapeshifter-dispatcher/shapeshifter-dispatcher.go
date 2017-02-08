@@ -49,8 +49,9 @@ import (
 	//	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/pt_socks5"
 	//	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/stun_udp"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/transparent_tcp"
-	//	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/transparent_udp"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/transparent_udp"
 
+	"github.com/OperatorFoundation/obfs4/modes/stun_udp"
 	_ "github.com/OperatorFoundation/obfs4/proxy_dialers/proxy_http"
 	_ "github.com/OperatorFoundation/obfs4/proxy_dialers/proxy_socks4"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
@@ -155,26 +156,30 @@ func main() {
 		// Do the transparent proxy configuration.
 		log.Infof("%s - initializing transparent proxy", execName)
 		if *udp {
-			// log.Infof("%s - initializing UDP transparent proxy", execName)
-			// if isClient {
-			// 	log.Infof("%s - initializing client transport listeners", execName)
-			// 	if *target == "" {
-			// 		log.Errorf("%s - transparent mode requires a target", execName)
-			// 	} else {
-			// 		fmt.Println("transparent udp client")
-			// 		factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
-			// 		launched = transparent_udp.ClientSetup(termMon, *target, factories, ptClientProxy)
-			// 	}
-			// } else {
-			// 	log.Infof("%s - initializing server transport listeners", execName)
-			// 	if *bindAddr == "" {
-			// 		fmt.Println("%s - transparent mode requires a bindaddr", execName)
-			// 	} else {
-			// 		fmt.Println("transparent udp server")
-			// 		launched = transparent_udp.ServerSetup(termMon, *bindAddr, *target)
-			// 		fmt.Println("launched", launched, ptListeners)
-			// 	}
-			// }
+			log.Infof("%s - initializing UDP transparent proxy", execName)
+			if isClient {
+				log.Infof("%s - initializing client transport listeners", execName)
+				if *target == "" {
+					log.Errorf("%s - transparent mode requires a target", execName)
+				} else {
+					fmt.Println("transparent udp client")
+					factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
+					launched = transparent_udp.ClientSetup(termMon, *target, factories, ptClientProxy)
+				}
+			} else {
+				log.Infof("%s - initializing server transport listeners", execName)
+				if *bindAddr == "" {
+					fmt.Println("%s - transparent mode requires a bindaddr", execName)
+				} else {
+					fmt.Println("transparent udp server")
+					// launched = transparent_udp.ServerSetup(termMon, *bindAddr, *target)
+					// fmt.Println("launched", launched, ptListeners)
+
+					factories, ptServerInfo := getServerFactories(ptversion, bindAddr, options, transportsList, orport)
+					launched, serverListeners = transparent_udp.ServerSetup(termMon, *bindAddr, factories, ptServerInfo)
+					fmt.Println("launched", launched, serverListeners)
+				}
+			}
 		} else {
 			log.Infof("%s - initializing TCP transparent proxy", execName)
 			if isClient {
@@ -197,39 +202,42 @@ func main() {
 			}
 		}
 	} else {
-		// if *udp {
-		// 	log.Infof("%s - initializing STUN UDP proxy", execName)
-		// 	if isClient {
-		// 		log.Infof("%s - initializing client transport listeners", execName)
-		// 		if *target == "" {
-		// 			log.Errorf("%s - STUN mode requires a target", execName)
-		// 		} else {
-		// 			fmt.Println("STUN udp client")
-		// 			factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
-		// 			launched = stun_udp.ClientSetup(termMon, *target, factories, ptClientProxy)
-		// 		}
-		// 	} else {
-		// 		log.Infof("%s - initializing server transport listeners", execName)
-		// 		if *bindAddr == "" {
-		// 			fmt.Println("%s - STUN mode requires a bindaddr", execName)
-		// 		} else {
-		// 			fmt.Println("STUN udp server")
-		// 			launched = stun_udp.ServerSetup(termMon, *bindAddr, *target)
-		// 			fmt.Println("launched", launched, ptListeners)
-		// 		}
-		// 	}
-		// } else {
-		// 	// Do the managed pluggable transport protocol configuration.
-		// 	log.Infof("%s - initializing PT 1.0 proxy", execName)
-		// 	if isClient {
-		// 		log.Infof("%s - initializing client transport listeners", execName)
-		// 		factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
-		// 		launched, ptListeners = pt_socks5.ClientSetup(termMon, factories, ptClientProxy)
-		// 	} else {
-		// 		log.Infof("%s - initializing server transport listeners", execName)
-		// 		launched, ptListeners = pt_socks5.ServerSetup(termMon)
-		// 	}
-		// }
+		if *udp {
+			log.Infof("%s - initializing STUN UDP proxy", execName)
+			if isClient {
+				log.Infof("%s - initializing client transport listeners", execName)
+				if *target == "" {
+					log.Errorf("%s - STUN mode requires a target", execName)
+				} else {
+					fmt.Println("STUN udp client")
+					factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
+					launched = stun_udp.ClientSetup(termMon, *target, factories, ptClientProxy)
+				}
+			} else {
+				log.Infof("%s - initializing server transport listeners", execName)
+				if *bindAddr == "" {
+					fmt.Println("%s - STUN mode requires a bindaddr", execName)
+				} else {
+					fmt.Println("STUN udp server")
+					factories, ptServerInfo := getServerFactories(ptversion, bindAddr, options, transportsList, orport)
+					launched, serverListeners = stun_udp.ServerSetup(termMon, *bindAddr, factories, ptServerInfo)
+					fmt.Println("launched", launched, serverListeners)
+				}
+			}
+		} else {
+			// Do the managed pluggable transport protocol configuration.
+			log.Infof("%s - initializing PT 1.0 proxy", execName)
+			if isClient {
+				log.Infof("%s - initializing client transport listeners", execName)
+				factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
+				launched, clientListeners = transparent_tcp.ClientSetup(termMon, *target, factories, ptClientProxy)
+			} else {
+				log.Infof("%s - initializing server transport listeners", execName)
+				factories, ptServerInfo := getServerFactories(ptversion, bindAddr, options, transportsList, orport)
+				launched, serverListeners = transparent_tcp.ServerSetup(termMon, *bindAddr, factories, ptServerInfo)
+				fmt.Println("launched", launched, serverListeners)
+			}
+		}
 	}
 
 	if !launched {

@@ -32,18 +32,14 @@ package pt_socks5
 import (
 	"fmt"
 	"io"
-	golog "log"
 	"net"
 	"net/url"
 	"sync"
 
-	"golang.org/x/net/proxy"
-
-	"github.com/OperatorFoundation/shapeshifter-ipc"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
+	"github.com/OperatorFoundation/shapeshifter-ipc"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/base"
 )
 
@@ -53,7 +49,7 @@ const (
 
 var stateDir string
 
-func ClientSetup(termMon *termmon.TermMonitor, ptClientProxy *url.URL, factories map[string]base.ClientFactory) (launched bool, listeners []net.Listener) {
+func ClientSetup(termMon *termmon.TermMonitor, target string, ptClientProxy *url.URL, factories map[string]base.ClientFactory) (launched bool, listeners []net.Listener) {
 	// Launch each of the client listeners.
 	for name, f := range factories {
 		ln, err := net.Listen("tcp", socksAddr)
@@ -62,7 +58,7 @@ func ClientSetup(termMon *termmon.TermMonitor, ptClientProxy *url.URL, factories
 			continue
 		}
 
-		go clientAcceptLoop(termMon, f, ln, ptClientProxy)
+		go clientAcceptLoop(target, termMon, name, f, ln, ptClientProxy)
 		pt.Cmethod(name, socks5.Version(), ln.Addr())
 
 		log.Infof("%s - registered listener: %s", name, ln.Addr())
@@ -75,7 +71,7 @@ func ClientSetup(termMon *termmon.TermMonitor, ptClientProxy *url.URL, factories
 	return
 }
 
-func clientAcceptLoop(termMon *termmon.TermMonitor, f base.ClientFactory, ln net.Listener, proxyURI *url.URL) error {
+func clientAcceptLoop(target string, termMon *termmon.TermMonitor, name string, f base.ClientFactory, ln net.Listener, proxyURI *url.URL) error {
 	defer ln.Close()
 	for {
 		conn, err := ln.Accept()
@@ -85,16 +81,14 @@ func clientAcceptLoop(termMon *termmon.TermMonitor, f base.ClientFactory, ln net
 			}
 			continue
 		}
-		go clientHandler(termMon, f, conn, proxyURI)
+		go clientHandler(target, termMon, name, f, conn, proxyURI)
 	}
 }
 
-func clientHandler(termMon *termmon.TermMonitor, f base.ClientFactory, conn net.Conn, proxyURI *url.URL) {
+func clientHandler(target string, termMon *termmon.TermMonitor, name string, f base.ClientFactory, conn net.Conn, proxyURI *url.URL) {
 	defer conn.Close()
 	termMon.OnHandlerStart()
 	defer termMon.OnHandlerFinish()
-
-	name := f.Transport().Name()
 
 	// Read the client's SOCKS handshake.
 	socksReq, err := socks5.Handshake(conn)
@@ -105,30 +99,30 @@ func clientHandler(termMon *termmon.TermMonitor, f base.ClientFactory, conn net.
 	addrStr := log.ElideAddr(socksReq.Target)
 
 	// Deal with arguments.
-	args, err := f.ParseArgs(&socksReq.Args)
-	if err != nil {
-		log.Errorf("%s(%s) - invalid arguments: %s", name, addrStr, err)
-		socksReq.Reply(socks5.ReplyGeneralFailure)
-		return
-	}
+	// args, err := f.ParseArgs(&socksReq.Args)
+	// if err != nil {
+	// 	log.Errorf("%s(%s) - invalid arguments: %s", name, addrStr, err)
+	// 	socksReq.Reply(socks5.ReplyGeneralFailure)
+	// 	return
+	// }
 
 	// Obtain the proxy dialer if any, and create the outgoing TCP connection.
-	dialFn := proxy.Direct.Dial
-	if proxyURI != nil {
-		dialer, err := proxy.FromURL(proxyURI, proxy.Direct)
-		if err != nil {
-			// This should basically never happen, since config protocol
-			// verifies this.
-			log.Errorf("%s(%s) - failed to obtain proxy dialer: %s", name, addrStr, log.ElideError(err))
-			socksReq.Reply(socks5.ReplyGeneralFailure)
-			return
-		}
-		dialFn = dialer.Dial
-	}
+	// dialFn := proxy.Direct.Dial
+	// if proxyURI != nil {
+	// 	dialer, err := proxy.FromURL(proxyURI, proxy.Direct)
+	// 	if err != nil {
+	// 		// This should basically never happen, since config protocol
+	// 		// verifies this.
+	// 		log.Errorf("%s(%s) - failed to obtain proxy dialer: %s", name, addrStr, log.ElideError(err))
+	// 		socksReq.Reply(socks5.ReplyGeneralFailure)
+	// 		return
+	// 	}
+	// 	dialFn = dialer.Dial
+	// }
+	//
+	// fmt.Println("Got dialer", dialFn, proxyURI, proxy.Direct)
 
-	fmt.Println("Got dialer", dialFn, proxyURI, proxy.Direct)
-
-	remote, err := f.Dial("tcp", socksReq.Target, dialFn, args)
+	remote := f(socksReq.Target)
 	if err != nil {
 		log.Errorf("%s(%s) - outgoing connection failed: %s", name, addrStr, log.ElideError(err))
 		socksReq.Reply(socks5.ErrorToReplyCode(err))
@@ -150,42 +144,28 @@ func clientHandler(termMon *termmon.TermMonitor, f base.ClientFactory, conn net.
 	return
 }
 
-func ServerSetup(termMon *termmon.TermMonitor) (launched bool, listeners []net.Listener) {
-	ptServerInfo, err := pt.ServerSetup(transports.Transports())
-	if err != nil {
-		golog.Fatal(err)
-	}
-
+func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, factories map[string]base.ServerFactory, ptServerInfo pt.ServerInfo) (launched bool, listeners []base.TransportListener) {
 	for _, bindaddr := range ptServerInfo.Bindaddrs {
 		name := bindaddr.MethodName
-		t := transports.Get(name)
-		if t == nil {
-			pt.SmethodError(name, "no such transport is supported")
+		f := factories[name]
+		if f == nil {
+			fmt.Println(name, "no such transport is supported")
 			continue
 		}
 
-		f, err := t.ServerFactory(stateDir, &bindaddr.Options)
-		if err != nil {
-			pt.SmethodError(name, err.Error())
-			continue
-		}
+		transportLn := f(bindaddr.Addr.String())
 
-		ln, err := net.ListenTCP("tcp", bindaddr.Addr)
-		if err != nil {
-			pt.SmethodError(name, err.Error())
-			continue
-		}
+		go serverAcceptLoop(termMon, name, transportLn, &ptServerInfo)
 
-		go serverAcceptLoop(termMon, f, ln, &ptServerInfo)
-		if args := f.Args(); args != nil {
-			pt.SmethodArgs(name, ln.Addr(), *args)
-		} else {
-			pt.SmethodArgs(name, ln.Addr(), nil)
-		}
+		// if args := f.Args(); args != nil {
+		// 	pt.SmethodArgs(name, ln.Addr(), *args)
+		// } else {
+		// 	pt.SmethodArgs(name, ln.Addr(), nil)
+		// }
 
-		log.Infof("%s - registered listener: %s", name, log.ElideAddr(ln.Addr().String()))
+		log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
 
-		listeners = append(listeners, ln)
+		listeners = append(listeners, transportLn)
 		launched = true
 	}
 	pt.SmethodsDone()
@@ -193,38 +173,30 @@ func ServerSetup(termMon *termmon.TermMonitor) (launched bool, listeners []net.L
 	return
 }
 
-func serverAcceptLoop(termMon *termmon.TermMonitor, f base.ServerFactory, ln net.Listener, info *pt.ServerInfo) error {
+func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln base.TransportListener, info *pt.ServerInfo) error {
 	defer ln.Close()
 	for {
-		conn, err := ln.Accept()
+		conn, err := ln.TransportAccept()
 		if err != nil {
 			if e, ok := err.(net.Error); ok && !e.Temporary() {
 				return err
 			}
 			continue
 		}
-		go serverHandler(termMon, f, conn, info)
+		go serverHandler(termMon, name, conn, info)
 	}
 }
 
-func serverHandler(termMon *termmon.TermMonitor, f base.ServerFactory, conn net.Conn, info *pt.ServerInfo) {
-	defer conn.Close()
+func serverHandler(termMon *termmon.TermMonitor, name string, remote base.TransportConn, info *pt.ServerInfo) {
+	defer remote.NetworkConn().Close()
 	termMon.OnHandlerStart()
 	defer termMon.OnHandlerFinish()
 
-	name := f.Transport().Name()
-	addrStr := log.ElideAddr(conn.RemoteAddr().String())
+	addrStr := log.ElideAddr(remote.NetworkConn().RemoteAddr().String())
 	log.Infof("%s(%s) - new connection", name, addrStr)
 
-	// Instantiate the server transport method and handshake.
-	remote, err := f.WrapConn(conn)
-	if err != nil {
-		log.Warnf("%s(%s) - handshake failed: %s", name, addrStr, log.ElideError(err))
-		return
-	}
-
 	// Connect to the orport.
-	orConn, err := pt.DialOr(info, conn.RemoteAddr().String(), name)
+	orConn, err := pt.DialOr(info, remote.NetworkConn().RemoteAddr().String(), name)
 	if err != nil {
 		log.Errorf("%s(%s) - failed to connect to ORPort: %s", name, addrStr, log.ElideError(err))
 		return
