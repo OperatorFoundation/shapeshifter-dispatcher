@@ -90,7 +90,7 @@ func main() {
 	// FIXME: in the spec, this is -version, which is already used for printing the version number
 	ptversion := flag.String("ptversion", "", "Specify the Pluggable Transport protocol version to use")
 	statePath := flag.String("state", "", "Specify the directory to use to store state information required by the transports")
-	// FIXME: -exit-on-stdin-close
+	exitOnStdinClose := flag.Bool("exit-on-stdin-close", false, "Set to true to force the dispatcher to close when the stdin pipe is closed")
 
 	// NOTE: -transports is parsed as a common command line flag that overrides either TOR_PT_SERVER_TRANSPORTS or TOR_PT_CLIENT_TRANSPORTS
 	transportsList := flag.String("transports", "", "Specify transports to enable")
@@ -102,8 +102,8 @@ func main() {
 	options := flag.String("options", "", "Specify the transport options for the server")
 	bindAddr := flag.String("bindaddr", "", "Specify the bind address for transparent server")
 	orport := flag.String("orport", "", "Specify the address the server should forward traffic to in host:port format")
-	// FIXME: -extorport
-	// FIXME: -authcookie
+	extorport := flag.String("extorport", "", "Specify the address of a server implementing the Extended OR Port protocol, which is used for per-connection metadata")
+	authcookie := flag.String("authcookie", "", "Specify an authentication cookie, for use in authenticating with the Extended OR Port")
 
 	// Additional command line flags inherited from obfs4proxy
 	showVer := flag.Bool("version", false, "Print version and exit")
