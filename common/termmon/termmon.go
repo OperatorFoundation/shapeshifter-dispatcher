@@ -104,7 +104,7 @@ func (m *TermMonitor) termOnPPIDChange(ppid int) {
 	m.sigChan <- syscall.SIGTERM
 }
 
-func NewTermMonitor() (m *TermMonitor) {
+func NewTermMonitor(exitOnStdinClose bool) (m *TermMonitor) {
 	ppid := os.Getppid()
 	m = new(TermMonitor)
 	m.sigChan = make(chan os.Signal)
@@ -114,7 +114,7 @@ func NewTermMonitor() (m *TermMonitor) {
 	// If tor supports feature #15435, we can use Stdin being closed as an
 	// indication that tor has died, or wants the PT to shutdown for any
 	// reason.
-	if pt_extras.PtShouldExitOnStdinClose() {
+	if exitOnStdinClose || pt_extras.PtShouldExitOnStdinClose() {
 		go m.termOnStdinClose()
 	} else {
 		// Instead of feature #15435, use various kludges and hacks:
