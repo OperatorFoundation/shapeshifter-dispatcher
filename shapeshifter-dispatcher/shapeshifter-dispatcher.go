@@ -46,12 +46,11 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
 
-	//	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/pt_socks5"
-	//	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/stun_udp"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/pt_socks5"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/stun_udp"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/transparent_tcp"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/transparent_udp"
 
-	"github.com/OperatorFoundation/obfs4/modes/stun_udp"
 	_ "github.com/OperatorFoundation/obfs4/proxy_dialers/proxy_http"
 	_ "github.com/OperatorFoundation/obfs4/proxy_dialers/proxy_socks4"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
@@ -72,9 +71,6 @@ func getVersion() string {
 }
 
 func main() {
-	// Initialize the termination state monitor as soon as possible.
-	termMon = termmon.NewTermMonitor()
-
 	// Handle the command line arguments.
 	_, execName := path.Split(os.Args[0])
 
@@ -118,6 +114,9 @@ func main() {
 	udp := flag.Bool("udp", false, "Enable UDP proxy mode. The default is TCP proxy mode.")
 	target := flag.String("target", "", "Specify transport server destination address")
 	flag.Parse()
+
+	// Initialize the termination state monitor as soon as possible.
+	termMon = termmon.NewTermMonitor(*exitOnStdinClose)
 
 	if *showVer {
 		fmt.Printf("%s\n", getVersion())
@@ -175,7 +174,7 @@ func main() {
 					// launched = transparent_udp.ServerSetup(termMon, *bindAddr, *target)
 					// fmt.Println("launched", launched, ptListeners)
 
-					factories, ptServerInfo := getServerFactories(ptversion, bindAddr, options, transportsList, orport)
+					factories, ptServerInfo := getServerFactories(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
 					launched, serverListeners = transparent_udp.ServerSetup(termMon, *bindAddr, factories, ptServerInfo)
 					fmt.Println("launched", launched, serverListeners)
 				}
@@ -195,7 +194,7 @@ func main() {
 				if *bindAddr == "" {
 					fmt.Println("%s - transparent mode requires a bindaddr", execName)
 				} else {
-					factories, ptServerInfo := getServerFactories(ptversion, bindAddr, options, transportsList, orport)
+					factories, ptServerInfo := getServerFactories(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
 					launched, serverListeners = transparent_tcp.ServerSetup(termMon, *bindAddr, factories, ptServerInfo)
 					fmt.Println("launched", launched, serverListeners)
 				}
@@ -219,7 +218,7 @@ func main() {
 					fmt.Println("%s - STUN mode requires a bindaddr", execName)
 				} else {
 					fmt.Println("STUN udp server")
-					factories, ptServerInfo := getServerFactories(ptversion, bindAddr, options, transportsList, orport)
+					factories, ptServerInfo := getServerFactories(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
 					launched, serverListeners = stun_udp.ServerSetup(termMon, *bindAddr, factories, ptServerInfo)
 					fmt.Println("launched", launched, serverListeners)
 				}
@@ -230,11 +229,11 @@ func main() {
 			if isClient {
 				log.Infof("%s - initializing client transport listeners", execName)
 				factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
-				launched, clientListeners = transparent_tcp.ClientSetup(termMon, *target, factories, ptClientProxy)
+				launched, clientListeners = pt_socks5.ClientSetup(termMon, *target, factories, ptClientProxy)
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
-				factories, ptServerInfo := getServerFactories(ptversion, bindAddr, options, transportsList, orport)
-				launched, serverListeners = transparent_tcp.ServerSetup(termMon, *bindAddr, factories, ptServerInfo)
+				factories, ptServerInfo := getServerFactories(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
+				launched, serverListeners = pt_socks5.ServerSetup(termMon, *bindAddr, factories, ptServerInfo)
 				fmt.Println("launched", launched, serverListeners)
 			}
 		}
@@ -350,7 +349,7 @@ func getClientFactories(ptversion *string, transportsList *string, proxy *string
 	return ptClientProxy, factories
 }
 
-func getServerFactories(ptversion *string, bindaddrList *string, options *string, transportList *string, orport *string) (map[string]base.ServerFactory, pt.ServerInfo) {
+func getServerFactories(ptversion *string, bindaddrList *string, options *string, transportList *string, orport *string, extorport *string, authcookie *string) (map[string]base.ServerFactory, pt.ServerInfo) {
 	var ptServerInfo pt.ServerInfo
 	var err error
 	var bindaddrs []pt.Bindaddr
@@ -368,6 +367,26 @@ func getServerFactories(ptversion *string, bindaddrList *string, options *string
 	if err != nil {
 		fmt.Println("Error resolving OR address", orport, err)
 		return nil, ptServerInfo
+	}
+
+	if authcookie != nil {
+		ptServerInfo.AuthCookiePath = *authcookie
+	} else {
+		ptServerInfo.AuthCookiePath = pt.Getenv("TOR_PT_AUTH_COOKIE_FILE")
+	}
+
+	if extorport != nil {
+		ptServerInfo.ExtendedOrAddr, err = pt.ResolveAddr(*extorport)
+		if err != nil {
+			fmt.Println("Error resolving Extended OR address", *extorport, err)
+			return nil, ptServerInfo
+		}
+	} else {
+		ptServerInfo.ExtendedOrAddr, err = pt.ResolveAddr(pt.Getenv("TOR_PT_EXTENDED_SERVER_PORT"))
+		if err != nil {
+			fmt.Println("Error resolving Extended OR address", err)
+			return nil, ptServerInfo
+		}
 	}
 
 	for _, bindaddr := range ptServerInfo.Bindaddrs {
