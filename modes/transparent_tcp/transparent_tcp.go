@@ -34,6 +34,7 @@ import (
 	"io"
 	"net"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 
@@ -41,6 +42,9 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/base"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
 )
 
 const (
@@ -49,9 +53,9 @@ const (
 
 var stateDir string
 
-func ClientSetup(termMon *termmon.TermMonitor, target string, ptClientProxy *url.URL, factories map[string]base.ClientFactory) (launched bool, listeners []net.Listener) {
+func ClientSetup(termMon *termmon.TermMonitor, target string, ptClientProxy *url.URL, names []string, options string) (launched bool, listeners []net.Listener) {
 	// Launch each of the client listeners.
-	for name, f := range factories {
+	for _, name := range names {
 		fmt.Println("Listening ", socksAddr)
 		ln, err := net.Listen("tcp", socksAddr)
 		if err != nil {
@@ -59,7 +63,7 @@ func ClientSetup(termMon *termmon.TermMonitor, target string, ptClientProxy *url
 			continue
 		}
 
-		go clientAcceptLoop(target, termMon, name, f, ln, ptClientProxy)
+		go clientAcceptLoop(target, termMon, name, options, ln, ptClientProxy)
 
 		log.Infof("%s - registered listener: %s", name, ln.Addr())
 
@@ -70,7 +74,7 @@ func ClientSetup(termMon *termmon.TermMonitor, target string, ptClientProxy *url
 	return
 }
 
-func clientAcceptLoop(target string, termMon *termmon.TermMonitor, name string, f base.ClientFactory, ln net.Listener, proxyURI *url.URL) error {
+func clientAcceptLoop(target string, termMon *termmon.TermMonitor, name string, options string, ln net.Listener, proxyURI *url.URL) error {
 	defer ln.Close()
 	for {
 		conn, err := ln.Accept()
@@ -81,11 +85,11 @@ func clientAcceptLoop(target string, termMon *termmon.TermMonitor, name string, 
 			}
 			continue
 		}
-		go clientHandler(target, termMon, name, f, conn, proxyURI)
+		go clientHandler(target, termMon, name, options, conn, proxyURI)
 	}
 }
 
-func clientHandler(target string, termMon *termmon.TermMonitor, name string, f base.ClientFactory, conn net.Conn, proxyURI *url.URL) {
+func clientHandler(target string, termMon *termmon.TermMonitor, name string, options string, conn net.Conn, proxyURI *url.URL) {
 	defer conn.Close()
 	termMon.OnHandlerStart()
 	defer termMon.OnHandlerFinish()
@@ -94,14 +98,53 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, f b
 
 	fmt.Println("Transport is", name)
 
+	var transport base.Transport
+
+	args, argsErr := pt.ParsePT2ClientParameters(options)
+	if argsErr != nil {
+		log.Errorf("Error parsing transport options: %s", options)
+		return
+	}
+
 	// Deal with arguments.
-	// FIXME - deal with args for transports that have args
-	// args, err := f.ParseArgs(&pt.Args{})
-	// if err != nil {
-	// 	fmt.Println("Invalid arguments")
-	// 	log.Errorf("%s(%s) - invalid arguments: %s", name, target, err)
-	// 	return
-	// }
+	switch name {
+	case "obfs2":
+		transport = obfs2.NewObfs2Transport()
+	case "meeklite":
+		if url, ok := args["url"]; ok {
+			if front, ok2 := args["front"]; ok2 {
+				transport = meeklite.NewMeekTransportWithFront(url[0], front[0])
+			} else {
+				transport = meeklite.NewMeekTransport(url[0])
+			}
+		} else {
+			log.Errorf("meeklite transport missing URL argument: %s", args)
+			return
+		}
+	case "obfs4":
+		if cert, ok := args["cert"]; ok {
+			if iatModeStr, ok2 := args["iatMode"]; ok2 {
+				iatMode, err := strconv.Atoi(iatModeStr[0])
+				if err != nil {
+					transport = obfs4.NewObfs4Client(cert[0], iatMode)
+				} else {
+					log.Errorf("obfs4 transport bad iatMode value: %s", iatModeStr)
+					return
+				}
+			} else {
+				log.Errorf("obfs4 transport missing cert argument: %s", args)
+				return
+			}
+		} else {
+			log.Errorf("obfs4 transport missing cert argument: %s", args)
+			return
+		}
+	default:
+		log.Errorf("Unknown transport: %s", name)
+		return
+	}
+
+	f := transport.Dial
 
 	fmt.Println("Making dialer...")
 
@@ -143,18 +186,61 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, f b
 	return
 }
 
-func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, factories map[string]base.ServerFactory, ptServerInfo pt.ServerInfo) (launched bool, listeners []base.TransportListener) {
-	fmt.Println("ServerSetup", bindaddrString, factories, ptServerInfo)
+func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerInfo pt.ServerInfo, options string) (launched bool, listeners []base.TransportListener) {
+	fmt.Println("ServerSetup", bindaddrString, ptServerInfo, options)
 
 	// Launch each of the server listeners.
 	for _, bindaddr := range ptServerInfo.Bindaddrs {
 		name := bindaddr.MethodName
 		fmt.Println("bindaddr", bindaddr)
-		f := factories[name]
-		if f == nil {
-			fmt.Println(name, "no such transport is supported")
-			continue
+
+		var transport base.Transport
+
+		args, argsErr := pt.ParsePT2ClientParameters(options)
+		if argsErr != nil {
+			log.Errorf("Error parsing transport options: %s", options)
+			return
 		}
+
+		// Deal with arguments.
+		switch name {
+		case "obfs2":
+			transport = obfs2.NewObfs2Transport()
+		case "meeklite":
+			if url, ok := args["url"]; ok {
+				if front, ok2 := args["front"]; ok2 {
+					transport = meeklite.NewMeekTransportWithFront(url[0], front[0])
+				} else {
+					transport = meeklite.NewMeekTransport(url[0])
+				}
+			} else {
+				log.Errorf("meeklite transport missing URL argument: %s", args)
+				return
+			}
+		case "obfs4":
+			if cert, ok := args["cert"]; ok {
+				if iatModeStr, ok2 := args["iatMode"]; ok2 {
+					iatMode, err := strconv.Atoi(iatModeStr[0])
+					if err != nil {
+						transport = obfs4.NewObfs4Client(cert[0], iatMode)
+					} else {
+						log.Errorf("obfs4 transport bad iatMode value: %s", iatModeStr)
+						return
+					}
+				} else {
+					log.Errorf("obfs4 transport missing cert argument: %s", args)
+					return
+				}
+			} else {
+				log.Errorf("obfs4 transport missing cert argument: %s", args)
+				return
+			}
+		default:
+			log.Errorf("Unknown transport: %s", name)
+			return
+		}
+
+		f := transport.Listen
 
 		transportLn := f(bindaddr.Addr.String())
 

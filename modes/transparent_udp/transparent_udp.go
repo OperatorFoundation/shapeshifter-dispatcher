@@ -44,6 +44,9 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/base"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
 )
 
 const (
@@ -63,9 +66,9 @@ func NewConnState() ConnState {
 
 type ConnTracker map[string]ConnState
 
-func ClientSetup(termMon *termmon.TermMonitor, target string, ptClientProxy *url.URL, factories map[string]base.ClientFactory) bool {
+func ClientSetup(termMon *termmon.TermMonitor, target string, ptClientProxy *url.URL, names []string, options string) bool {
 	// Launch each of the client listeners.
-	for name, f := range factories {
+	for _, name := range names {
 		udpAddr, err := net.ResolveUDPAddr("udp", socksAddr)
 		if err != nil {
 			fmt.Println("Error resolving address", socksAddr)
@@ -78,7 +81,7 @@ func ClientSetup(termMon *termmon.TermMonitor, target string, ptClientProxy *url
 			continue
 		}
 
-		go clientHandler(target, termMon, name, f, ln, ptClientProxy)
+		go clientHandler(target, termMon, name, options, ln, ptClientProxy)
 
 		log.Infof("%s - registered listener: %s", name, ln)
 	}
@@ -86,7 +89,7 @@ func ClientSetup(termMon *termmon.TermMonitor, target string, ptClientProxy *url
 	return true
 }
 
-func clientHandler(target string, termMon *termmon.TermMonitor, name string, f base.ClientFactory, conn *net.UDPConn, proxyURI *url.URL) {
+func clientHandler(target string, termMon *termmon.TermMonitor, name string, options string, conn *net.UDPConn, proxyURI *url.URL) {
 	var length16 uint16
 
 	defer conn.Close()
@@ -142,7 +145,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, f b
 
 			fmt.Println("Opening connection to ", target)
 
-			openConnection(&tracker, addr.String(), target, termMon, f, proxyURI)
+			openConnection(&tracker, addr.String(), target, termMon, name, options, proxyURI)
 
 			// Drop the packet.
 			fmt.Println("recv: Open")
@@ -150,16 +153,16 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, f b
 	}
 }
 
-func openConnection(tracker *ConnTracker, addr string, target string, termMon *termmon.TermMonitor, f base.ClientFactory, proxyURI *url.URL) {
+func openConnection(tracker *ConnTracker, addr string, target string, termMon *termmon.TermMonitor, name string, options string, proxyURI *url.URL) {
 	fmt.Println("Making dialer...")
 
 	newConn := NewConnState()
 	(*tracker)[addr] = newConn
 
-	go dialConn(tracker, addr, target, f, proxyURI)
+	go dialConn(tracker, addr, target, name, options, proxyURI)
 }
 
-func dialConn(tracker *ConnTracker, addr string, target string, f base.ClientFactory, proxyURI *url.URL) {
+func dialConn(tracker *ConnTracker, addr string, target string, name string, options string, proxyURI *url.URL) {
 	// Obtain the proxy dialer if any, and create the outgoing TCP connection.
 	// dialFn := proxy.Direct.Dial
 	// if proxyURI != nil {
@@ -176,15 +179,53 @@ func dialConn(tracker *ConnTracker, addr string, target string, f base.ClientFac
 
 	fmt.Println("Dialing....")
 
-	// Deal with arguments.
-	// args, err := f.ParseArgs(&pt.Args{})
-	// if err != nil {
-	// 	fmt.Println("Invalid arguments")
-	// 	log.Errorf("(%s) - invalid arguments: %s", target, err)
-	// 	delete(*tracker, addr)
-	// 	return
-	// }
+	var transport base.Transport
 
+	args, argsErr := pt.ParsePT2ClientParameters(options)
+	if argsErr != nil {
+		log.Errorf("Error parsing transport options: %s", options)
+		return
+	}
+
+	// Deal with arguments.
+	switch name {
+	case "obfs2":
+		transport = obfs2.NewObfs2Transport()
+	case "meeklite":
+		if url, ok := args["url"]; ok {
+			if front, ok2 := args["front"]; ok2 {
+				transport = meeklite.NewMeekTransportWithFront(url[0], front[0])
+			} else {
+				transport = meeklite.NewMeekTransport(url[0])
+			}
+		} else {
+			log.Errorf("meeklite transport missing URL argument: %s", args)
+			return
+		}
+	case "obfs4":
+		if cert, ok := args["cert"]; ok {
+			if iatModeStr, ok2 := args["iatMode"]; ok2 {
+				iatMode, err := strconv.Atoi(iatModeStr[0])
+				if err != nil {
+					transport = obfs4.NewObfs4Client(cert[0], iatMode)
+				} else {
+					log.Errorf("obfs4 transport bad iatMode value: %s", iatModeStr)
+					return
+				}
+			} else {
+				log.Errorf("obfs4 transport missing cert argument: %s", args)
+				return
+			}
+		} else {
+			log.Errorf("obfs4 transport missing cert argument: %s", args)
+			return
+		}
+	default:
+		log.Errorf("Unknown transport: %s", name)
+		return
+	}
+
+	f := transport.Dial
 	fmt.Println("Dialing ", target)
 	remote := f(target)
 	// if err != nil {
@@ -200,18 +241,61 @@ func dialConn(tracker *ConnTracker, addr string, target string, f base.ClientFac
 	(*tracker)[addr] = ConnState{remote, false}
 }
 
-func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, factories map[string]base.ServerFactory, ptServerInfo pt.ServerInfo) (launched bool, listeners []base.TransportListener) {
+func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerInfo pt.ServerInfo, options string) (launched bool, listeners []base.TransportListener) {
 	fmt.Println("ServerSetup")
 
 	// Launch each of the server listeners.
 	for _, bindaddr := range ptServerInfo.Bindaddrs {
 		name := bindaddr.MethodName
 		fmt.Println("bindaddr", bindaddr)
-		f := factories[name]
-		if f == nil {
-			fmt.Println(name, "no such transport is supported")
-			continue
+
+		var transport base.Transport
+
+		args, argsErr := pt.ParsePT2ClientParameters(options)
+		if argsErr != nil {
+			log.Errorf("Error parsing transport options: %s", options)
+			return
 		}
+
+		// Deal with arguments.
+		switch name {
+		case "obfs2":
+			transport = obfs2.NewObfs2Transport()
+		case "meeklite":
+			if url, ok := args["url"]; ok {
+				if front, ok2 := args["front"]; ok2 {
+					transport = meeklite.NewMeekTransportWithFront(url[0], front[0])
+				} else {
+					transport = meeklite.NewMeekTransport(url[0])
+				}
+			} else {
+				log.Errorf("meeklite transport missing URL argument: %s", args)
+				return
+			}
+		case "obfs4":
+			if cert, ok := args["cert"]; ok {
+				if iatModeStr, ok2 := args["iatMode"]; ok2 {
+					iatMode, err := strconv.Atoi(iatModeStr[0])
+					if err != nil {
+						transport = obfs4.NewObfs4Client(cert[0], iatMode)
+					} else {
+						log.Errorf("obfs4 transport bad iatMode value: %s", iatModeStr)
+						return
+					}
+				} else {
+					log.Errorf("obfs4 transport missing cert argument: %s", args)
+					return
+				}
+			} else {
+				log.Errorf("obfs4 transport missing cert argument: %s", args)
+				return
+			}
+		default:
+			log.Errorf("Unknown transport: %s", name)
+			return
+		}
+
+		f := transport.Listen
 
 		transportLn := f(bindaddr.Addr.String())
 
