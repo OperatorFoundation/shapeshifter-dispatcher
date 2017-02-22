@@ -143,10 +143,6 @@ func main() {
 	if err = log.Init(*enableLogging, path.Join(stateDir, dispatcherLogFile), *unsafeLogging); err != nil {
 		golog.Fatalf("[ERROR]: %s - failed to initialize logging", execName)
 	}
-	if err = transports.Init(); err != nil {
-		log.Errorf("%s - failed to initialize transports: %s", execName, err)
-		os.Exit(-1)
-	}
 
 	log.Noticef("%s - launched", getVersion())
 	fmt.Println("launching")
@@ -162,15 +158,7 @@ func main() {
 					log.Errorf("%s - transparent mode requires a target", execName)
 				} else {
 					fmt.Println("transparent udp client")
-					ptClientProxy, factories := getClientFactories(ptversion, transportsList, proxy)
-
-					names := make([]string, len(factories))
-
-					i := 0
-					for k := range factories {
-						names[i] = k
-						i++
-					}
+					ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
 
 					launched = transparent_udp.ClientSetup(termMon, *target, ptClientProxy, names, *options)
 				}
@@ -195,15 +183,7 @@ func main() {
 				if *target == "" {
 					log.Errorf("%s - transparent mode requires a target", execName)
 				} else {
-					ptClientProxy, factories := getClientFactories(ptversion, transportsList, proxy)
-
-					names := make([]string, len(factories))
-
-					i := 0
-					for k := range factories {
-						names[i] = k
-						i++
-					}
+					ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
 
 					launched, clientListeners = transparent_tcp.ClientSetup(termMon, *target, ptClientProxy, names, *options)
 				}
@@ -227,15 +207,7 @@ func main() {
 					log.Errorf("%s - STUN mode requires a target", execName)
 				} else {
 					fmt.Println("STUN udp client")
-					ptClientProxy, factories := getClientFactories(ptversion, transportsList, proxy)
-
-					names := make([]string, len(factories))
-
-					i := 0
-					for k := range factories {
-						names[i] = k
-						i++
-					}
+					ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
 
 					launched = stun_udp.ClientSetup(termMon, *target, ptClientProxy, names, *options)
 				}
@@ -255,15 +227,7 @@ func main() {
 			log.Infof("%s - initializing PT 2.0 proxy", execName)
 			if isClient {
 				log.Infof("%s - initializing client transport listeners", execName)
-				ptClientProxy, factories := getClientFactories(ptversion, transportsList, proxy)
-
-				names := make([]string, len(factories))
-
-				i := 0
-				for k := range factories {
-					names[i] = k
-					i++
-				}
+				ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
 
 				launched, clientListeners = pt_socks5.ClientSetup(termMon, *target, ptClientProxy, names, *options)
 			} else {
@@ -334,7 +298,7 @@ func makeStateDir(statePath string) (string, error) {
 	}
 }
 
-func getClientFactories(ptversion *string, transportsList *string, proxy *string) (clientProxy *url.URL, factories map[string]base.ClientFactory) {
+func getClientNames(ptversion *string, transportsList *string, proxy *string) (clientProxy *url.URL, names []string) {
 	var ptClientInfo pt.ClientInfo
 	var err error
 
@@ -362,27 +326,7 @@ func getClientFactories(ptversion *string, transportsList *string, proxy *string
 		pt_extras.PtProxyDone()
 	}
 
-	factories = make(map[string]base.ClientFactory)
-
-	// Launch each of the client listeners.
-	for _, name := range ptClientInfo.MethodNames {
-		t := transports.Get(name)
-		if t == nil {
-			pt.CmethodError(name, "no such transport is supported")
-			continue
-		}
-
-		// FIXME - stateDir parameter must be moved to transport initializer
-		f := t.Dial
-		if err != nil {
-			pt.CmethodError(name, "failed to get ClientFactory")
-			continue
-		}
-
-		factories[name] = f
-	}
-
-	return ptClientProxy, factories
+	return ptClientProxy, ptClientInfo.MethodNames
 }
 
 func getServerInfo(ptversion *string, bindaddrList *string, options *string, transportList *string, orport *string, extorport *string, authcookie *string) pt.ServerInfo {

@@ -29,57 +29,7 @@
 // transports.
 package transports
 
-import (
-	"fmt"
-	"sync"
-
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/base"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
-)
-
-var transportMapLock sync.Mutex
-var transportMap map[string]base.Transport = make(map[string]base.Transport)
-
-// Register registers a transport protocol.
-func Register(name string, transport base.Transport) error {
-	transportMapLock.Lock()
-	defer transportMapLock.Unlock()
-
-	_, registered := transportMap[name]
-	if registered {
-		return fmt.Errorf("transport '%s' already registered", name)
-	}
-	transportMap[name] = transport
-
-	return nil
-}
-
 // Transports returns the list of registered transport protocols.
 func Transports() []string {
-	transportMapLock.Lock()
-	defer transportMapLock.Unlock()
-
-	var ret []string
-	for name := range transportMap {
-		ret = append(ret, name)
-	}
-
-	return ret
-}
-
-// Get returns a transport protocol implementation by name.
-func Get(name string) base.Transport {
-	transportMapLock.Lock()
-	defer transportMapLock.Unlock()
-
-	t := transportMap[name]
-
-	return t
-}
-
-// Init initializes all of the integrated transports.
-func Init() error {
-	Register("obfs2", obfs2.NewObfs2Transport())
-
-	return nil
+	return []string{"obfs2", "meeklite", "obfs4"}
 }
