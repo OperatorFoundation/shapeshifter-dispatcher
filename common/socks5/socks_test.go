@@ -91,7 +91,7 @@ func TestAuthInvalidVersion(t *testing.T) {
 
 	// VER = 03, NMETHODS = 01, METHODS = [00]
 	c.writeHex("030100")
-	if _, err := req.negotiateAuth(); err == nil {
+	if _, err := req.negotiateAuth(false); err == nil {
 		t.Error("negotiateAuth(InvalidVersion) succeded")
 	}
 }
@@ -105,7 +105,7 @@ func TestAuthInvalidNMethods(t *testing.T) {
 
 	// VER = 05, NMETHODS = 00
 	c.writeHex("0500")
-	if method, err = req.negotiateAuth(); err != nil {
+	if method, err = req.negotiateAuth(false); err != nil {
 		t.Error("negotiateAuth(No Methods) failed:", err)
 	}
 	if method != authNoAcceptableMethods {
@@ -125,7 +125,7 @@ func TestAuthNoneRequired(t *testing.T) {
 
 	// VER = 05, NMETHODS = 01, METHODS = [00]
 	c.writeHex("050100")
-	if method, err = req.negotiateAuth(); err != nil {
+	if method, err = req.negotiateAuth(false); err != nil {
 		t.Error("negotiateAuth(None) failed:", err)
 	}
 	if method != authNoneRequired {
@@ -145,7 +145,7 @@ func TestAuthUsernamePassword(t *testing.T) {
 
 	// VER = 05, NMETHODS = 01, METHODS = [02]
 	c.writeHex("050102")
-	if method, err = req.negotiateAuth(); err != nil {
+	if method, err = req.negotiateAuth(false); err != nil {
 		t.Error("negotiateAuth(UsernamePassword) failed:", err)
 	}
 	if method != authUsernamePassword {
@@ -166,7 +166,7 @@ func TestAuthBoth(t *testing.T) {
 
 	// VER = 05, NMETHODS = 02, METHODS = [00, 02]
 	c.writeHex("05020002")
-	if method, err = req.negotiateAuth(); err != nil {
+	if method, err = req.negotiateAuth(false); err != nil {
 		t.Error("negotiateAuth(Both) failed:", err)
 	}
 	if method != authUsernamePassword {
@@ -186,7 +186,7 @@ func TestAuthUnsupported(t *testing.T) {
 
 	// VER = 05, NMETHODS = 01, METHODS = [01] (GSSAPI)
 	c.writeHex("050101")
-	if method, err = req.negotiateAuth(); err != nil {
+	if method, err = req.negotiateAuth(false); err != nil {
 		t.Error("negotiateAuth(Unknown) failed:", err)
 	}
 	if method != authNoAcceptableMethods {
@@ -207,7 +207,7 @@ func TestAuthUnsupported2(t *testing.T) {
 
 	// VER = 05, NMETHODS = 03, METHODS = [00,01,02]
 	c.writeHex("0503000102")
-	if method, err = req.negotiateAuth(); err != nil {
+	if method, err = req.negotiateAuth(false); err != nil {
 		t.Error("negotiateAuth(Unknown2) failed:", err)
 	}
 	if method != authUsernamePassword {

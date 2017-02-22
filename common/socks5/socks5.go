@@ -40,6 +40,7 @@ package socks5
 import (
 	"bufio"
 	"bytes"
+	"encoding/binary"
 	"fmt"
 	"io"
 	"net"
@@ -61,6 +62,7 @@ const (
 
 	authNoneRequired        = 0x00
 	authUsernamePassword    = 0x02
+	authPT2PrivateMethod    = 0x80
 	authNoAcceptableMethods = 0xff
 
 	requestTimeout = 5 * time.Second
@@ -124,7 +126,7 @@ type Request struct {
 // Handshake attempts to handle a incoming client handshake over the provided
 // connection and receive the SOCKS5 request.  The routine handles sending
 // appropriate errors if applicable, but will not close the connection.
-func Handshake(conn net.Conn) (*Request, error) {
+func Handshake(conn net.Conn, needOptions bool) (*Request, error) {
 	// Arm the handshake timeout.
 	var err error
 	if err = conn.SetDeadline(time.Now().Add(requestTimeout)); err != nil {
@@ -144,7 +146,7 @@ func Handshake(conn net.Conn) (*Request, error) {
 
 	// Negotiate the protocol version and authentication method.
 	var method byte
-	if method, err = req.negotiateAuth(); err != nil {
+	if method, err = req.negotiateAuth(needOptions); err != nil {
 		return nil, err
 	}
 
@@ -186,7 +188,7 @@ func (req *Request) Reply(code ReplyCode) error {
 	return req.flushBuffers()
 }
 
-func (req *Request) negotiateAuth() (byte, error) {
+func (req *Request) negotiateAuth(needOptions bool) (byte, error) {
 	// The client sends a version identifier/selection message.
 	//	uint8_t ver (0x05)
 	//  uint8_t nmethods (>= 1).
@@ -209,11 +211,19 @@ func (req *Request) negotiateAuth() (byte, error) {
 	}
 
 	// Pick the best authentication method, prioritizing authenticating
-	// over not if both options are present.
-	if bytes.IndexByte(methods, authUsernamePassword) != -1 {
-		method = authUsernamePassword
-	} else if bytes.IndexByte(methods, authNoneRequired) != -1 {
-		method = authNoneRequired
+	// over not if both options are present and SOCKS header options are needed.
+	if needOptions {
+		if bytes.IndexByte(methods, authPT2PrivateMethod) != -1 {
+			method = authPT2PrivateMethod
+		} else if bytes.IndexByte(methods, authNoneRequired) != -1 {
+			method = authNoneRequired
+		}
+	} else {
+		if bytes.IndexByte(methods, authNoneRequired) != -1 {
+			method = authNoneRequired
+		} else if bytes.IndexByte(methods, authPT2PrivateMethod) != -1 {
+			method = authPT2PrivateMethod
+		}
 	}
 
 	// The server sends a method selection message.
@@ -231,8 +241,8 @@ func (req *Request) authenticate(method byte) error {
 	switch method {
 	case authNoneRequired:
 		// No authentication required.
-	case authUsernamePassword:
-		if err := req.authRFC1929(); err != nil {
+	case authPT2PrivateMethod:
+		if err := req.authPT2(); err != nil {
 			return err
 		}
 	case authNoAcceptableMethods:
@@ -347,6 +357,15 @@ func (req *Request) readByteVerify(descr string, expected byte) error {
 		return fmt.Errorf("message field '%s' was 0x%02x (expected 0x%02x)", descr, val, expected)
 	}
 	return nil
+}
+
+func (req *Request) readUint32() (uint32, error) {
+	buffer, err := req.readBytes(4)
+	if err != nil {
+		return 0, err
+	}
+
+	return binary.BigEndian.Uint32(buffer), nil
 }
 
 func (req *Request) readBytes(n int) ([]byte, error) {
