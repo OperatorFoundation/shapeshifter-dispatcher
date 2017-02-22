@@ -162,8 +162,17 @@ func main() {
 					log.Errorf("%s - transparent mode requires a target", execName)
 				} else {
 					fmt.Println("transparent udp client")
-					factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
-					launched = transparent_udp.ClientSetup(termMon, *target, factories, ptClientProxy)
+					ptClientProxy, factories := getClientFactories(ptversion, transportsList, proxy)
+
+					names := make([]string, len(factories))
+
+					i := 0
+					for k := range factories {
+						names[i] = k
+						i++
+					}
+
+					launched = transparent_udp.ClientSetup(termMon, *target, ptClientProxy, names, *options)
 				}
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
@@ -174,8 +183,8 @@ func main() {
 					// launched = transparent_udp.ServerSetup(termMon, *bindAddr, *target)
 					// fmt.Println("launched", launched, ptListeners)
 
-					factories, ptServerInfo := getServerFactories(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
-					launched, serverListeners = transparent_udp.ServerSetup(termMon, *bindAddr, factories, ptServerInfo)
+					ptServerInfo := getServerInfo(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
+					launched, serverListeners = transparent_udp.ServerSetup(termMon, *bindAddr, ptServerInfo, *options)
 					fmt.Println("launched", launched, serverListeners)
 				}
 			}
@@ -186,16 +195,25 @@ func main() {
 				if *target == "" {
 					log.Errorf("%s - transparent mode requires a target", execName)
 				} else {
-					factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
-					launched, clientListeners = transparent_tcp.ClientSetup(termMon, *target, factories, ptClientProxy)
+					ptClientProxy, factories := getClientFactories(ptversion, transportsList, proxy)
+
+					names := make([]string, len(factories))
+
+					i := 0
+					for k := range factories {
+						names[i] = k
+						i++
+					}
+
+					launched, clientListeners = transparent_tcp.ClientSetup(termMon, *target, ptClientProxy, names, *options)
 				}
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
 				if *bindAddr == "" {
 					fmt.Println("%s - transparent mode requires a bindaddr", execName)
 				} else {
-					factories, ptServerInfo := getServerFactories(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
-					launched, serverListeners = transparent_tcp.ServerSetup(termMon, *bindAddr, factories, ptServerInfo)
+					ptServerInfo := getServerInfo(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
+					launched, serverListeners = transparent_tcp.ServerSetup(termMon, *bindAddr, ptServerInfo, *options)
 					fmt.Println("launched", launched, serverListeners)
 				}
 			}
@@ -209,8 +227,17 @@ func main() {
 					log.Errorf("%s - STUN mode requires a target", execName)
 				} else {
 					fmt.Println("STUN udp client")
-					factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
-					launched = stun_udp.ClientSetup(termMon, *target, factories, ptClientProxy)
+					ptClientProxy, factories := getClientFactories(ptversion, transportsList, proxy)
+
+					names := make([]string, len(factories))
+
+					i := 0
+					for k := range factories {
+						names[i] = k
+						i++
+					}
+
+					launched = stun_udp.ClientSetup(termMon, *target, ptClientProxy, names, *options)
 				}
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
@@ -218,22 +245,31 @@ func main() {
 					fmt.Println("%s - STUN mode requires a bindaddr", execName)
 				} else {
 					fmt.Println("STUN udp server")
-					factories, ptServerInfo := getServerFactories(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
-					launched, serverListeners = stun_udp.ServerSetup(termMon, *bindAddr, factories, ptServerInfo)
+					ptServerInfo := getServerInfo(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
+					launched, serverListeners = stun_udp.ServerSetup(termMon, *bindAddr, ptServerInfo, *options)
 					fmt.Println("launched", launched, serverListeners)
 				}
 			}
 		} else {
 			// Do the managed pluggable transport protocol configuration.
-			log.Infof("%s - initializing PT 1.0 proxy", execName)
+			log.Infof("%s - initializing PT 2.0 proxy", execName)
 			if isClient {
 				log.Infof("%s - initializing client transport listeners", execName)
-				factories, ptClientProxy := getClientFactories(ptversion, transportsList, proxy)
-				launched, clientListeners = pt_socks5.ClientSetup(termMon, *target, factories, ptClientProxy)
+				ptClientProxy, factories := getClientFactories(ptversion, transportsList, proxy)
+
+				names := make([]string, len(factories))
+
+				i := 0
+				for k := range factories {
+					names[i] = k
+					i++
+				}
+
+				launched, clientListeners = pt_socks5.ClientSetup(termMon, *target, ptClientProxy, names, *options)
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
-				factories, ptServerInfo := getServerFactories(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
-				launched, serverListeners = pt_socks5.ServerSetup(termMon, *bindAddr, factories, ptServerInfo)
+				ptServerInfo := getServerInfo(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
+				launched, serverListeners = pt_socks5.ServerSetup(termMon, *bindAddr, ptServerInfo, *options)
 				fmt.Println("launched", launched, serverListeners)
 			}
 		}
@@ -349,24 +385,22 @@ func getClientFactories(ptversion *string, transportsList *string, proxy *string
 	return ptClientProxy, factories
 }
 
-func getServerFactories(ptversion *string, bindaddrList *string, options *string, transportList *string, orport *string, extorport *string, authcookie *string) (map[string]base.ServerFactory, pt.ServerInfo) {
+func getServerInfo(ptversion *string, bindaddrList *string, options *string, transportList *string, orport *string, extorport *string, authcookie *string) pt.ServerInfo {
 	var ptServerInfo pt.ServerInfo
 	var err error
 	var bindaddrs []pt.Bindaddr
 
-	var factories map[string]base.ServerFactory = make(map[string]base.ServerFactory)
-
 	bindaddrs, err = getServerBindaddrs(bindaddrList, options, transportList)
 	if err != nil {
 		fmt.Println("Error parsing bindaddrs")
-		return nil, ptServerInfo
+		return ptServerInfo
 	}
 
 	ptServerInfo = pt.ServerInfo{Bindaddrs: bindaddrs}
 	ptServerInfo.OrAddr, err = pt.ResolveAddr(*orport)
 	if err != nil {
 		fmt.Println("Error resolving OR address", orport, err)
-		return nil, ptServerInfo
+		return ptServerInfo
 	}
 
 	if authcookie != nil {
@@ -379,35 +413,17 @@ func getServerFactories(ptversion *string, bindaddrList *string, options *string
 		ptServerInfo.ExtendedOrAddr, err = pt.ResolveAddr(*extorport)
 		if err != nil {
 			fmt.Println("Error resolving Extended OR address", *extorport, err)
-			return nil, ptServerInfo
+			return ptServerInfo
 		}
 	} else {
 		ptServerInfo.ExtendedOrAddr, err = pt.ResolveAddr(pt.Getenv("TOR_PT_EXTENDED_SERVER_PORT"))
 		if err != nil {
 			fmt.Println("Error resolving Extended OR address", err)
-			return nil, ptServerInfo
+			return ptServerInfo
 		}
 	}
 
-	for _, bindaddr := range ptServerInfo.Bindaddrs {
-		name := bindaddr.MethodName
-		t := transports.Get(name)
-		if t == nil {
-			pt.SmethodError(name, "no such transport is supported")
-			continue
-		}
-
-		// FIXME - stateDir and &bindaddr.Options must be moved to transport initializer
-		f := t.Listen
-		if err != nil {
-			pt.SmethodError(name, err.Error())
-			continue
-		}
-
-		factories[name] = f
-	}
-
-	return factories, ptServerInfo
+	return ptServerInfo
 }
 
 // Return an array of Bindaddrs, being the contents of TOR_PT_SERVER_BINDADDR
