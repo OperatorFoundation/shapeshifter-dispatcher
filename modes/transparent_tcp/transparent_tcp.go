@@ -96,12 +96,13 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 
 	fmt.Println("handling...")
 
-	fmt.Println("Transport is", name)
+	fmt.Println("Transport is", name, options)
 
 	var transport base.Transport
 
 	args, argsErr := pt.ParsePT2ClientParameters(options)
 	if argsErr != nil {
+		fmt.Println("Bad client args")
 		log.Errorf("Error parsing transport options: %s", options)
 		return
 	}
@@ -122,13 +123,15 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 			return
 		}
 	case "obfs4":
+		fmt.Println("Checking options")
 		if cert, ok := args["cert"]; ok {
 			if iatModeStr, ok2 := args["iatMode"]; ok2 {
 				iatMode, err := strconv.Atoi(iatModeStr[0])
-				if err != nil {
+				if err == nil {
 					transport = obfs4.NewObfs4Client(cert[0], iatMode)
+					fmt.Println("new client")
 				} else {
-					log.Errorf("obfs4 transport bad iatMode value: %s", iatModeStr)
+					log.Errorf("obfs4 transport bad iatMode value: %s %s", iatModeStr[0], err)
 					return
 				}
 			} else {
@@ -171,6 +174,11 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 	// 	log.Errorf("%s(%s) - outgoing connection failed: %s", name, target, log.ElideError(err))
 	// 	return
 	// }
+	if remote == nil {
+		fmt.Println("outgoing connection failed", f, target)
+		return
+	}
+
 	defer remote.Close()
 
 	fmt.Println("copying...")
@@ -186,7 +194,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 	return
 }
 
-func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerInfo pt.ServerInfo, options string) (launched bool, listeners []base.TransportListener) {
+func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerInfo pt.ServerInfo, statedir string, options string) (launched bool, listeners []base.TransportListener) {
 	fmt.Println("ServerSetup", bindaddrString, ptServerInfo, options)
 
 	// Launch each of the server listeners.
@@ -202,39 +210,17 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 			return
 		}
 
+		fmt.Println("Initializing transport", name, args)
+
 		// Deal with arguments.
 		switch name {
 		case "obfs2":
 			transport = obfs2.NewObfs2Transport()
 		case "meeklite":
-			if url, ok := args["url"]; ok {
-				if front, ok2 := args["front"]; ok2 {
-					transport = meeklite.NewMeekTransportWithFront(url[0], front[0])
-				} else {
-					transport = meeklite.NewMeekTransport(url[0])
-				}
-			} else {
-				log.Errorf("meeklite transport missing URL argument: %s", args)
-				return
-			}
+			log.Errorf("meeklite transport not supported on server")
+			return
 		case "obfs4":
-			if cert, ok := args["cert"]; ok {
-				if iatModeStr, ok2 := args["iatMode"]; ok2 {
-					iatMode, err := strconv.Atoi(iatModeStr[0])
-					if err != nil {
-						transport = obfs4.NewObfs4Client(cert[0], iatMode)
-					} else {
-						log.Errorf("obfs4 transport bad iatMode value: %s", iatModeStr)
-						return
-					}
-				} else {
-					log.Errorf("obfs4 transport missing cert argument: %s", args)
-					return
-				}
-			} else {
-				log.Errorf("obfs4 transport missing cert argument: %s", args)
-				return
-			}
+			transport = obfs4.NewObfs4Server(statedir, options)
 		default:
 			log.Errorf("Unknown transport: %s", name)
 			return
