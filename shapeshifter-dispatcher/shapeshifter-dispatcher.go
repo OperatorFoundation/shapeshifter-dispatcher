@@ -193,7 +193,7 @@ func main() {
 					fmt.Println("%s - transparent mode requires a bindaddr", execName)
 				} else {
 					ptServerInfo := getServerInfo(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
-					launched, serverListeners = transparent_tcp.ServerSetup(termMon, *bindAddr, ptServerInfo, *options)
+					launched, serverListeners = transparent_tcp.ServerSetup(termMon, *bindAddr, ptServerInfo, *statePath, *options)
 					fmt.Println("launched", launched, serverListeners)
 				}
 			}
@@ -353,7 +353,7 @@ func getServerInfo(ptversion *string, bindaddrList *string, options *string, tra
 		ptServerInfo.AuthCookiePath = pt.Getenv("TOR_PT_AUTH_COOKIE_FILE")
 	}
 
-	if extorport != nil {
+	if extorport != nil && *extorport != "" {
 		ptServerInfo.ExtendedOrAddr, err = pt.ResolveAddr(*extorport)
 		if err != nil {
 			fmt.Println("Error resolving Extended OR address", *extorport, err)
