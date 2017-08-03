@@ -156,7 +156,7 @@ func main() {
 				if *target == "" {
 					log.Errorf("%s - transparent mode requires a target", execName)
 				} else {
-					ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
+					ptClientProxy, names := getClientNames(*ptversion, *transportsList, *proxy)
 
 					launched = transparent_udp.ClientSetup(termMon, *target, ptClientProxy, names, *options)
 				}
@@ -179,7 +179,7 @@ func main() {
 				if *target == "" {
 					log.Errorf("%s - transparent mode requires a target", execName)
 				} else {
-					ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
+					ptClientProxy, names := getClientNames(*ptversion, *transportsList, *proxy)
 
 					launched, clientListeners = transparent_tcp.ClientSetup(termMon, *target, ptClientProxy, names, *options)
 				}
@@ -201,7 +201,7 @@ func main() {
 				if *target == "" {
 					log.Errorf("%s - STUN mode requires a target", execName)
 				} else {
-					ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
+					ptClientProxy, names := getClientNames(*ptversion, *transportsList, *proxy)
 
 					launched = stun_udp.ClientSetup(termMon, *target, ptClientProxy, names, *options)
 				}
@@ -219,7 +219,7 @@ func main() {
 			log.Infof("%s - initializing PT 2.0 proxy", execName)
 			if isClient {
 				log.Infof("%s - initializing client transport listeners", execName)
-				ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
+				ptClientProxy, names := getClientNames(*ptversion, *transportsList, *proxy)
 
 				launched, clientListeners = pt_socks5.ClientSetup(termMon, *target, ptClientProxy, names, *options)
 			} else {
@@ -286,22 +286,22 @@ func makeStateDir(statePath string) (string, error) {
 	}
 }
 
-func getClientNames(ptversion *string, transportsList *string, proxy *string) (clientProxy *url.URL, names []string) {
+func getClientNames(ptversion string, transportsList string, proxy string) (clientProxy *url.URL, names []string) {
 	var ptClientInfo pt.ClientInfo
 	var err error
 
 	// FIXME - instead of this, goptlib should be modified to accept command line flag override of EITHER ptversion or transports (or both)
-	if ptversion == nil || transportsList == nil {
+	if ptversion == "" || transportsList == "" {
 		ptClientInfo, err = pt.ClientSetup(transports.Transports())
 		if err != nil {
 			// FIXME - print a more useful error, specifying --ptversion and --transports flags
 			golog.Fatal(err)
 		}
 	} else {
-		if *transportsList == "*" {
+		if transportsList == "*" {
 			ptClientInfo = pt.ClientInfo{MethodNames: transports.Transports()}
 		} else {
-			ptClientInfo = pt.ClientInfo{MethodNames: strings.Split(*transportsList, ",")}
+			ptClientInfo = pt.ClientInfo{MethodNames: strings.Split(transportsList, ",")}
 		}
 	}
 
