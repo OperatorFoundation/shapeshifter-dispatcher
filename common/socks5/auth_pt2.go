@@ -30,6 +30,7 @@ package socks5
 import (
 	"fmt"
 
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
 )
 
@@ -56,7 +57,7 @@ func (req *Request) authPT2() (err error) {
 
 	// Parse the authentication data according to the PT 2.0 specification
 	if req.Args, err = pt.ParsePT2ClientParameters(result); err != nil {
-		fmt.Println("Error parsing PT2 client parameters", err)
+		log.Errorf("Error parsing PT2 client parameters: %s", err)
 		return
 	}
 
