@@ -133,9 +133,9 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, con
 		}
 	case "obfs4":
 		if cert, ok := args.Get("cert"); ok {
-			if iatModeStr, ok2 := args.Get("iatMode"); ok2 {
+			if iatModeStr, ok2 := args.Get("iat-mode"); ok2 {
 				iatMode, err := strconv.Atoi(iatModeStr)
-				if err != nil {
+				if err == nil {
 					transport = obfs4.NewObfs4Client(cert, iatMode)
 				} else {
 					log.Errorf("obfs4 transport bad iatMode value: %s", iatModeStr)
@@ -143,7 +143,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, con
 					return
 				}
 			} else {
-				log.Errorf("obfs4 transport missing cert argument: %s", args)
+				log.Errorf("obfs4 transport missing iat-mode argument: %s", args)
 				socksReq.Reply(socks5.ReplyGeneralFailure)
 				return
 			}
