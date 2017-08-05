@@ -61,5 +61,7 @@ func (req *Request) authPT2() (err error) {
 		return
 	}
 
+	resp := []byte{0x01, 0x00}
+	_, err = req.rw.Write(resp[:])
 	return
 }
