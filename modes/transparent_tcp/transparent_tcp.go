@@ -45,6 +45,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 )
 
 const (
@@ -56,7 +57,6 @@ var stateDir string
 func ClientSetup(termMon *termmon.TermMonitor, target string, ptClientProxy *url.URL, names []string, options string) (launched bool, listeners []net.Listener) {
 	// Launch each of the client listeners.
 	for _, name := range names {
-		fmt.Println("Listening ", socksAddr)
 		ln, err := net.Listen("tcp", socksAddr)
 		if err != nil {
 			log.Errorf("failed to listen %s %s", name, err.Error())
@@ -78,7 +78,6 @@ func clientAcceptLoop(target string, termMon *termmon.TermMonitor, name string, 
 	defer ln.Close()
 	for {
 		conn, err := ln.Accept()
-		fmt.Println("Accepted")
 		if err != nil {
 			if e, ok := err.(net.Error); ok && !e.Temporary() {
 				return err
@@ -94,15 +93,10 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 	termMon.OnHandlerStart()
 	defer termMon.OnHandlerFinish()
 
-	fmt.Println("handling...")
-
-	fmt.Println("Transport is", name, options)
-
 	var transport base.Transport
 
 	args, argsErr := pt.ParsePT2ClientParameters(options)
 	if argsErr != nil {
-		fmt.Println("Bad client args")
 		log.Errorf("Error parsing transport options: %s", options)
 		return
 	}
@@ -123,13 +117,11 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 			return
 		}
 	case "obfs4":
-		fmt.Println("Checking options")
 		if cert, ok := args["cert"]; ok {
 			if iatModeStr, ok2 := args["iatMode"]; ok2 {
 				iatMode, err := strconv.Atoi(iatModeStr[0])
 				if err == nil {
 					transport = obfs4.NewObfs4Client(cert[0], iatMode)
-					fmt.Println("new client")
 				} else {
 					log.Errorf("obfs4 transport bad iatMode value: %s %s", iatModeStr[0], err)
 					return
@@ -142,14 +134,24 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 			log.Errorf("obfs4 transport missing cert argument: %s", args)
 			return
 		}
+	case "shadow":
+		if password, ok := args["password"]; ok {
+			if cipher, ok2 := args["cipherName"]; ok2 {
+				transport = shadow.NewShadowClient(password[0], cipher[0])
+			} else {
+				log.Errorf("shadow transport missing cipher argument: %s", args)
+				return
+			}
+		} else {
+			log.Errorf("shadow transport missing password argument: %s", args)
+			return
+		}
 	default:
 		log.Errorf("Unknown transport: %s", name)
 		return
 	}
 
 	f := transport.Dial
-
-	fmt.Println("Making dialer...")
 
 	// Obtain the proxy dialer if any, and create the outgoing TCP connection.
 	// dialFn := proxy.Direct.Dial
@@ -158,19 +160,15 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 	// 	if err != nil {
 	// 		// This should basically never happen, since config protocol
 	// 		// verifies this.
-	// 		fmt.Println("failed to obtain dialer", proxyURI, proxy.Direct)
 	// 		log.Errorf("%s(%s) - failed to obtain proxy dialer: %s", name, target, log.ElideError(err))
 	// 		return
 	// 	}
 	// 	dialFn = dialer.Dial
 	// }
 
-	fmt.Println("Dialing...")
-
 	// FIXME - use dialFn if a proxy is needed to connect to the network
 	remote := f(target)
 	// if err != nil {
-	// 	fmt.Println("outgoing connection failed")
 	// 	log.Errorf("%s(%s) - outgoing connection failed: %s", name, target, log.ElideError(err))
 	// 	return
 	// }
@@ -181,36 +179,27 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 
 	defer remote.Close()
 
-	fmt.Println("copying...")
-
 	if err := copyLoop(conn, remote); err != nil {
 		log.Warnf("%s(%s) - closed connection: %s", name, target, log.ElideError(err))
 	} else {
 		log.Infof("%s(%s) - closed connection", name, target)
 	}
 
-	fmt.Println("done")
-
 	return
 }
 
 func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerInfo pt.ServerInfo, statedir string, options string) (launched bool, listeners []base.TransportListener) {
-	fmt.Println("ServerSetup", bindaddrString, ptServerInfo, options)
-
 	// Launch each of the server listeners.
 	for _, bindaddr := range ptServerInfo.Bindaddrs {
 		name := bindaddr.MethodName
-		fmt.Println("bindaddr", bindaddr)
 
 		var transport base.Transport
 
-		args, argsErr := pt.ParsePT2ClientParameters(options)
+		args, argsErr := pt.ParsePT2ServerParameters(options)
 		if argsErr != nil {
 			log.Errorf("Error parsing transport options: %s", options)
 			return
 		}
-
-		fmt.Println("Initializing transport", name, args)
 
 		// Deal with arguments.
 		switch name {
@@ -221,9 +210,26 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 			return
 		case "obfs4":
 			transport = obfs4.NewObfs4Server(statedir, options)
+		case "shadow":
+			shargs, aok := args["shadow"]
+			if !aok {
+				return false, nil
+			}
+
+			password, ok := shargs.Get("password")
+			if !ok {
+				return false, nil
+			}
+
+			cipherName, ok2 := shargs.Get("cipherName")
+			if !ok2 {
+				return false, nil
+			}
+
+			transport = shadow.NewShadowServer(password, cipherName)
 		default:
 			log.Errorf("Unknown transport: %s", name)
-			return
+			return false, nil
 		}
 
 		f := transport.Listen
@@ -270,7 +276,6 @@ func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln base.Transpo
 	defer ln.Close()
 	for {
 		conn, err := ln.TransportAccept()
-		fmt.Println("accepted")
 		if err != nil {
 			if e, ok := err.(net.Error); ok && !e.Temporary() {
 				return err
@@ -287,13 +292,12 @@ func serverHandler(termMon *termmon.TermMonitor, name string, remote base.Transp
 	defer termMon.OnHandlerFinish()
 
 	addrStr := log.ElideAddr(remote.NetworkConn().RemoteAddr().String())
-	fmt.Println("handling", name)
 	log.Infof("%s(%s) - new connection", name, addrStr)
 
 	// Connect to the orport.
 	orConn, err := pt.DialOr(info, remote.NetworkConn().RemoteAddr().String(), name)
 	if err != nil {
-		fmt.Println("OR conn failed", info, remote.NetworkConn().RemoteAddr(), name)
+		fmt.Println("OR conn failed", info, remote.NetworkConn().RemoteAddr(), name, err)
 		log.Errorf("%s(%s) - failed to connect to ORPort: %s", name, addrStr, log.ElideError(err))
 		return
 	}
