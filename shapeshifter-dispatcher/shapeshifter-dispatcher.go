@@ -145,7 +145,6 @@ func main() {
 	}
 
 	log.Noticef("%s - launched", getVersion())
-	fmt.Println("launching")
 
 	if *transparent {
 		// Do the transparent proxy configuration.
@@ -157,7 +156,6 @@ func main() {
 				if *target == "" {
 					log.Errorf("%s - transparent mode requires a target", execName)
 				} else {
-					fmt.Println("transparent udp client")
 					ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
 
 					launched = transparent_udp.ClientSetup(termMon, *target, ptClientProxy, names, *options)
@@ -167,13 +165,10 @@ func main() {
 				if *bindAddr == "" {
 					fmt.Println("%s - transparent mode requires a bindaddr", execName)
 				} else {
-					fmt.Println("transparent udp server")
 					// launched = transparent_udp.ServerSetup(termMon, *bindAddr, *target)
-					// fmt.Println("launched", launched, ptListeners)
 
 					ptServerInfo := getServerInfo(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
 					launched, serverListeners = transparent_udp.ServerSetup(termMon, *bindAddr, ptServerInfo, *options)
-					fmt.Println("launched", launched, serverListeners)
 				}
 			}
 		} else {
@@ -194,7 +189,6 @@ func main() {
 				} else {
 					ptServerInfo := getServerInfo(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
 					launched, serverListeners = transparent_tcp.ServerSetup(termMon, *bindAddr, ptServerInfo, *statePath, *options)
-					fmt.Println("launched", launched, serverListeners)
 				}
 			}
 		}
@@ -245,8 +239,6 @@ func main() {
 		os.Exit(-1)
 	}
 
-	fmt.Println("launched")
-
 	log.Infof("%s - accepting connections", execName)
 	defer func() {
 		log.Noticef("%s - terminated", execName)
@@ -273,7 +265,6 @@ func main() {
 
 	termMon.Wait(true)
 
-	fmt.Println("waiting")
 	for {
 		// FIXME - block because termMon.Wait is not blocking
 	}
@@ -319,7 +310,6 @@ func getClientNames(ptversion *string, transportsList *string, proxy *string) (c
 	}
 
 	ptClientProxy, err := pt_extras.PtGetProxy(proxy)
-	fmt.Println("ptclientproxy", ptClientProxy)
 	if err != nil {
 		golog.Fatal(err)
 	} else if ptClientProxy != nil {
@@ -336,7 +326,7 @@ func getServerInfo(ptversion *string, bindaddrList *string, options *string, tra
 
 	bindaddrs, err = getServerBindaddrs(bindaddrList, options, transportList)
 	if err != nil {
-		fmt.Println("Error parsing bindaddrs")
+		fmt.Println("Error parsing bindaddrs", *bindaddrList, *options, *transportList)
 		return ptServerInfo
 	}
 
@@ -384,16 +374,21 @@ func getServerBindaddrs(bindaddrList *string, options *string, transports *strin
 	// Parse the list of server transport options.
 	if options == nil {
 		serverTransportOptions = pt.Getenv("TOR_PT_SERVER_TRANSPORT_OPTIONS")
+		if serverTransportOptions != "" {
+			optionsMap, err = pt.ParseServerTransportOptions(serverTransportOptions)
+			if err != nil {
+				fmt.Println("Error parsing options map", serverTransportOptions, err)
+				return nil, errors.New(fmt.Sprintf("TOR_PT_SERVER_TRANSPORT_OPTIONS: %q: %s", serverTransportOptions, err.Error()))
+			}
+		}
 	} else {
 		serverTransportOptions = *options
-	}
-
-	if serverTransportOptions != "" {
-		fmt.Println(serverTransportOptions)
-		optionsMap, err = pt.ParseServerTransportOptions(serverTransportOptions)
-		if err != nil {
-			fmt.Println("Error parsing options map")
-			return nil, errors.New(fmt.Sprintf("TOR_PT_SERVER_TRANSPORT_OPTIONS: %q: %s", serverTransportOptions, err.Error()))
+		if serverTransportOptions != "" {
+			optionsMap, err = pt.ParsePT2ServerParameters(serverTransportOptions)
+			if err != nil {
+				fmt.Println("Error parsing options map", serverTransportOptions, err)
+				return nil, errors.New(fmt.Sprintf("TOR_PT_SERVER_TRANSPORT_OPTIONS: %q: %s", serverTransportOptions, err.Error()))
+			}
 		}
 	}
 
@@ -407,7 +402,6 @@ func getServerBindaddrs(bindaddrList *string, options *string, transports *strin
 		serverBindaddr = *bindaddrList
 	}
 	for _, spec := range strings.Split(serverBindaddr, ",") {
-		fmt.Println(spec)
 		var bindaddr pt.Bindaddr
 
 		parts := strings.SplitN(spec, "-", 2)
