@@ -163,7 +163,7 @@ func main() {
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
 				if *bindAddr == "" {
-					fmt.Println("%s - transparent mode requires a bindaddr", execName)
+					fmt.Errorf("%s - transparent mode requires a bindaddr", execName)
 				} else {
 					// launched = transparent_udp.ServerSetup(termMon, *bindAddr, *target)
 
@@ -185,7 +185,7 @@ func main() {
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
 				if *bindAddr == "" {
-					fmt.Println("%s - transparent mode requires a bindaddr", execName)
+					fmt.Errorf("%s - transparent mode requires a bindaddr", execName)
 				} else {
 					ptServerInfo := getServerInfo(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
 					launched, serverListeners = transparent_tcp.ServerSetup(termMon, *bindAddr, ptServerInfo, *statePath, *options)
@@ -200,7 +200,6 @@ func main() {
 				if *target == "" {
 					log.Errorf("%s - STUN mode requires a target", execName)
 				} else {
-					fmt.Println("STUN udp client")
 					ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
 
 					launched = stun_udp.ClientSetup(termMon, *target, ptClientProxy, names, *options)
@@ -208,12 +207,10 @@ func main() {
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
 				if *bindAddr == "" {
-					fmt.Println("%s - STUN mode requires a bindaddr", execName)
+					fmt.Errorf("%s - STUN mode requires a bindaddr", execName)
 				} else {
-					fmt.Println("STUN udp server")
 					ptServerInfo := getServerInfo(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
 					launched, serverListeners = stun_udp.ServerSetup(termMon, *bindAddr, ptServerInfo, *options)
-					fmt.Println("launched", launched, serverListeners)
 				}
 			}
 		} else {
@@ -228,7 +225,6 @@ func main() {
 				log.Infof("%s - initializing server transport listeners", execName)
 				ptServerInfo := getServerInfo(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
 				launched, serverListeners = pt_socks5.ServerSetup(termMon, *bindAddr, ptServerInfo, *options)
-				fmt.Println("launched", launched, serverListeners)
 			}
 		}
 	}
@@ -295,7 +291,7 @@ func getClientNames(ptversion *string, transportsList *string, proxy *string) (c
 
 	// FIXME - instead of this, goptlib should be modified to accept command line flag override of EITHER ptversion or transports (or both)
 	if ptversion == nil || transportsList == nil {
-		fmt.Println("Falling back to environment variables for ptversion/transports", ptversion, transportsList)
+		log.Infof("Falling back to environment variables for ptversion/transports %q %q", ptversion, transportsList)
 		ptClientInfo, err = pt.ClientSetup(transports.Transports())
 		if err != nil {
 			// FIXME - print a more useful error, specifying --ptversion and --transports flags
@@ -326,14 +322,14 @@ func getServerInfo(ptversion *string, bindaddrList *string, options *string, tra
 
 	bindaddrs, err = getServerBindaddrs(bindaddrList, options, transportList)
 	if err != nil {
-		fmt.Println("Error parsing bindaddrs", *bindaddrList, *options, *transportList)
+		fmt.Errorf("Error parsing bindaddrs %q %q %q", *bindaddrList, *options, *transportList)
 		return ptServerInfo
 	}
 
 	ptServerInfo = pt.ServerInfo{Bindaddrs: bindaddrs}
 	ptServerInfo.OrAddr, err = pt.ResolveAddr(*orport)
 	if err != nil {
-		fmt.Println("Error resolving OR address", orport, err)
+		fmt.Errorf("Error resolving OR address %q %q", orport, err)
 		return ptServerInfo
 	}
 
@@ -346,13 +342,13 @@ func getServerInfo(ptversion *string, bindaddrList *string, options *string, tra
 	if extorport != nil && *extorport != "" {
 		ptServerInfo.ExtendedOrAddr, err = pt.ResolveAddr(*extorport)
 		if err != nil {
-			fmt.Println("Error resolving Extended OR address", *extorport, err)
+			fmt.Errorf("Error resolving Extended OR address %q %q", *extorport, err)
 			return ptServerInfo
 		}
 	} else {
 		ptServerInfo.ExtendedOrAddr, err = pt.ResolveAddr(pt.Getenv("TOR_PT_EXTENDED_SERVER_PORT"))
 		if err != nil {
-			fmt.Println("Error resolving Extended OR address", err)
+			fmt.Errorf("Error resolving Extended OR address %q %q", err)
 			return ptServerInfo
 		}
 	}
@@ -377,7 +373,7 @@ func getServerBindaddrs(bindaddrList *string, options *string, transports *strin
 		if serverTransportOptions != "" {
 			optionsMap, err = pt.ParseServerTransportOptions(serverTransportOptions)
 			if err != nil {
-				fmt.Println("Error parsing options map", serverTransportOptions, err)
+				fmt.Errorf("Error parsing options map %q %q", serverTransportOptions, err)
 				return nil, errors.New(fmt.Sprintf("TOR_PT_SERVER_TRANSPORT_OPTIONS: %q: %s", serverTransportOptions, err.Error()))
 			}
 		}
@@ -386,7 +382,7 @@ func getServerBindaddrs(bindaddrList *string, options *string, transports *strin
 		if serverTransportOptions != "" {
 			optionsMap, err = pt.ParsePT2ServerParameters(serverTransportOptions)
 			if err != nil {
-				fmt.Println("Error parsing options map", serverTransportOptions, err)
+				fmt.Errorf("Error parsing options map %q %q", serverTransportOptions, err)
 				return nil, errors.New(fmt.Sprintf("TOR_PT_SERVER_TRANSPORT_OPTIONS: %q: %s", serverTransportOptions, err.Error()))
 			}
 		}
