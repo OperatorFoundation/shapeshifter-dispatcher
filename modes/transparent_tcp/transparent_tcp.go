@@ -173,7 +173,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 	// 	return
 	// }
 	if remote == nil {
-		fmt.Println("outgoing connection failed", f, target)
+		fmt.Errorf("outgoing connection failed %q %q", f, target)
 		return
 	}
 
@@ -209,7 +209,7 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 			log.Errorf("meeklite transport not supported on server")
 			return
 		case "obfs4":
-			transport = obfs4.NewObfs4Server(statedir, options)
+			transport = obfs4.NewObfs4Server(statedir)
 		case "shadow":
 			shargs, aok := args["shadow"]
 			if !aok {
@@ -255,13 +255,13 @@ func getServerBindaddrs(serverBindaddr string) ([]pt.Bindaddr, error) {
 
 		parts := strings.SplitN(spec, "-", 2)
 		if len(parts) != 2 {
-			fmt.Println("TOR_PT_SERVER_BINDADDR: doesn't contain \"-\"", spec)
+			fmt.Errorf("TOR_PT_SERVER_BINDADDR: doesn't contain \"-\" %q", spec)
 			return nil, nil
 		}
 		bindaddr.MethodName = parts[0]
 		addr, err := pt.ResolveAddr(parts[1])
 		if err != nil {
-			fmt.Println("TOR_PT_SERVER_BINDADDR: ", spec, err.Error())
+			fmt.Errorf("TOR_PT_SERVER_BINDADDR: %q %q", spec, err.Error())
 			return nil, nil
 		}
 		bindaddr.Addr = addr
@@ -297,7 +297,6 @@ func serverHandler(termMon *termmon.TermMonitor, name string, remote base.Transp
 	// Connect to the orport.
 	orConn, err := pt.DialOr(info, remote.NetworkConn().RemoteAddr().String(), name)
 	if err != nil {
-		fmt.Println("OR conn failed", info, remote.NetworkConn().RemoteAddr(), name, err)
 		log.Errorf("%s(%s) - failed to connect to ORPort: %s", name, addrStr, log.ElideError(err))
 		return
 	}
