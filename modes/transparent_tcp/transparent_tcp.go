@@ -127,7 +127,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 					return
 				}
 			} else {
-				log.Errorf("obfs4 transport missing cert argument: %s", args)
+				log.Errorf("obfs4 transport missing iatMode argument: %s", args)
 				return
 			}
 		} else {
