@@ -49,10 +49,6 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
 )
 
-const (
-	socksAddr = "127.0.0.1:1234"
-)
-
 var stateDir string
 
 type ConnState struct {
@@ -66,7 +62,7 @@ func NewConnState() ConnState {
 
 type ConnTracker map[string]ConnState
 
-func ClientSetup(termMon *termmon.TermMonitor, target string, ptClientProxy *url.URL, names []string, options string) bool {
+func ClientSetup(termMon *termmon.TermMonitor, socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) bool {
 	// Launch each of the client listeners.
 	for _, name := range names {
 		udpAddr, err := net.ResolveUDPAddr("udp", socksAddr)

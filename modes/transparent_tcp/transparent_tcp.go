@@ -48,13 +48,9 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 )
 
-const (
-	socksAddr = "127.0.0.1:1234"
-)
-
 var stateDir string
 
-func ClientSetup(termMon *termmon.TermMonitor, target string, ptClientProxy *url.URL, names []string, options string) (launched bool, listeners []net.Listener) {
+func ClientSetup(termMon *termmon.TermMonitor, socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) (launched bool, listeners []net.Listener) {
 	// Launch each of the client listeners.
 	for _, name := range names {
 		ln, err := net.Listen("tcp", socksAddr)

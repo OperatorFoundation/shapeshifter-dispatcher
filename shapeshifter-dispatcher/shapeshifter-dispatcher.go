@@ -60,7 +60,6 @@ import (
 const (
 	dispatcherVersion = "0.0.7-dev"
 	dispatcherLogFile = "dispatcher.log"
-	socksAddr         = "127.0.0.1:0"
 )
 
 var stateDir string
@@ -100,6 +99,9 @@ func main() {
 	orport := flag.String("orport", "", "Specify the address the server should forward traffic to in host:port format")
 	extorport := flag.String("extorport", "", "Specify the address of a server implementing the Extended OR Port protocol, which is used for per-connection metadata")
 	authcookie := flag.String("authcookie", "", "Specify an authentication cookie, for use in authenticating with the Extended OR Port")
+
+	// Experimental flags under consideration for PT 2.1
+	socksAddr := flag.String("proxylistenaddr", "127.0.0.1:0", "Specify the bind address for the local SOCKS server provided by the client")
 
 	// Additional command line flags inherited from obfs4proxy
 	showVer := flag.Bool("version", false, "Print version and exit")
@@ -158,7 +160,7 @@ func main() {
 				} else {
 					ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
 
-					launched = transparent_udp.ClientSetup(termMon, *target, ptClientProxy, names, *options)
+					launched = transparent_udp.ClientSetup(termMon, *socksAddr, *target, ptClientProxy, names, *options)
 				}
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
@@ -180,7 +182,7 @@ func main() {
 				} else {
 					ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
 
-					launched, clientListeners = transparent_tcp.ClientSetup(termMon, *target, ptClientProxy, names, *options)
+					launched, clientListeners = transparent_tcp.ClientSetup(termMon, *socksAddr, *target, ptClientProxy, names, *options)
 				}
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
@@ -202,7 +204,7 @@ func main() {
 				} else {
 					ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
 
-					launched = stun_udp.ClientSetup(termMon, *target, ptClientProxy, names, *options)
+					launched = stun_udp.ClientSetup(termMon, *socksAddr, *target, ptClientProxy, names, *options)
 				}
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
@@ -220,7 +222,7 @@ func main() {
 				log.Infof("%s - initializing client transport listeners", execName)
 				ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
 
-				launched, clientListeners = pt_socks5.ClientSetup(termMon, *target, ptClientProxy, names, *options)
+				launched, clientListeners = pt_socks5.ClientSetup(termMon, *socksAddr, *target, ptClientProxy, names, *options)
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
 				ptServerInfo := getServerInfo(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
