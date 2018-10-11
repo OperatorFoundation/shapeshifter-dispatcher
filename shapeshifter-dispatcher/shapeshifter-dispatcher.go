@@ -54,7 +54,6 @@ import (
 	_ "github.com/OperatorFoundation/obfs4/proxy_dialers/proxy_http"
 	_ "github.com/OperatorFoundation/obfs4/proxy_dialers/proxy_socks4"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/base"
 )
 
 const (
@@ -131,7 +130,7 @@ func main() {
 
 	// Determine if this is a client or server, initialize the common state.
 	var clientListeners []net.Listener
-	var serverListeners []base.TransportListener
+	var serverListeners []net.Listener
 	launched := false
 	isClient, err := checkIsClient(*clientMode, *serverMode)
 	if err != nil {

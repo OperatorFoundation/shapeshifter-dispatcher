@@ -45,8 +45,6 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/base"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
 )
@@ -164,35 +162,26 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 
 	fmt.Println("Dialing....")
 
-	var transport base.Transport
-
 	args, argsErr := pt.ParsePT2ClientParameters(options)
 	if argsErr != nil {
 		log.Errorf("Error parsing transport options: %s", options)
 		return
 	}
 
+	var f func(address string) net.Conn
+
 	// Deal with arguments.
 	switch name {
 	case "obfs2":
-		transport = obfs2.NewObfs2Transport()
-	case "meeklite":
-		if url, ok := args["url"]; ok {
-			if front, ok2 := args["front"]; ok2 {
-				transport = meeklite.NewMeekTransportWithFront(url[0], front[0])
-			} else {
-				transport = meeklite.NewMeekTransport(url[0])
-			}
-		} else {
-			log.Errorf("meeklite transport missing URL argument: %s", args)
-			return
-		}
+		transport := obfs2.NewObfs2Transport()
+		f = transport.Dial
 	case "obfs4":
 		if cert, ok := args["cert"]; ok {
 			if iatModeStr, ok2 := args["iatMode"]; ok2 {
 				iatMode, err := strconv.Atoi(iatModeStr[0])
 				if err != nil {
-					transport = obfs4.NewObfs4Client(cert[0], iatMode)
+					transport := obfs4.NewObfs4Client(cert[0], iatMode)
+					f = transport.Dial
 				} else {
 					log.Errorf("obfs4 transport bad iatMode value: %s", iatModeStr)
 					return
@@ -210,8 +199,6 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 		return
 	}
 
-	f := transport.Dial
-
 	fmt.Println("Dialing ", target)
 	remote := f(target)
 	// if err != nil {
@@ -227,7 +214,7 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 	(*tracker)[addr] = ConnState{remote, false}
 }
 
-func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerInfo pt.ServerInfo, options string) (launched bool, listeners []base.TransportListener) {
+func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerInfo pt.ServerInfo, options string) (launched bool, listeners []net.Listener) {
 	fmt.Println("ServerSetup")
 
 	// Launch each of the server listeners.
@@ -235,7 +222,7 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 		name := bindaddr.MethodName
 		fmt.Println("bindaddr", bindaddr)
 
-		var transport base.Transport
+		var listen func(address string) net.Listener
 
 		args, argsErr := pt.ParsePT2ClientParameters(options)
 		if argsErr != nil {
@@ -246,24 +233,15 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 		// Deal with arguments.
 		switch name {
 		case "obfs2":
-			transport = obfs2.NewObfs2Transport()
-		case "meeklite":
-			if url, ok := args["url"]; ok {
-				if front, ok2 := args["front"]; ok2 {
-					transport = meeklite.NewMeekTransportWithFront(url[0], front[0])
-				} else {
-					transport = meeklite.NewMeekTransport(url[0])
-				}
-			} else {
-				log.Errorf("meeklite transport missing URL argument: %s", args)
-				return
-			}
+			transport := obfs2.NewObfs2Transport()
+			listen=transport.Listen
 		case "obfs4":
 			if cert, ok := args["cert"]; ok {
 				if iatModeStr, ok2 := args["iatMode"]; ok2 {
 					iatMode, err := strconv.Atoi(iatModeStr[0])
 					if err != nil {
-						transport = obfs4.NewObfs4Client(cert[0], iatMode)
+						transport := obfs4.NewObfs4Client(cert[0], iatMode)
+						listen=transport.Listen
 					} else {
 						log.Errorf("obfs4 transport bad iatMode value: %s", iatModeStr)
 						return
@@ -281,9 +259,7 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 			return
 		}
 
-		f := transport.Listen
-
-		transportLn := f(bindaddr.Addr.String())
+		transportLn := listen(bindaddr.Addr.String())
 
 		go serverAcceptLoop(termMon, name, transportLn, &ptServerInfo)
 
@@ -362,10 +338,10 @@ func parsePort(portStr string) (int, error) {
 	return int(port), err
 }
 
-func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln base.TransportListener, info *pt.ServerInfo) error {
+func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln net.Listener, info *pt.ServerInfo) error {
 	defer ln.Close()
 	for {
-		conn, err := ln.TransportAccept()
+		conn, err := ln.Accept()
 		fmt.Println("accepted")
 		if err != nil {
 			if e, ok := err.(net.Error); ok && !e.Temporary() {
@@ -377,7 +353,7 @@ func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln base.Transpo
 	}
 }
 
-func serverHandler(termMon *termmon.TermMonitor, name string, remote base.TransportConn, info *pt.ServerInfo) {
+func serverHandler(termMon *termmon.TermMonitor, name string, remote net.Conn, info *pt.ServerInfo) {
 	var header *common.Message
 
 	defer remote.Close()
