@@ -31,5 +31,5 @@ package transports
 
 // Transports returns the list of registered transport protocols.
 func Transports() []string {
-	return []string{"obfs2", "meeklite", "obfs4"}
+	return []string{"obfs2", "shadow", "obfs4"}
 }
