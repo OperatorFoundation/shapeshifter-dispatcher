@@ -38,8 +38,8 @@ This is the repository for the shapeshifter-dispatcher command line proxy tool.
 If you are looking for the transports is provides, they are here:
 <https://github.com/OperatorFoundation/shapeshifter-transports>
 
-The dispatcher implements the Pluggable Transports 2.0 draft 1 specification available here:
-<http://www.pluggabletransports.info/assets/PTSpecV2Draft1.pdf>
+The dispatcher implements the Pluggable Transports 2.1 draft 1 specification available here:
+<https://github.com/Pluggable-Transports/Pluggable-Transports-spec/tree/master/releases/PTSpecV2.1Draft1f>
 
 The purpose of the dispatcher is to provide different proxy interfaces to using
 transports. Through the use of these proxies, application traffic can be sent
@@ -61,7 +61,7 @@ The dispatcher currently supports the following transports:
 #### Installation
 
 The dispatcher is written in the Go programming language. To compile it you need
-to install Go 1.5.1 or higher:
+to install Go 1.10.2 or higher:
 
 <https://golang.org/doc/install>
 
@@ -108,7 +108,7 @@ Use either --client or --server to place the proxy into client or server mode,
 respectively. Use --state to specify a directory to put transports state
 information. Use --transports to specify which transports to launch.
 
-The default proxy mode is SOCKS5 (with optional PT 1.0 authentication protocol),
+The default proxy mode is SOCKS5 (with optional PT 2.0 authentication protocol),
 which can only proxy SOCKS5-aware TCP connections. For some transports, the
 proxied connection will also need to know how to speak the PT 1.0 authentication
 protocol. This requirement varies by the transport used.
@@ -127,9 +127,9 @@ any incoming packets are forwarded over the transport.
 
 Only one proxy mode can be used at a time.
 
-The full set of command line flags is specified in the Pluggable Transport 2.0
+The full set of command line flags is specified in the Pluggable Transport 2.1
 draft 1 specification.
-<http://www.pluggabletransports.info/assets/PTSpecV2Draft1.pdf>
+<https://github.com/Pluggable-Transports/Pluggable-Transports-spec/tree/master/releases/PTSpecV2.1Draft1>
 
 #### Running with obfs4
 
@@ -192,8 +192,8 @@ use environment variables. Most of the functionality specified by command line
 flags can also be set using environment variables instead.
 
 The full set of environment variables is specified in the Pluggable Transport
-2.0 draft 1 specification.
-<http://www.pluggabletransports.info/assets/PTSpecV2Draft1.pdf>
+2.1 draft 1 specification.
+<https://github.com/Pluggable-Transports/Pluggable-Transports-spec/tree/master/releases/PTSpecV2.1Draft1>
 
 ### Credits
 
