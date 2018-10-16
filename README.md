@@ -48,17 +48,15 @@ the application to work on networks where it would otherwise be blocked or
 heavily throttled.
 
 The dispatcher currently supports the following proxy modes:
- * SOCKS5 (with optional PT 1.0 authentication protocol)
+ * SOCKS5 (with optional PT 2.0 authentication protocol)
  * Transparent TCP
  * Transparent UDP
  * STUN UDP
 
 The dispatcher currently supports the following transports:
- * meek
  * obfs4
- * obfs3
  * obfs2
- * scramblesuit
+ * shadow (Shadowsocks)
 
 #### Installation
 
