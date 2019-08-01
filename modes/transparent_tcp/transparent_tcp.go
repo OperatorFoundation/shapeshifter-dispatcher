@@ -43,7 +43,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
+	//"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 )
@@ -89,7 +89,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 	termMon.OnHandlerStart()
 	defer termMon.OnHandlerFinish()
 
-	var dialer func() net.Conn
+	var dialer func() (net.Conn, error)
 
 	args, argsErr := pt.ParsePT2ClientParameters(options)
 	if argsErr != nil {
@@ -117,12 +117,12 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 	// }
 
 	// FIXME - use dialFn if a proxy is needed to connect to the network
-	remote := f()
+	remote, err := f()
 	// if err != nil {
 	// 	log.Errorf("%s(%s) - outgoing connection failed: %s", name, target, log.ElideError(err))
 	// 	return
 	// }
-	if remote == nil {
+	if err != nil {
 		fmt.Errorf("outgoing connection failed %q %q", f, target)
 		return
 	}
@@ -139,7 +139,6 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 }
 
 func argsToDialer(target string, name string, args pt.Args) (Optimizer.Transport, error) {
-	var dialer func(string) net.Conn = nil
 	switch name {
 	//case "obfs2":
 	//	transport := obfs2.NewObfs2Transport()
@@ -186,7 +185,7 @@ func argsToDialer(target string, name string, args pt.Args) (Optimizer.Transport
 			return nil, errors.New("shadow transport missing password argument")
 		}
 	case "Optimizer":
-		if transports, ok := args["transports"]; ok {
+		if _, ok := args["transports"]; ok {
 			if strategyName, ok2 := args["strategy"]; ok2 {
 				var strategy Optimizer.Strategy = nil
 				switch strategyName[0] {
@@ -201,8 +200,7 @@ func argsToDialer(target string, name string, args pt.Args) (Optimizer.Transport
 				case "min":
 					strategy = Optimizer.NewMinimizeDialDuration()
 				}
-				var transports []Optimizer.Transport
-				transports = make([]Optimizer.Transport)
+				transports := []Optimizer.Transport{}
 				transport := Optimizer.NewOptimizerClient(transports, strategy)
 				return transport, nil
 			} else {
@@ -235,9 +233,9 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 
 		// Deal with arguments.
 		switch name {
-		case "obfs2":
-			transport := obfs2.NewObfs2Transport()
-			listen = transport.Listen
+		//case "obfs2":
+		//	transport := obfs2.NewObfs2Transport()
+		//	listen = transport.Listen
 		case "obfs4":
 			transport := obfs4.NewObfs4Server(statedir)
 			listen = transport.Listen
@@ -259,22 +257,6 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 
 			transport := shadow.NewShadowServer(password, cipherName)
 			listen = transport.Listen
-		case "Optimizer":
-			shargs, aok := args["Optimizer"]
-			if !aok {
-				return false, nil
-			}
-
-			transports, ok := shargs.Get("transports")
-			if !ok {
-				return false, nil
-			}
-
-			strategy, ok2 := shargs.Get("strategy")
-			if !ok2 {
-				return false, nil
-			}
-
 		default:
 			log.Errorf("Unknown transport: %s", name)
 			return false, nil
