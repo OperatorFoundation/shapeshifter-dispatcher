@@ -30,6 +30,7 @@
 package transparent_tcp
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net"
@@ -41,6 +42,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
@@ -87,7 +89,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 	termMon.OnHandlerStart()
 	defer termMon.OnHandlerFinish()
 
-	var dialer func(address string) net.Conn
+	var dialer func() net.Conn
 
 	args, argsErr := pt.ParsePT2ClientParameters(options)
 	if argsErr != nil {
@@ -96,47 +98,9 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 	}
 
 	// Deal with arguments.
-	switch name {
-	case "obfs2":
-		transport := obfs2.NewObfs2Transport()
-		dialer = transport.Dial
-	case "obfs4":
-		if cert, ok := args["cert"]; ok {
-			if iatModeStr, ok2 := args["iatMode"]; ok2 {
-				iatMode, err := strconv.Atoi(iatModeStr[0])
-				if err == nil {
-					transport := obfs4.NewObfs4Client(cert[0], iatMode)
-					dialer = transport.Dial
-				} else {
-					log.Errorf("obfs4 transport bad iatMode value: %s %s", iatModeStr[0], err)
-					return
-				}
-			} else {
-				log.Errorf("obfs4 transport missing iatMode argument: %s", args)
-				return
-			}
-		} else {
-			log.Errorf("obfs4 transport missing cert argument: %s", args)
-			return
-		}
-	case "shadow":
-		if password, ok := args["password"]; ok {
-			if cipher, ok2 := args["cipherName"]; ok2 {
-				transport := shadow.NewShadowClient(password[0], cipher[0])
-				dialer = transport.Dial
-			} else {
-				log.Errorf("shadow transport missing cipher argument: %s", args)
-				return
-			}
-		} else {
-			log.Errorf("shadow transport missing password argument: %s", args)
-			return
-		}
-	default:
-		log.Errorf("Unknown transport: %s", name)
-		return
-	}
 
+	transport, _ := argsToDialer(target, name, args)
+	dialer = transport.Dial
 	f := dialer
 
 	// Obtain the proxy dialer if any, and create the outgoing TCP connection.
@@ -153,7 +117,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 	// }
 
 	// FIXME - use dialFn if a proxy is needed to connect to the network
-	remote := f(target)
+	remote := f()
 	// if err != nil {
 	// 	log.Errorf("%s(%s) - outgoing connection failed: %s", name, target, log.ElideError(err))
 	// 	return
@@ -172,6 +136,88 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 	}
 
 	return
+}
+
+func argsToDialer(target string, name string, args pt.Args) (Optimizer.Transport, error) {
+	var dialer func(string) net.Conn = nil
+	switch name {
+	//case "obfs2":
+	//	transport := obfs2.NewObfs2Transport()
+	//	dialer = transport.Dial
+	//	return dialer, nil
+	case "obfs4":
+		if cert, ok := args["cert"]; ok {
+			if iatModeStr, ok2 := args["iatMode"]; ok2 {
+				iatMode, err := strconv.Atoi(iatModeStr[0])
+				if err == nil {
+					transport := obfs4.Transport{
+						CertString: cert[0],
+						IatMode:    iatMode,
+						Address:    target,
+					}
+					return transport, nil
+				} else {
+					log.Errorf("obfs4 transport bad iatMode value: %s %s", iatModeStr[0], err)
+					return nil, errors.New("obfs4 transport bad iatMode value")
+				}
+			} else {
+				log.Errorf("obfs4 transport missing iatMode argument: %s", args)
+				return nil, errors.New("obfs4 transport missing iatMode argument")
+			}
+		} else {
+			log.Errorf("obfs4 transport missing cert argument: %s", args)
+			return nil, errors.New("obfs4 transport missing cert argument")
+		}
+	case "shadow":
+		if password, ok := args["password"]; ok {
+			if cipher, ok2 := args["cipherName"]; ok2 {
+				transport := shadow.Transport{
+					Password:   password[0],
+					CipherName: cipher[0],
+					Address:    target,
+				}
+				return transport, nil
+			} else {
+				log.Errorf("shadow transport missing cipher argument: %s", args)
+				return nil, errors.New("shadow transport missing cipher argument")
+			}
+		} else {
+			log.Errorf("shadow transport missing password argument: %s", args)
+			return nil, errors.New("shadow transport missing password argument")
+		}
+	case "Optimizer":
+		if transports, ok := args["transports"]; ok {
+			if strategyName, ok2 := args["strategy"]; ok2 {
+				var strategy Optimizer.Strategy = nil
+				switch strategyName[0] {
+				case "first":
+					strategy = Optimizer.NewFirstStrategy()
+				case "random":
+					strategy = Optimizer.NewRandomStrategy()
+				case "rotate":
+					strategy = Optimizer.NewRotateStrategy()
+				case "track":
+					strategy = Optimizer.NewTrackStrategy()
+				case "min":
+					strategy = Optimizer.NewMinimizeDialDuration()
+				}
+				var transports []Optimizer.Transport
+				transports = make([]Optimizer.Transport)
+				transport := Optimizer.NewOptimizerClient(transports, strategy)
+				return transport, nil
+			} else {
+				log.Errorf("Optimizer transport missing transports argument: %s", args)
+				return nil, errors.New("optimizer transport missing transports argument")
+			}
+		} else {
+			log.Errorf("Optimizer transport missing strategy argument: %s", args)
+			return nil, errors.New("optimizer transport missing strategy argument")
+		}
+
+	default:
+		log.Errorf("Unknown transport: %s", name)
+		return nil, errors.New("unknown transport")
+	}
 }
 
 func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerInfo pt.ServerInfo, statedir string, options string) (launched bool, listeners []net.Listener) {
@@ -213,6 +259,22 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 
 			transport := shadow.NewShadowServer(password, cipherName)
 			listen = transport.Listen
+		case "Optimizer":
+			shargs, aok := args["Optimizer"]
+			if !aok {
+				return false, nil
+			}
+
+			transports, ok := shargs.Get("transports")
+			if !ok {
+				return false, nil
+			}
+
+			strategy, ok2 := shargs.Get("strategy")
+			if !ok2 {
+				return false, nil
+			}
+
 		default:
 			log.Errorf("Unknown transport: %s", name)
 			return false, nil

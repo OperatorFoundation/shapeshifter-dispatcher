@@ -55,7 +55,7 @@ The dispatcher currently supports the following proxy modes:
 
 The dispatcher currently supports the following transports:
  * obfs4
- * obfs2
+ * optimizer
  * shadow (Shadowsocks)
 
 #### Installation
