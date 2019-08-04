@@ -173,7 +173,7 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 
 	fmt.Println("Dialing....")
 
-	var dialer func(address string) net.Conn
+	var dialer func(address string) (net.Conn, error)
 
 	args, argsErr := pt.ParsePT2ClientParameters(options)
 	if argsErr != nil {
@@ -190,7 +190,7 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 		if cert, ok := args["cert"]; ok {
 			if iatModeStr, ok2 := args["iatMode"]; ok2 {
 				iatMode, err := strconv.Atoi(iatModeStr[0])
-				if err != nil {
+				if err == nil {
 					transport := obfs4.NewObfs4Client(cert[0], iatMode)
 					dialer = transport.Dial
 				} else {
@@ -212,14 +212,14 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 
 	f := dialer
 	fmt.Println("Dialing ", target)
-	remote := f(target)
-	// if err != nil {
-	// 	fmt.Println("outgoing connection failed", err)
-	// 	log.Errorf("(%s) - outgoing connection failed: %s", target, log.ElideError(err))
-	// 	fmt.Println("Failed")
-	// 	delete(*tracker, addr)
-	// 	return
-	// }
+	remote, err := f(target)
+	if err != nil {
+	 	fmt.Println("outgoing connection failed", err)
+	 	log.Errorf("(%s) - outgoing connection failed: %s", target, log.ElideError(err))
+	 	fmt.Println("Failed")
+	 	delete(*tracker, addr)
+	 	return
+	}
 
 	fmt.Println("Success")
 
@@ -236,34 +236,29 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 
 		var listen func(address string) net.Listener
 
-		args, argsErr := pt.ParsePT2ClientParameters(options)
-		if argsErr != nil {
-			log.Errorf("Error parsing transport options: %s", options)
-			return
-		}
-
 		// Deal with arguments.
 		switch name {
 		case "obfs2":
 			transport := obfs2.NewObfs2Transport()
 			listen = transport.Listen
 		case "obfs4":
-			if cert, ok := args["cert"]; ok {
-				if iatModeStr, ok2 := args["iatMode"]; ok2 {
+			if cert, ok := bindaddr.Options["cert"]; ok {
+				if iatModeStr, ok2 := bindaddr.Options["iatMode"]; ok2 {
+					log.Infof("obfs4 - Cert: %s, iatMode: %s", cert[0], iatModeStr[0])
 					iatMode, err := strconv.Atoi(iatModeStr[0])
-					if err != nil {
+					if err == nil {
 						transport := obfs4.NewObfs4Client(cert[0], iatMode)
 						listen = transport.Listen
 					} else {
-						log.Errorf("obfs4 transport bad iatMode value: %s", iatModeStr)
+						log.Errorf("obfs4 transport bad iatMode value: %s, %v", iatModeStr[0], err)
 						return
 					}
 				} else {
-					log.Errorf("obfs4 transport missing cert argument: %s", args)
+					log.Errorf("obfs4 transport missing cert argument: %s", bindaddr.Options)
 					return
 				}
 			} else {
-				log.Errorf("obfs4 transport missing cert argument: %s", args)
+				log.Errorf("obfs4 transport missing cert argument: %s", bindaddr.Options)
 				return
 			}
 		default:
