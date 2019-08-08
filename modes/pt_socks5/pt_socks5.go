@@ -107,7 +107,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, con
 		}
 	}
 
-	var dialer func(address string) net.Conn
+	var dialer func(address string) (net.Conn, error)
 
 	// Deal with arguments.
 	switch name {
@@ -160,7 +160,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, con
 
 	f := dialer
 
-	remote := f(socksReq.Target)
+	remote, _ := f(socksReq.Target)
 	if err != nil {
 		log.Errorf("%s(%s) - outgoing connection failed: %s", name, addrStr, log.ElideError(err))
 		socksReq.Reply(socks5.ErrorToReplyCode(err))

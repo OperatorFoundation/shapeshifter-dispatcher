@@ -261,10 +261,10 @@ func main() {
 	}
 
 	termMon.Wait(true)
-
-	for {
-		// FIXME - block because termMon.Wait is not blocking
-	}
+	// FIXME - block because termMon.Wait is not blocking
+	//for {
+	//
+	//}
 }
 
 func checkIsClient(client bool, server bool) (bool, error) {

@@ -168,7 +168,7 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 		return
 	}
 
-	var f func(address string) net.Conn
+	var f func(address string) (net.Conn, error)
 
 	// Deal with arguments.
 	switch name {
@@ -200,7 +200,7 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 	}
 
 	fmt.Println("Dialing ", target)
-	remote := f(target)
+	remote, _ := f(target)
 	// if err != nil {
 	// 	fmt.Println("outgoing connection failed", err)
 	// 	log.Errorf("(%s) - outgoing connection failed: %s", target, log.ElideError(err))

@@ -173,7 +173,7 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 
 	fmt.Println("Dialing....")
 
-	var dialer func(address string) net.Conn
+	var dialer func(address string) (net.Conn, error)
 
 	args, argsErr := pt.ParsePT2ClientParameters(options)
 	if argsErr != nil {
@@ -212,7 +212,7 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 
 	f := dialer
 	fmt.Println("Dialing ", target)
-	remote := f(target)
+	remote, _ := f(target)
 	// if err != nil {
 	// 	fmt.Println("outgoing connection failed", err)
 	// 	log.Errorf("(%s) - outgoing connection failed: %s", target, log.ElideError(err))
