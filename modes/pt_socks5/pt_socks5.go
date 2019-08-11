@@ -136,6 +136,52 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, con
 			socksReq.Reply(socks5.ReplyGeneralFailure)
 			return
 		}
+	//case "shadow":
+	//	if password, ok := args["password"]; ok {
+	//		if cipher, ok2 := args["cipherName"]; ok2 {
+	//			transport := shadow.NewShadowClient(password[0], cipher[0])
+	//			dialer = transport.Dial
+	//		} else {
+	//			log.Errorf("shadow transport missing cipher argument: %s", args)
+	//				socksReq.Reply(socks5.ReplyGeneralFailure)
+	//			return
+	//		}
+	//	} else {
+	//		log.Errorf("shadow transport missing password argument: %s", args)
+	//		socksReq.Reply(socks5.ReplyGeneralFailure)
+	//		return
+	//	}
+	//		case "Optimizer":
+	//	if _, ok := args["transports"]; ok {
+	//		if strategyName, ok2 := args["strategy"]; ok2 {
+	//			var strategy Optimizer.Strategy = nil
+	//			switch strategyName[0] {
+	//			case "first":
+	//				strategy = Optimizer.NewFirstStrategy()
+	//			case "random":
+	//				strategy = Optimizer.NewRandomStrategy()
+	//			case "rotate":
+	//				strategy = Optimizer.NewRotateStrategy()
+	//			case "track":
+	//				strategy = Optimizer.NewTrackStrategy()
+	//			case "min":
+	//				strategy = Optimizer.NewMinimizeDialDuration()
+	//			}
+	//transports := []Optimizer.Transport{}
+	//transport := Optimizer.NewOptimizerClient(transports, strategy)
+	//			return transport, nil
+	////says too many arguments to return just like earlier.
+	//	} else {
+	//		log.Errorf("Optimizer transport missing transports argument: %s", args)
+	//		socksReq.Reply(socks5.ReplyGeneralFailure)
+	//		return
+	//	}
+	//} else {
+	//	log.Errorf("Optimizer transport missing strategy argument: %s", args)
+	//		socksReq.Reply(socks5.ReplyGeneralFailure)
+	//	return
+	//}
+
 	default:
 		log.Errorf("Unknown transport: %s", name)
 		socksReq.Reply(socks5.ReplyGeneralFailure)

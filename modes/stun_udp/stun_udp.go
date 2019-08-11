@@ -31,6 +31,7 @@ package stun_udp
 
 import (
 	"fmt"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 	"io"
 	golog "log"
 	"net"
@@ -254,6 +255,48 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 				log.Errorf("obfs4 transport missing cert argument: %s", args)
 				return
 			}
+			case "shadow":
+				if password, ok := args["password"]; ok {
+					if cipher, ok2 := args["cipherName"]; ok2 {
+			transport := shadow.NewShadowClient(password[0], cipher[0])
+			listen = transport.Listen
+			} else {
+				log.Errorf("shadow transport missing cipher argument: %s", args)
+				return
+			}
+		} else {
+			log.Errorf("shadow transport missing password argument: %s", args)
+			return
+		}
+		//		case "Optimizer":
+		//	if _, ok := args["transports"]; ok {
+		//		if strategyName, ok2 := args["strategy"]; ok2 {
+		//			var strategy Optimizer.Strategy = nil
+		//			switch strategyName[0] {
+		//			case "first":
+		//				strategy = Optimizer.NewFirstStrategy()
+		//			case "random":
+		//				strategy = Optimizer.NewRandomStrategy()
+		//			case "rotate":
+		//				strategy = Optimizer.NewRotateStrategy()
+		//			case "track":
+		//				strategy = Optimizer.NewTrackStrategy()
+		//			case "min":
+		//				strategy = Optimizer.NewMinimizeDialDuration()
+		//			}
+		//transports := []Optimizer.Transport{}
+		//transport := Optimizer.NewOptimizerClient(transports, strategy)
+		//			return transport, nil
+		////says too many arguments to return just like earlier.  tried autocorrecting and now it says transport is not type bool
+		//	} else {
+		//		log.Errorf("Optimizer transport missing transports argument: %s", args)
+		//		return
+		//	}
+		//} else {
+		//	log.Errorf("Optimizer transport missing strategy argument: %s", args)
+		//	return
+		//}
+
 		default:
 			log.Errorf("Unknown transport: %s", name)
 			return

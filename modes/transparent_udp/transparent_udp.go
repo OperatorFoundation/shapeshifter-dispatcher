@@ -45,6 +45,8 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-ipc"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
+	//"github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer"
+	//"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 )
 
 var stateDir string
@@ -205,6 +207,49 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 			log.Errorf("obfs4 transport missing cert argument: %s", args)
 			return
 		}
+	//case "shadow":
+	//	if password, ok := args["password"]; ok {
+	//		if cipher, ok2 := args["cipherName"]; ok2 {
+				//transport := shadow.NewShadowClient(password[0], cipher[0])
+				//dialer = transport.Dial
+				////transport.Dial isn't the right type somehow?
+		//	} else {
+		//		log.Errorf("shadow transport missing cipher argument: %s", args)
+		//		return
+		//	}
+		//} else {
+		//	log.Errorf("shadow transport missing password argument: %s", args)
+		//	return
+		//}
+		//case "Optimizer":
+		//	if _, ok := args["transports"]; ok {
+		//		if strategyName, ok2 := args["strategy"]; ok2 {
+		//			var strategy Optimizer.Strategy = nil
+		//			switch strategyName[0] {
+		//			case "first":
+		//				strategy = Optimizer.NewFirstStrategy()
+		//			case "random":
+		//				strategy = Optimizer.NewRandomStrategy()
+		//			case "rotate":
+		//				strategy = Optimizer.NewRotateStrategy()
+		//			case "track":
+		//				strategy = Optimizer.NewTrackStrategy()
+		//			case "min":
+		//				strategy = Optimizer.NewMinimizeDialDuration()
+		//			}
+					//transports := []Optimizer.Transport{}
+					//transport := Optimizer.NewOptimizerClient(transports, strategy)
+					//return transport
+					////says too many arguments to return? where is the return type specified?
+			//	} else {
+			//		log.Errorf("Optimizer transport missing transports argument: %s", args)
+			//		return
+			//	}
+			//} else {
+			//	log.Errorf("Optimizer transport missing strategy argument: %s", args)
+			//	return
+			//}
+
 	default:
 		log.Errorf("Unknown transport: %s", name)
 		return
