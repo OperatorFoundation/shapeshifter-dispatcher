@@ -160,7 +160,7 @@ The cert parameter is what is needed for the dispatcher client.
 
 ##### Client
 
-    bin/shapeshifter-dispatcher -transparent -client -state state -target 127.0.0.1:2222  -transports obfs4 -options '{"cert": "OfQAPDamjsRO90fDGlnZR5RNG659FZqUKUwxUHcaK7jIbERvNU8+EVF6rmdlvS69jVYrKw", "iatMode": "0"}' -logLevel DEBUG -enableLogging
+    bin/shapeshifter-dispatcher -transparent -client -state state -target 127.0.0.1:2222  -transports obfs4 -proxylistenaddr obfs4-127.0.0.1:443 -options '{"cert": "OfQAPDamjsRO90fDGlnZR5RNG659FZqUKUwxUHcaK7jIbERvNU8+EVF6rmdlvS69jVYrKw", "iatMode": "0"}' -logLevel DEBUG -enableLogging
 
 This runs the client in transparent TCP proxy mode. The directory "state" is
 used to hold transport state. The address of the server is specified as
