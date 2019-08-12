@@ -39,7 +39,7 @@ If you are looking for the transports is provides, they are here:
 <https://github.com/OperatorFoundation/shapeshifter-transports>
 
 The dispatcher implements the Pluggable Transports 2.1 draft 1 specification available here:
-<https://github.com/Pluggable-Transports/Pluggable-Transports-spec/tree/master/releases/PTSpecV2.1Draft1f>
+<https://github.com/Pluggable-Transports/Pluggable-Transports-spec/tree/master/releases/PTSpecV2.1Draft1>
 
 The purpose of the dispatcher is to provide different proxy interfaces to using
 transports. Through the use of these proxies, application traffic can be sent
@@ -160,7 +160,7 @@ The cert parameter is what is needed for the dispatcher client.
 
 ##### Client
 
-    bin/shapeshifter-dispatcher -transparent -client -state state -target 127.0.0.1:2222  -transports obfs4 -bindaddr obfs4-127.0.0.1:443 -options '{"cert": "OfQAPDamjsRO90fDGlnZR5RNG659FZqUKUwxUHcaK7jIbERvNU8+EVF6rmdlvS69jVYrKw", "iatMode": "0"}' -logLevel DEBUG -enableLogging
+    bin/shapeshifter-dispatcher -transparent -client -state state -target 127.0.0.1:2222  -transports obfs4 -options '{"cert": "OfQAPDamjsRO90fDGlnZR5RNG659FZqUKUwxUHcaK7jIbERvNU8+EVF6rmdlvS69jVYrKw", "iatMode": "0"}' -logLevel DEBUG -enableLogging
 
 This runs the client in transparent TCP proxy mode. The directory "state" is
 used to hold transport state. The address of the server is specified as
