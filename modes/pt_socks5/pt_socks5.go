@@ -30,6 +30,7 @@
 package pt_socks5
 
 import (
+	//"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 	"io"
 	"net"
 	"net/url"
