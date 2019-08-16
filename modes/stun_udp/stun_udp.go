@@ -31,6 +31,7 @@ package stun_udp
 
 import (
 	"fmt"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 	"io"
 	golog "log"
@@ -169,39 +170,11 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 		return
 	}
 
-	var f func(address string) (net.Conn, error)
-
 	// Deal with arguments.
-	switch name {
-	case "obfs2":
-		transport := obfs2.NewObfs2Transport()
-		f = transport.Dial
-	case "obfs4":
-		if cert, ok := args["cert"]; ok {
-			if iatModeStr, ok2 := args["iatMode"]; ok2 {
-				iatMode, err := strconv.Atoi(iatModeStr[0])
-				if err != nil {
-					transport := obfs4.NewObfs4Client(cert[0], iatMode)
-					f = transport.Dial
-				} else {
-					log.Errorf("obfs4 transport bad iatMode value: %s", iatModeStr)
-					return
-				}
-			} else {
-				log.Errorf("obfs4 transport missing cert argument: %s", args)
-				return
-			}
-		} else {
-			log.Errorf("obfs4 transport missing cert argument: %s", args)
-			return
-		}
-	default:
-		log.Errorf("Unknown transport: %s", name)
-		return
-	}
+	transport, _ := pt_extras.ArgsToDialer(target, name, args)
 
 	fmt.Println("Dialing ", target)
-	remote, _ := f(target)
+	remote, _ := transport.Dial()
 	// if err != nil {
 	// 	fmt.Println("outgoing connection failed", err)
 	// 	log.Errorf("(%s) - outgoing connection failed: %s", target, log.ElideError(err))
@@ -268,34 +241,6 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 			log.Errorf("shadow transport missing password argument: %s", args)
 			return
 		}
-		//		case "Optimizer":
-		//	if _, ok := args["transports"]; ok {
-		//		if strategyName, ok2 := args["strategy"]; ok2 {
-		//			var strategy Optimizer.Strategy = nil
-		//			switch strategyName[0] {
-		//			case "first":
-		//				strategy = Optimizer.NewFirstStrategy()
-		//			case "random":
-		//				strategy = Optimizer.NewRandomStrategy()
-		//			case "rotate":
-		//				strategy = Optimizer.NewRotateStrategy()
-		//			case "track":
-		//				strategy = Optimizer.NewTrackStrategy()
-		//			case "min":
-		//				strategy = Optimizer.NewMinimizeDialDuration()
-		//			}
-		//transports := []Optimizer.Transport{}
-		//transport := Optimizer.NewOptimizerClient(transports, strategy)
-		//			return transport, nil
-		////says too many arguments to return just like earlier.  tried autocorrecting and now it says transport is not type bool
-		//	} else {
-		//		log.Errorf("Optimizer transport missing transports argument: %s", args)
-		//		return
-		//	}
-		//} else {
-		//	log.Errorf("Optimizer transport missing strategy argument: %s", args)
-		//	return
-		//}
 
 		default:
 			log.Errorf("Unknown transport: %s", name)

@@ -33,6 +33,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io/ioutil"
 	golog "log"
 	"net"
 	"net/url"
@@ -101,6 +102,7 @@ func main() {
 
 	// Experimental flags under consideration for PT 2.1
 	socksAddr := flag.String("proxylistenaddr", "127.0.0.1:0", "Specify the bind address for the local SOCKS server provided by the client")
+	optionsFile := flag.String("optionsFile", "", "store all the options in a single file")
 
 	// Additional command line flags inherited from obfs4proxy
 	showVer := flag.Bool("version", false, "Print version and exit")
@@ -143,6 +145,22 @@ func main() {
 	}
 	if err = log.Init(*enableLogging, path.Join(stateDir, dispatcherLogFile), *unsafeLogging); err != nil {
 		golog.Fatalf("[ERROR]: %s - failed to initialize logging", execName)
+	}
+	if *options != "" && *optionsFile != "" {
+		golog.Fatal("cannot specify -options and -optionsFile at the same time")
+	}
+	if *optionsFile != "" {
+		_, err := os.Stat(*optionsFile)
+		if err != nil {
+			log.Errorf("optionsFile does not exist %s", *optionsFile)
+		} else {
+			contents, readErr := ioutil.ReadFile(*optionsFile)
+			if readErr != nil {
+				log.Errorf("could not open optionsFile: %s", *optionsFile)
+			} else {
+				*options = string(contents)
+			}
+		}
 	}
 
 	log.Noticef("%s - launched", getVersion())

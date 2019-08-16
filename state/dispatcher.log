@@ -1,0 +1,50 @@
+2019/08/16 15:44:27 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/08/16 15:44:27 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/08/16 15:44:27 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/08/16 15:44:27 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/08/16 15:44:27 [INFO]: obfs4 - registered listener: 127.0.0.1:1443
+2019/08/16 15:44:27 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - accepting connections
+2019/08/16 15:45:05 [ERROR]: obfs4 transport missing iatMode argument: map[cert:[a1cc6eI5H+1kTzXhbuwMR9w3ZkLeZuReniier8DYSlAg4ed9yTbnyDiWc1vF1WFWKFRYHQ] iatmode:[0]]
+2019/08/16 15:45:54 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/08/16 15:45:54 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/08/16 15:45:54 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/08/16 15:45:54 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/08/16 15:45:54 [INFO]: obfs4 - registered listener: 127.0.0.1:1443
+2019/08/16 15:45:54 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - accepting connections
+2019/08/16 15:48:59 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/08/16 15:48:59 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/08/16 15:48:59 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/08/16 15:48:59 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/08/16 15:48:59 [INFO]: obfs4 - registered listener: 127.0.0.1:1443
+2019/08/16 15:48:59 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - accepting connections
+2019/08/16 15:49:08 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/08/16 15:49:08 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/08/16 15:49:08 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/08/16 15:49:08 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/08/16 15:49:08 [INFO]: obfs4 - registered listener: 127.0.0.1:1443
+2019/08/16 15:49:08 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - accepting connections
+2019/08/16 15:49:28 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/08/16 15:49:28 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/08/16 15:49:28 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/08/16 15:49:28 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/08/16 15:49:28 [INFO]: obfs4 - registered listener: 127.0.0.1:1443
+2019/08/16 15:49:28 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - accepting connections
+2019/08/16 15:49:36 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/08/16 15:49:36 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/08/16 15:49:36 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/08/16 15:49:36 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/08/16 15:49:36 [INFO]: obfs4 - registered listener: 127.0.0.1:1443
+2019/08/16 15:49:36 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - accepting connections
+2019/08/16 15:50:04 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/08/16 15:50:04 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/08/16 15:50:04 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/08/16 15:50:04 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/08/16 15:50:04 [INFO]: obfs4 - registered listener: 127.0.0.1:1443
+2019/08/16 15:50:04 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - accepting connections
+2019/08/16 15:54:31 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/08/16 15:54:31 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/08/16 15:54:31 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/08/16 15:54:31 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/08/16 15:54:31 [INFO]: obfs4 - registered listener: 127.0.0.1:1443
+2019/08/16 15:54:31 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - accepting connections
+2019/08/16 15:57:21 [INFO]: obfs4(127.0.0.1:2222) - closed connection

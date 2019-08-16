@@ -30,6 +30,8 @@
 package pt_socks5
 
 import (
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 	"io"
 	"net"
 	"net/url"
@@ -107,86 +109,12 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, con
 		}
 	}
 
-	var dialer func(address string) (net.Conn, error)
+	var dialer func() (net.Conn, error)
 
 	// Deal with arguments.
-	switch name {
-	case "obfs2":
-		transport := obfs2.NewObfs2Transport()
-		dialer = transport.Dial
-	case "obfs4":
-		if cert, ok := args.Get("cert"); ok {
-			if iatModeStr, ok2 := args.Get("iatMode"); ok2 {
-				iatMode, err := strconv.Atoi(iatModeStr)
-				if err != nil {
-					transport := obfs4.NewObfs4Client(cert, iatMode)
-					dialer = transport.Dial
-				} else {
-					log.Errorf("obfs4 transport bad iatMode value: %s", iatModeStr)
-					socksReq.Reply(socks5.ReplyGeneralFailure)
-					return
-				}
-			} else {
-				log.Errorf("obfs4 transport missing cert argument: %s", args)
-				socksReq.Reply(socks5.ReplyGeneralFailure)
-				return
-			}
-		} else {
-			log.Errorf("obfs4 transport missing cert argument: %s", args)
-			socksReq.Reply(socks5.ReplyGeneralFailure)
-			return
-		}
-	//case "shadow":
-	//	if password, ok := args["password"]; ok {
-	//		if cipher, ok2 := args["cipherName"]; ok2 {
-	//			transport := shadow.NewShadowClient(password[0], cipher[0])
-	//			dialer = transport.Dial
-	//		} else {
-	//			log.Errorf("shadow transport missing cipher argument: %s", args)
-	//				socksReq.Reply(socks5.ReplyGeneralFailure)
-	//			return
-	//		}
-	//	} else {
-	//		log.Errorf("shadow transport missing password argument: %s", args)
-	//		socksReq.Reply(socks5.ReplyGeneralFailure)
-	//		return
-	//	}
-	//		case "Optimizer":
-	//	if _, ok := args["transports"]; ok {
-	//		if strategyName, ok2 := args["strategy"]; ok2 {
-	//			var strategy Optimizer.Strategy = nil
-	//			switch strategyName[0] {
-	//			case "first":
-	//				strategy = Optimizer.NewFirstStrategy()
-	//			case "random":
-	//				strategy = Optimizer.NewRandomStrategy()
-	//			case "rotate":
-	//				strategy = Optimizer.NewRotateStrategy()
-	//			case "track":
-	//				strategy = Optimizer.NewTrackStrategy()
-	//			case "min":
-	//				strategy = Optimizer.NewMinimizeDialDuration()
-	//			}
-	//transports := []Optimizer.Transport{}
-	//transport := Optimizer.NewOptimizerClient(transports, strategy)
-	//			return transport, nil
-	////says too many arguments to return just like earlier.
-	//	} else {
-	//		log.Errorf("Optimizer transport missing transports argument: %s", args)
-	//		socksReq.Reply(socks5.ReplyGeneralFailure)
-	//		return
-	//	}
-	//} else {
-	//	log.Errorf("Optimizer transport missing strategy argument: %s", args)
-	//		socksReq.Reply(socks5.ReplyGeneralFailure)
-	//	return
-	//}
-
-	default:
-		log.Errorf("Unknown transport: %s", name)
-		socksReq.Reply(socks5.ReplyGeneralFailure)
-		return
-	}
+	transport, _ := pt_extras.ArgsToDialer(socksReq.Target, name, args)
+	dialer = transport.Dial
+	f := dialer
 
 	// Obtain the proxy dialer if any, and create the outgoing TCP connection.
 	// dialFn := proxy.Direct.Dial
@@ -204,9 +132,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, con
 	//
 	// fmt.Println("Got dialer", dialFn, proxyURI, proxy.Direct)
 
-	f := dialer
-
-	remote, _ := f(socksReq.Target)
+	remote, _ := f()
 	if err != nil {
 		log.Errorf("%s(%s) - outgoing connection failed: %s", name, addrStr, log.ElideError(err))
 		socksReq.Reply(socks5.ErrorToReplyCode(err))
@@ -264,10 +190,24 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 				log.Errorf("obfs4 transport missing cert argument: %s", args)
 				return
 			}
+		case "shadow":
+			password, ok := args.Get("password")
+			if !ok {
+				return false, nil
+			}
+
+			cipherName, ok2 := args.Get("cipherName")
+			if !ok2 {
+				return false, nil
+			}
+
+			transport := shadow.NewShadowServer(password, cipherName)
+			listen = transport.Listen
 		default:
 			log.Errorf("Unknown transport: %s", name)
 			return
 		}
+
 
 		f := listen
 

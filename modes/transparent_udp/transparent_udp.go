@@ -33,6 +33,8 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 	"io"
 	golog "log"
 	"net"
@@ -175,8 +177,6 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 
 	fmt.Println("Dialing....")
 
-	var dialer func(address string) (net.Conn, error)
-
 	args, argsErr := pt.ParsePT2ClientParameters(options)
 	if argsErr != nil {
 		log.Errorf("Error parsing transport options: %s", options)
@@ -184,80 +184,9 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 	}
 
 	// Deal with arguments.
-	switch name {
-	case "obfs2":
-		transport := obfs2.NewObfs2Transport()
-		dialer = transport.Dial
-	case "obfs4":
-		if cert, ok := args["cert"]; ok {
-			if iatModeStr, ok2 := args["iatMode"]; ok2 {
-				iatMode, err := strconv.Atoi(iatModeStr[0])
-				if err != nil {
-					transport := obfs4.NewObfs4Client(cert[0], iatMode)
-					dialer = transport.Dial
-				} else {
-					log.Errorf("obfs4 transport bad iatMode value: %s", iatModeStr)
-					return
-				}
-			} else {
-				log.Errorf("obfs4 transport missing cert argument: %s", args)
-				return
-			}
-		} else {
-			log.Errorf("obfs4 transport missing cert argument: %s", args)
-			return
-		}
-	//case "shadow":
-	//	if password, ok := args["password"]; ok {
-	//		if cipher, ok2 := args["cipherName"]; ok2 {
-				//transport := shadow.NewShadowClient(password[0], cipher[0])
-				//dialer = transport.Dial
-				////transport.Dial isn't the right type somehow?
-		//	} else {
-		//		log.Errorf("shadow transport missing cipher argument: %s", args)
-		//		return
-		//	}
-		//} else {
-		//	log.Errorf("shadow transport missing password argument: %s", args)
-		//	return
-		//}
-		//case "Optimizer":
-		//	if _, ok := args["transports"]; ok {
-		//		if strategyName, ok2 := args["strategy"]; ok2 {
-		//			var strategy Optimizer.Strategy = nil
-		//			switch strategyName[0] {
-		//			case "first":
-		//				strategy = Optimizer.NewFirstStrategy()
-		//			case "random":
-		//				strategy = Optimizer.NewRandomStrategy()
-		//			case "rotate":
-		//				strategy = Optimizer.NewRotateStrategy()
-		//			case "track":
-		//				strategy = Optimizer.NewTrackStrategy()
-		//			case "min":
-		//				strategy = Optimizer.NewMinimizeDialDuration()
-		//			}
-					//transports := []Optimizer.Transport{}
-					//transport := Optimizer.NewOptimizerClient(transports, strategy)
-					//return transport
-					////says too many arguments to return? where is the return type specified?
-			//	} else {
-			//		log.Errorf("Optimizer transport missing transports argument: %s", args)
-			//		return
-			//	}
-			//} else {
-			//	log.Errorf("Optimizer transport missing strategy argument: %s", args)
-			//	return
-			//}
-
-	default:
-		log.Errorf("Unknown transport: %s", name)
-		return
-	}
-
-	f := dialer
+	transport, _ := pt_extras.ArgsToDialer(target, name, args)
 	fmt.Println("Dialing ", target)
-	remote, _ := f(target)
+	remote, _ := transport.Dial()
 	// if err != nil {
 	// 	fmt.Println("outgoing connection failed", err)
 	// 	log.Errorf("(%s) - outgoing connection failed: %s", target, log.ElideError(err))
@@ -311,6 +240,19 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 				log.Errorf("obfs4 transport missing cert argument: %s", args)
 				return
 			}
+		case "shadow":
+			password, ok := args.Get("password")
+			if !ok {
+				return false, nil
+			}
+
+			cipherName, ok2 := args.Get("cipherName")
+			if !ok2 {
+				return false, nil
+			}
+
+			transport := shadow.NewShadowServer(password, cipherName)
+			listen = transport.Listen
 		default:
 			log.Errorf("Unknown transport: %s", name)
 			return
