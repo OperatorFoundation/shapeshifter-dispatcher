@@ -2,3 +2,8 @@
 *~
 
 obfs4proxy/obfs4proxy
+state/obfs4_state.json
+common/.DS_Store
+state/dispatcher.log
+state/obfs4_bridgeline.txt
+.DS_Store
