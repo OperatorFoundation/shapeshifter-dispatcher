@@ -147,6 +147,7 @@ The obfs4 transport is enabled and bound to the address 127.0.0.1 and the port
 2222. Logging is enabled and set to DEBUG level. The statistics reporting server
 address is also required on the server and is set to 127.0.0.1, port 3334.
 However, this service does not actually need to be running for the demo to work.
+ To access this Log for debugging purposes, go to user/go/state/dispatcher.log
 
 When the server is run for the first time, it will generate a new public key
 and it will write it to a file in the state directory called
@@ -175,9 +176,9 @@ for the cert parameter to be correct, otherwise obfs4 will silently fail.
 Logging is enabled and set to DEBUG level.
 
 Once the client is running, you can connect to the client address, which in this
-case is 127.0.0.1, port 443. For instance, you can telnet to this address:
+case is 127.0.0.1, port 1443. For instance, you can telnet to this address:
 
-    telnet 127.0.0.1 443
+    telnet 127.0.0.1 1443
 
 Any bytes sent over this connection will be forwarded through the transport
 server to the application server, which in the case of this demo is a netcat
