@@ -32,6 +32,8 @@ package transparent_tcp
 import (
 	"fmt"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
 	"io"
 	"net"
 	"net/url"
@@ -97,7 +99,11 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 
 	// Deal with arguments.
 
-	transport, _ := pt_extras.ArgsToDialer(target, name, args)
+	transport, dialerErr := pt_extras.ArgsToDialer(target, name, args)
+	if dialerErr != nil {
+		log.Errorf("Error parsing transport-specific options: %s (%s)", args, dialerErr)
+		return
+	}
 	dialer = transport.Dial
 	f := dialer
 
@@ -153,11 +159,28 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 
 		// Deal with arguments.
 		switch name {
-		//case "obfs2":
-		//	transport := obfs2.NewObfs2Transport()
-		//	listen = transport.Listen
+		case "obfs2":
+			transport := obfs2.NewObfs2Transport()
+			listen = transport.Listen
 		case "obfs4":
 			transport := obfs4.NewObfs4Server(statedir)
+			listen = transport.Listen
+		case "meeklite":
+			shargs, aok := args["meeklite"]
+			if !aok {
+				return false, nil
+			}
+
+			Url, ok := shargs.Get("Url")
+			if !ok {
+				return false, nil
+			}
+
+			Front, ok2 := shargs.Get("Front")
+			if !ok2 {
+				return false, nil
+			}
+			transport := meeklite.NewMeekTransportWithFront(Url, Front)
 			listen = transport.Listen
 		case "shadow":
 			shargs, aok := args["shadow"]

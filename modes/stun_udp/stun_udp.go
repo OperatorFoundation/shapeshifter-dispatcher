@@ -32,6 +32,7 @@ package stun_udp
 import (
 	"fmt"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 	"io"
 	golog "log"
@@ -226,6 +227,19 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 				}
 			} else {
 				log.Errorf("obfs4 transport missing cert argument: %s", args)
+				return
+			}
+		case "meeklite":
+			if Url, ok := args["Url"]; ok {
+				if Front, ok2 := args["Front"]; ok2 {
+					transport := meeklite.NewMeekTransportWithFront(Url[0], Front[0])
+					listen = transport.Listen
+				} else {
+					log.Errorf("meeklite transport missing Url argument: %s", args)
+					return
+				}
+			} else {
+				log.Errorf("meeklite transport missing Front argument: %s", args)
 				return
 			}
 			case "shadow":

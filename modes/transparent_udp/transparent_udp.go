@@ -34,6 +34,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 	"io"
 	golog "log"
@@ -240,6 +241,19 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 				log.Errorf("obfs4 transport missing cert argument: %s", args)
 				return
 			}
+		case "meeklite":
+			Url, ok := args.Get("Url")
+			if !ok {
+				return false, nil
+			}
+
+			Front, ok2 := args.Get("Front")
+			if !ok2 {
+				return false, nil
+			}
+
+			transport := meeklite.NewMeekTransportWithFront(Url, Front)
+			listen = transport.Listen
 		case "shadow":
 			password, ok := args.Get("password")
 			if !ok {
