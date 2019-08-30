@@ -67,3 +67,40 @@
 2019/08/22 09:20:13 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
 2019/08/22 09:20:13 [INFO]: obfs4 - registered listener: 127.0.0.1:1443
 2019/08/22 09:20:13 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - accepting connections
+2019/08/22 16:37:39 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/08/22 16:37:39 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/08/22 16:37:39 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/08/22 16:37:39 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/08/22 16:37:39 [INFO]: Optimizer - registered listener: 127.0.0.1:1443
+2019/08/22 16:37:39 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - accepting connections
+2019/08/22 16:38:14 [ERROR]: Optimizer transport missing strategy argument: map[cert:[a1cc6eI5H+1kTzXhbuwMR9w3ZkLeZuReniier8DYSlAg4ed9yTbnyDiWc1vF1WFWKFRYHQ] iatMode:[0]]
+2019/08/22 16:45:17 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/08/22 16:45:17 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/08/22 16:45:17 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/08/22 16:45:17 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/08/22 16:45:17 [INFO]: Optimizer - registered listener: 127.0.0.1:1443
+2019/08/22 16:45:17 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - accepting connections
+2019/08/22 16:45:25 [ERROR]: Optimizer transport missing strategy argument: map[cert:[a1cc6eI5H+1kTzXhbuwMR9w3ZkLeZuReniier8DYSlAg4ed9yTbnyDiWc1vF1WFWKFRYHQ] iatMode:[0]]
+2019/08/22 16:45:25 [ERROR]: Error parsing transport-specific options: map[cert:[a1cc6eI5H+1kTzXhbuwMR9w3ZkLeZuReniier8DYSlAg4ed9yTbnyDiWc1vF1WFWKFRYHQ] iatMode:[0]] (optimizer transport missing strategy argument)
+2019/08/22 16:45:56 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/08/22 16:45:56 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/08/22 16:45:56 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/08/22 16:45:56 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/08/22 16:45:56 [INFO]: Optimizer - registered listener: 127.0.0.1:1443
+2019/08/22 16:45:56 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - accepting connections
+2019/08/22 16:46:02 [ERROR]: Optimizer transport missing strategy argument: map[cert:[a1cc6eI5H+1kTzXhbuwMR9w3ZkLeZuReniier8DYSlAg4ed9yTbnyDiWc1vF1WFWKFRYHQ] iatMode:[0]]
+2019/08/22 16:46:02 [ERROR]: Error parsing transport-specific options: map[cert:[a1cc6eI5H+1kTzXhbuwMR9w3ZkLeZuReniier8DYSlAg4ed9yTbnyDiWc1vF1WFWKFRYHQ] iatMode:[0]] (optimizer transport missing strategy argument)
+2019/08/24 22:23:42 [ERROR]: Optimizer transport missing strategy argument: map[cert:[a1cc6eI5H+1kTzXhbuwMR9w3ZkLeZuReniier8DYSlAg4ed9yTbnyDiWc1vF1WFWKFRYHQ] iatMode:[0]]
+2019/08/24 22:23:42 [ERROR]: Error parsing transport-specific options: map[cert:[a1cc6eI5H+1kTzXhbuwMR9w3ZkLeZuReniier8DYSlAg4ed9yTbnyDiWc1vF1WFWKFRYHQ] iatMode:[0]] (optimizer transport missing strategy argument)
+2019/08/24 22:23:48 [ERROR]: Optimizer transport missing strategy argument: map[cert:[a1cc6eI5H+1kTzXhbuwMR9w3ZkLeZuReniier8DYSlAg4ed9yTbnyDiWc1vF1WFWKFRYHQ] iatMode:[0]]
+2019/08/24 22:23:48 [ERROR]: Error parsing transport-specific options: map[cert:[a1cc6eI5H+1kTzXhbuwMR9w3ZkLeZuReniier8DYSlAg4ed9yTbnyDiWc1vF1WFWKFRYHQ] iatMode:[0]] (optimizer transport missing strategy argument)
+2019/08/28 22:47:49 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/08/28 22:47:49 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/08/28 22:47:49 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/08/28 22:47:49 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/08/28 22:47:49 [ERROR]: failed to listen Optimizer listen tcp 127.0.0.1:1443: bind: address already in use
+2019/08/28 22:50:27 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/08/28 22:50:27 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/08/28 22:50:27 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/08/28 22:50:27 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/08/28 22:50:27 [ERROR]: failed to listen obfs4 listen tcp 127.0.0.1:1443: bind: address already in use
