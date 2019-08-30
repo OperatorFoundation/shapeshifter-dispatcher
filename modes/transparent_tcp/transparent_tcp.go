@@ -32,6 +32,7 @@ package transparent_tcp
 import (
 	"fmt"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
 	"io"
@@ -164,6 +165,30 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 			listen = transport.Listen
 		case "obfs4":
 			transport := obfs4.NewObfs4Server(statedir)
+			listen = transport.Listen
+		//case "Replicant":
+		//	shargs, aok := args["Replicant"]
+		//	if !aok {
+		//		return false, nil
+		//	}
+		//
+		//	config, ok := shargs.Get("config")
+		//	if !ok {
+		//		return false, nil
+		//	}
+		//	transport := replicant.New(config)
+		//	listen = transport.Listen
+		case "Dust":
+			shargs, aok := args["Dust"]
+			if !aok {
+				return false, nil
+			}
+
+			idPath, ok := shargs.Get("Url")
+			if !ok {
+				return false, nil
+			}
+			transport := Dust.NewDustServer(idPath)
 			listen = transport.Listen
 		case "meeklite":
 			shargs, aok := args["meeklite"]

@@ -31,6 +31,7 @@ package pt_socks5
 
 import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 	"io"
@@ -191,6 +192,20 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 				log.Errorf("obfs4 transport missing cert argument: %s", args)
 				return
 			}
+		//case "replicant":
+		//	config, ok :=args.Get("config")
+		//	if !ok {
+		//		return false, nil
+		//	}
+		//	transport := replicant.New(config)
+		//	listen = transport.Listen
+		case "Dust":
+			idPath, ok :=args.Get("idPath")
+			if !ok {
+				return false, nil
+			}
+			transport := Dust.NewDustServer(idPath)
+			listen = transport.Listen
 		case "meeklite":
 			Url, ok := args.Get("Url")
 			if !ok {

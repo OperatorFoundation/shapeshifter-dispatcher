@@ -32,6 +32,7 @@ package stun_udp
 import (
 	"fmt"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 	"io"
@@ -240,6 +241,22 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 				}
 			} else {
 				log.Errorf("meeklite transport missing Front argument: %s", args)
+				return
+			}
+		//case "replicant":
+		//	if config, ok := args["config"]; ok {
+		//		transport := replicant.New(config[0])
+		//		listen = transport.Listen
+		//	} else {
+		//		log.Errorf("replicant transport missing config argument: %s", args)
+		//		return
+		//	}
+		case "Dust":
+			if idPath, ok := args["idPath"]; ok {
+					transport := Dust.NewDustServer(idPath[0])
+					listen = transport.Listen
+			} else {
+				log.Errorf("Dust transport missing idPath argument: %s", args)
 				return
 			}
 			case "shadow":
