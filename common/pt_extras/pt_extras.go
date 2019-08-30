@@ -222,6 +222,7 @@ func ArgsToDialer(target string, name string, args pt.Args) (Optimizer.Transport
 			return nil, errors.New("shadow transport missing password argument")
 		}
 	case "Optimizer":
+		//replace underscore with ArgsToDialer
 		if _, ok := args["transports"]; ok {
 			if strategyName, ok2 := args["strategy"]; ok2 {
 				var strategy Optimizer.Strategy = nil
