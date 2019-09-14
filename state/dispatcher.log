@@ -104,3 +104,169 @@
 2019/08/28 22:50:27 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
 2019/08/28 22:50:27 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
 2019/08/28 22:50:27 [ERROR]: failed to listen obfs4 listen tcp 127.0.0.1:1443: bind: address already in use
+2019/09/03 19:33:32 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 19:33:32 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 19:33:32 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 19:33:32 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/09/03 19:33:32 [ERROR]: failed to listen obfs4 listen tcp 127.0.0.1:1443: bind: address already in use
+2019/09/03 19:34:35 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 19:34:35 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 19:34:35 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 19:34:35 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/09/03 19:34:35 [ERROR]: failed to listen obfs4 listen tcp 127.0.0.1:1443: bind: address already in use
+2019/09/03 19:35:19 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 19:35:19 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 19:35:19 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 19:35:19 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/09/03 19:35:19 [ERROR]: failed to listen obfs4 listen tcp 127.0.0.1:1443: bind: address already in use
+2019/09/03 19:36:38 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 19:36:38 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 19:36:38 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 19:36:38 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/09/03 19:36:38 [ERROR]: failed to listen obfs4 listen tcp 127.0.0.1:1443: bind: address already in use
+2019/09/03 20:23:06 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:23:06 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:23:06 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:23:06 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 20:26:33 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:26:39 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:26:43 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:26:45 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 20:27:23 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:27:30 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:27:36 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:27:44 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 20:31:16 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:31:16 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:31:16 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:31:16 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 20:31:20 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:31:27 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:31:29 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:31:30 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 20:31:57 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:31:59 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:32:02 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:32:04 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 20:33:28 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:33:28 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:33:28 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:33:28 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 20:34:29 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:34:29 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:34:29 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:34:29 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 20:34:41 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:34:41 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:34:41 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:34:41 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 20:34:54 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:34:54 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:34:54 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:34:54 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 20:35:08 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:35:12 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:35:14 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:35:16 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 20:38:39 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:38:43 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:38:44 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:38:45 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 20:40:24 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:40:24 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:40:24 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:40:24 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 20:41:36 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:41:36 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:41:36 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:41:36 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 20:51:16 [ERROR]: optionsFile does not exist with error shadowserver.json stat shadowserver.json: no such file or directory
+2019/09/03 20:51:16 [ERROR]: optionsFile does not exist shadowserver.json%!(EXTRA string=stat shadowserver.json: no such file or directory)
+2019/09/03 20:51:16 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:51:16 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:51:16 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:51:16 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 20:51:21 [ERROR]: optionsFile does not exist with error shadowserver.json stat shadowserver.json: no such file or directory
+2019/09/03 20:51:21 [ERROR]: optionsFile does not exist shadowserver.json%!(EXTRA string=stat shadowserver.json: no such file or directory)
+2019/09/03 20:51:21 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:51:21 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:51:21 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:51:21 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 20:52:37 [ERROR]: optionsFile does not exist with error shadowserver.json stat shadowserver.json: no such file or directory
+2019/09/03 20:52:37 [ERROR]: optionsFile does not exist shadowserver.json%!(EXTRA string=stat shadowserver.json: no such file or directory)
+2019/09/03 20:52:37 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:52:37 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:52:37 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:52:37 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 20:53:37 [ERROR]: optionsFile does not exist with error shadowserver.json stat shadowserver.json: no such file or directory
+2019/09/03 20:53:37 [ERROR]: optionsFile does not exist shadowserver.json%!(EXTRA string=stat shadowserver.json: no such file or directory)
+2019/09/03 20:53:37 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:53:37 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:53:37 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:53:37 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 20:55:48 [ERROR]: optionsFile does not exist with error shadowserver.json stat shadowserver.json: no such file or directory
+2019/09/03 20:55:48 [ERROR]: optionsFile does not exist shadowserver.json%!(EXTRA string=stat shadowserver.json: no such file or directory)
+2019/09/03 20:55:48 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:55:48 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:55:48 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:55:48 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 20:57:36 [ERROR]: optionsFile does not exist with error shadowserver.json stat shadowserver.json: no such file or directory
+2019/09/03 20:57:36 [ERROR]: optionsFile does not exist shadowserver.json%!(EXTRA string=stat shadowserver.json: no such file or directory)
+2019/09/03 20:57:36 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:57:36 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:57:36 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:57:36 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 20:57:58 [ERROR]: optionsFile does not exist with error shadowserver.json stat shadowserver.json: no such file or directory
+2019/09/03 20:57:58 [ERROR]: optionsFile does not exist shadowserver.json%!(EXTRA string=stat shadowserver.json: no such file or directory)
+2019/09/03 20:57:58 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:57:58 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:57:58 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:57:58 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 20:58:05 [ERROR]: optionsFile does not exist with error shadowserver.json stat shadowserver.json: no such file or directory
+2019/09/03 20:58:05 [ERROR]: optionsFile does not exist shadowserver.json%!(EXTRA string=stat shadowserver.json: no such file or directory)
+2019/09/03 20:58:05 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 20:58:05 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 20:58:05 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 20:58:05 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 21:00:46 [ERROR]: optionsFile does not exist with error shadowserver.json stat shadowserver.json: no such file or directory
+2019/09/03 21:00:46 [ERROR]: optionsFile does not exist shadowserver.json%!(EXTRA string=stat shadowserver.json: no such file or directory)
+2019/09/03 21:00:46 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 21:00:46 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 21:00:46 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 21:00:46 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 21:01:29 [ERROR]: optionsFile does not exist with error shadowserver.json stat shadowserver.json: no such file or directory
+2019/09/03 21:01:29 [ERROR]: optionsFile does not exist shadowserver.json%!(EXTRA string=stat shadowserver.json: no such file or directory)
+2019/09/03 21:01:29 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 21:01:29 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 21:01:29 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 21:01:29 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 21:02:15 [ERROR]: optionsFile does not exist with error shadowserver.json stat shadowserver.json: no such file or directory
+2019/09/03 21:02:15 [ERROR]: optionsFile does not exist shadowserver.json%!(EXTRA string=stat shadowserver.json: no such file or directory)
+2019/09/03 21:02:15 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 21:02:15 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 21:02:15 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 21:02:15 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 21:02:32 [ERROR]: optionsFile does not exist with error shadowserver.json stat shadowserver.json: no such file or directory
+2019/09/03 21:02:32 [ERROR]: optionsFile does not exist shadowserver.json%!(EXTRA string=stat shadowserver.json: no such file or directory)
+2019/09/03 21:02:32 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 21:02:32 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 21:02:32 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 21:02:32 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 21:03:03 [ERROR]: optionsFile does not exist with error shadowserver.json stat shadowserver.json: no such file or directory
+2019/09/03 21:03:03 [ERROR]: optionsFile does not exist shadowserver.json%!(EXTRA string=stat shadowserver.json: no such file or directory)
+2019/09/03 21:03:03 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 21:03:03 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 21:03:03 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 21:03:03 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 21:03:18 [ERROR]: optionsFile does not exist with error shadowserver.json stat shadowserver.json: no such file or directory
+2019/09/03 21:03:18 [ERROR]: optionsFile does not exist shadowserver.json%!(EXTRA string=stat shadowserver.json: no such file or directory)
+2019/09/03 21:03:18 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 21:03:18 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 21:03:18 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 21:03:18 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/09/03 21:04:04 [ERROR]: optionsFile does not exist with error shadowserver.json stat shadowserver.json: no such file or directory
+2019/09/03 21:04:04 [ERROR]: optionsFile does not exist shadowserver.json%!(EXTRA string=stat shadowserver.json: no such file or directory)
+2019/09/03 21:04:04 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/09/03 21:04:04 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/09/03 21:04:04 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/09/03 21:04:04 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners

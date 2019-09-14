@@ -33,6 +33,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
@@ -179,7 +180,7 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 
 	fmt.Println("Dialing....")
 
-	args, argsErr := pt.ParsePT2ClientParameters(options)
+	args, argsErr := options2.ParseOptions(options)
 	if argsErr != nil {
 		log.Errorf("Error parsing transport options: %s", options)
 		return

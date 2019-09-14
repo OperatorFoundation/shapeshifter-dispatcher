@@ -103,7 +103,7 @@ func main() {
 	// Experimental flags under consideration for PT 2.1
 	socksAddr := flag.String("proxylistenaddr", "127.0.0.1:0", "Specify the bind address for the local SOCKS server provided by the client")
 	optionsFile := flag.String("optionsFile", "", "store all the options in a single file")
-
+	fmt.Println("checking for optionsFile")
 	// Additional command line flags inherited from obfs4proxy
 	showVer := flag.Bool("version", false, "Print version and exit")
 	logLevelStr := flag.String("logLevel", "ERROR", "Log level (ERROR/WARN/INFO/DEBUG)")
@@ -152,7 +152,8 @@ func main() {
 	if *optionsFile != "" {
 		_, err := os.Stat(*optionsFile)
 		if err != nil {
-			log.Errorf("optionsFile does not exist %s", *optionsFile)
+			log.Errorf("optionsFile does not exist with error %s %s", *optionsFile, err.Error())
+			log.Errorf("optionsFile does not exist %s", *optionsFile, err.Error())
 		} else {
 			contents, readErr := ioutil.ReadFile(*optionsFile)
 			if readErr != nil {
@@ -183,6 +184,7 @@ func main() {
 				log.Infof("%s - initializing server transport listeners", execName)
 				if *bindAddr == "" {
 					fmt.Errorf("%s - transparent mode requires a bindaddr", execName)
+					log.Errorf("%s - transparent mode requires a bindaddr", execName)
 				} else {
 					// launched = transparent_udp.ServerSetup(termMon, *bindAddr, *target)
 
@@ -204,7 +206,7 @@ func main() {
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
 				if *bindAddr == "" {
-					fmt.Errorf("%s - transparent mode requires a bindaddr", execName)
+					log.Errorf("%s - transparent mode requires a bindaddr", execName)
 				} else {
 					ptServerInfo := getServerInfo(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
 					launched, serverListeners = transparent_tcp.ServerSetup(termMon, *bindAddr, ptServerInfo, *statePath, *options)

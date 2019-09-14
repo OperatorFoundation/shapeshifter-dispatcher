@@ -30,8 +30,10 @@
 package pt_socks5
 
 import (
+	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
+	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 	"io"
@@ -101,14 +103,20 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, con
 	}
 	addrStr := log.ElideAddr(socksReq.Target)
 
-	var args pt.Args
-	if needOptions {
-		args = socksReq.Args
-	} else {
-		args, err = pt.ParsePT2ClientParameters(options)
-		if err != nil {
-			return
-		}
+	//var args pt.Args
+	//if needOptions {
+	//	args = socksReq.Args
+	//} else {
+	//	args, err = pt.ParsePT2ClientParameters(options)
+	//	if err != nil {
+	//		return
+	//	}
+	//}
+
+	args, argsErr := options2.ParseOptions(options)
+	if argsErr != nil {
+		log.Errorf("Error parsing transport options: %s", options)
+		return
 	}
 
 	var dialer func() (net.Conn, error)
@@ -192,13 +200,13 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 				log.Errorf("obfs4 transport missing cert argument: %s", args)
 				return
 			}
-		//case "replicant":
-		//	config, ok :=args.Get("config")
-		//	if !ok {
-		//		return false, nil
-		//	}
-		//	transport := replicant.New(config)
-		//	listen = transport.Listen
+		case "replicant":
+			config, ok :=args.Get("config")
+			if !ok {
+				return false, nil
+			}
+			transport := replicant.New(config)
+			listen = transport.Listen
 		case "Dust":
 			idPath, ok :=args.Get("idPath")
 			if !ok {

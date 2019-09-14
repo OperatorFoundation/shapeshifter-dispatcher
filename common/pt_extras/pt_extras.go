@@ -31,9 +31,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 	"net"
 	"net/url"
 	"os"
@@ -76,7 +75,7 @@ func PtIsClient() (bool, error) {
 }
 
 func PtGetProxy(proxy *string) (*url.URL, error) {
-  var specString string
+	var specString string
 
 	if proxy != nil {
 		specString = *proxy
@@ -175,79 +174,36 @@ func PtShouldExitOnStdinClose() bool {
 	return os.Getenv("TOR_PT_EXIT_ON_STDIN_CLOSE") == "1"
 }
 
-func ArgsToDialer(target string, name string, args pt.Args) (Optimizer.Transport, error) {
+func ArgsToDialer(target string, name string, args map[string]interface{}) (Optimizer.Transport, error) {
 	switch name {
 	//case "obfs2":
 	//	transport := obfs2.NewObfs2Transport()
 	//	dialer = transport.Dial
 	//	return dialer, nil
 	case "obfs4":
-		if cert, ok := args["cert"]; ok {
-			if iatModeStr, ok2 := args["iatMode"]; ok2 {
-				iatMode, err := strconv.Atoi(iatModeStr[0])
-				if err == nil {
-					transport := obfs4.Transport{
-						CertString: cert[0],
-						IatMode:    iatMode,
-						Address:    target,
-					}
-					return transport, nil
-				} else {
-					log.Errorf("obfs4 transport bad iatMode value: %s %s", iatModeStr[0], err)
-					return nil, errors.New("obfs4 transport bad iatMode value")
-				}
-			} else {
-				log.Errorf("obfs4 transport missing iatMode argument: %s", args)
-				return nil, errors.New("obfs4 transport missing iatMode argument")
-			}
+		//refactor starts here
+		transport, err := transports.ParseArgsObfs4(args, target)
+		if err != nil {
+			log.Errorf("Could not parse options %s", err.Error())
+			return nil, err
 		} else {
-			log.Errorf("obfs4 transport missing cert argument: %s", args)
-			return nil, errors.New("obfs4 transport missing cert argument")
+			return transport, nil
 		}
 	case "shadow":
-		if password, ok := args["password"]; ok {
-			if cipher, ok2 := args["cipherName"]; ok2 {
-				transport := shadow.Transport{
-					Password:   password[0],
-					CipherName: cipher[0],
-					Address:    target,
-				}
-				return transport, nil
-			} else {
-				log.Errorf("shadow transport missing cipher argument: %s", args)
-				return nil, errors.New("shadow transport missing cipher argument")
-			}
+		transport, err := transports.ParseArgsShadow(args, target)
+		if err != nil {
+			log.Errorf("Could not parse options %s", err.Error())
+			return nil, err
 		} else {
-			log.Errorf("shadow transport missing password argument: %s", args)
-			return nil, errors.New("shadow transport missing password argument")
+			return transport, nil
 		}
 	case "Optimizer":
-		//replace underscore with ArgsToDialer
-		if _, ok := args["transports"]; ok {
-			if strategyName, ok2 := args["strategy"]; ok2 {
-				var strategy Optimizer.Strategy = nil
-				switch strategyName[0] {
-				case "first":
-					strategy = Optimizer.NewFirstStrategy()
-				case "random":
-					strategy = Optimizer.NewRandomStrategy()
-				case "rotate":
-					strategy = Optimizer.NewRotateStrategy()
-				case "track":
-					strategy = Optimizer.NewTrackStrategy()
-				case "min":
-					strategy = Optimizer.NewMinimizeDialDuration()
-				}
-				transports := []Optimizer.Transport{}
-				transport := Optimizer.NewOptimizerClient(transports, strategy)
-				return transport, nil
-			} else {
-				log.Errorf("Optimizer transport missing transports argument: %s", args)
-				return nil, errors.New("optimizer transport missing transports argument")
-			}
+		transport, err := transports.ParseArgsOptimizer(args, target)
+		if err != nil {
+			log.Errorf("Could not parse options %s", err.Error())
+			return nil, err
 		} else {
-			log.Errorf("Optimizer transport missing strategy argument: %s", args)
-			return nil, errors.New("optimizer transport missing strategy argument")
+			return transport, nil
 		}
 
 	default:

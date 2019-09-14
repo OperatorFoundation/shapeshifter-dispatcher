@@ -31,9 +31,14 @@ package transports
 
 import (
 	"errors"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer"
+	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 	"github.com/mufti1/interconv/package"
+	gourl "net/url"
 	"strconv"
 )
 
@@ -153,7 +158,7 @@ func ParseArgsShadow(args map[string]interface{}, target string) (*shadow.Transp
 			return nil, icerr
 		}
 	default:
-		return nil, errors.New("Unsupported type for shadow password option")
+		return nil, errors.New("unsupported type for shadow password option")
 	}
 
 	untypedCipherName, ok2 := args["cipherName"]
@@ -169,13 +174,157 @@ func ParseArgsShadow(args map[string]interface{}, target string) (*shadow.Transp
 			return nil, icerr
 		}
 	default:
-		return nil, errors.New("Unsupported type for shadow cipherName option")
+		return nil, errors.New("unsupported type for shadow cipherName option")
 	}
 
 	transport := shadow.Transport{
 		Password:   password,
 		CipherName: cipherName,
 		Address:    target,
+	}
+
+	return &transport, nil
+}
+
+func ParseArgsDust(args map[string]interface{}, target string) (*Dust.Transport, error) {
+	var serverPublic string
+
+	untypedServerPublic, ok := args["serverPublic"]
+	if !ok {
+		return nil, errors.New("dust transport missing serverpublic argument")
+	}
+
+	switch untypedServerPublic.(type) {
+	case string:
+		var icerr error
+		serverPublic, icerr = interconv.ParseString(untypedServerPublic)
+		if icerr != nil {
+			return nil, icerr
+		}
+	default:
+		return nil, errors.New("unsupported type for dust serverpublic option")
+	}
+
+	transport := Dust.Transport{
+		ServerPublic: serverPublic,
+		Address:      target,
+	}
+
+	return &transport, nil
+}
+
+func ParseArgsReplicant(args map[string]interface{}, target string) (*replicant.Transport, error) {
+	var conf replicant.Config
+
+	untypedConfig, ok := args["config"]
+	if !ok {
+		return nil, errors.New("replicant transport missing config argument")
+	}
+
+	switch untypedConfig.(type) {
+	case string:
+		var icerr error
+		conf, icerr = interconv.ParseString(untypedConfig)
+		if icerr != nil {
+			return nil, icerr
+		}
+	default:
+		return nil, errors.New("unsupported type for replicant config option")
+	}
+
+	transport := replicant.Transport{
+		replicant.Config{} config,
+		Address:    target,
+	}
+
+	return &transport, nil
+}
+
+func ParseArgsMeeklite(args map[string]interface{}, target string) (*meeklite.Transport, error) {
+
+	var url gourl.URL
+	var front string
+
+	untypedUrl, ok := args["url"]
+	if !ok {
+		return nil, errors.New("meeklite transport missing url argument")
+	}
+
+	switch untypedUrl.(type) {
+	case gourl.URL:
+		var icerr error
+		url, icerr = interconv.ParseString(untypedUrl)
+		if icerr != nil {
+			return nil, icerr
+		}
+	default:
+		return nil, errors.New("unsupported type for meeklite url option")
+	}
+
+	untypedFront, ok2 := args["front"]
+	if !ok2 {
+		return nil, errors.New("meeklite transport missing front argument")
+	}
+
+	switch untypedFront.(type) {
+	case string:
+		var icerr error
+		front, icerr = interconv.ParseString(untypedFront)
+		if icerr != nil {
+			return nil, icerr
+		}
+	default:
+		return nil, errors.New("unsupported type for meeklite front option")
+	}
+
+	transport := meeklite.Transport{
+		Url:     url,
+		Front:   front,
+		Address: target,
+	}
+
+	return &transport, nil
+}
+
+func ParseArgsOptimizer(args map[string]interface{}, target string) (*Optimizer.OptimizerTransport, error) {
+	var transports []Optimizer.Transport
+	var strategy Optimizer.Strategy
+
+	untypedTransports, ok := args["transports"]
+	if !ok {
+		return nil, errors.New("optimizer transport missing transports argument")
+	}
+
+	switch untypedTransports.(type) {
+	case []Optimizer.Transport:
+		var icerr error
+		transports, icerr = interconv.ParseString(untypedTransports)
+		if icerr != nil {
+			return nil, icerr
+		}
+	default:
+		return nil, errors.New("unsupported type for Optimizer transports option")
+	}
+
+	untypedStrategy, ok2 := args["strategy"]
+	if !ok2 {
+		return nil, errors.New("optimizer transport missing strategy argument")
+	}
+
+	switch untypedStrategy.(type) {
+	case Optimizer.Strategy:
+		var icerr error
+		strategy, icerr = interconv.ParseString(untypedStrategy)
+		if icerr != nil {
+			return nil, icerr
+		}
+	default:
+		return nil, errors.New("unsupported type for optimizer strategy option")
+	}
+
+	transport := Optimizer.OptimizerTransport{
+		Transports: transports,
+		Strategy:   strategy,
 	}
 
 	return &transport, nil

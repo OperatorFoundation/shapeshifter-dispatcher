@@ -31,8 +31,10 @@ package stun_udp
 
 import (
 	"fmt"
+	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
+	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 	"io"
@@ -166,7 +168,7 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 
 	fmt.Println("Dialing....")
 
-	args, argsErr := pt.ParsePT2ClientParameters(options)
+	args, argsErr := options2.ParseOptions(options)
 	if argsErr != nil {
 		log.Errorf("Error parsing transport options: %s", options)
 		return
@@ -243,14 +245,14 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 				log.Errorf("meeklite transport missing Front argument: %s", args)
 				return
 			}
-		//case "replicant":
-		//	if config, ok := args["config"]; ok {
-		//		transport := replicant.New(config[0])
-		//		listen = transport.Listen
-		//	} else {
-		//		log.Errorf("replicant transport missing config argument: %s", args)
-		//		return
-		//	}
+		case "replicant":
+			if _, ok := args["config"]; ok {
+				transport := replicant.New(replicant.Config{})
+				listen = transport.Listen
+			} else {
+				log.Errorf("replicant transport missing config argument: %s", args)
+				return
+			}
 		case "Dust":
 			if idPath, ok := args["idPath"]; ok {
 					transport := Dust.NewDustServer(idPath[0])
