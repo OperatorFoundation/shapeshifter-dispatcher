@@ -33,6 +33,7 @@ import (
 	"fmt"
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
 	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
@@ -174,11 +175,15 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 				return false, nil
 			}
 
-			_, ok := shargs.Get("config")
+			configString, ok := shargs.Get("config")
 			if !ok {
 				return false, nil
 			}
-			transport := replicant.New(replicant.Config{})
+			config, err := transports.ParseReplicantConfig(configString)
+			if err != nil {
+				return false, nil
+			}
+			transport := replicant.New(config)
 			listen = transport.Listen
 		case "Dust":
 			shargs, aok := args["Dust"]

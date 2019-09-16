@@ -65,7 +65,7 @@ func ParseArgsObfs4(args map[string]interface{}, target string) (*obfs4.Transpor
 			return nil, icerr
 		}
 	default:
-		return nil, errors.New("Unsupported type for obfs4 cert option")
+		return nil, errors.New("unsupported type for obfs4 cert option")
 	}
 
 	untypedIatMode, ok2 := args["iatMode"]
@@ -89,7 +89,7 @@ func ParseArgsObfs4(args map[string]interface{}, target string) (*obfs4.Transpor
 		case 1:
 			iatMode = iatModeInt
 		default:
-			return nil, errors.New("Unsupported value for obfs4 iatMode option")
+			return nil, errors.New("unsupported value for obfs4 iatMode option")
 		}
 	case float64:
 		iatModeFloat, icerr := interconv.ParseFloat64(untypedIatMode)
@@ -103,7 +103,7 @@ func ParseArgsObfs4(args map[string]interface{}, target string) (*obfs4.Transpor
 		case 1:
 			iatMode = iatModeInt
 		default:
-			return nil, errors.New("Unsupported value for obfs4 iatMode option")
+			return nil, errors.New("unsupported value for obfs4 iatMode option")
 		}
 	case int:
 		iatModeInt, icerr := interconv.ParseInt(untypedIatMode)
@@ -116,7 +116,7 @@ func ParseArgsObfs4(args map[string]interface{}, target string) (*obfs4.Transpor
 		case 1:
 			iatMode = iatModeInt
 		default:
-			return nil, errors.New("Unsupported value for obfs4 iatMode option")
+			return nil, errors.New("unsupported value for obfs4 iatMode option")
 		}
 	case bool:
 		iatModeBool, icerr := interconv.ParseBoolean(untypedCert)
@@ -130,7 +130,7 @@ func ParseArgsObfs4(args map[string]interface{}, target string) (*obfs4.Transpor
 			iatMode = 0
 		}
 	default:
-		return nil, errors.New("Unsupported type for obfs4 iatMode option")
+		return nil, errors.New("unsupported type for obfs4 iatMode option")
 	}
 
 	transport := obfs4.Transport{
@@ -252,12 +252,18 @@ func ParseArgsMeeklite(args map[string]interface{}, target string) (*meeklite.Tr
 	}
 
 	switch untypedUrl.(type) {
-	case gourl.URL:
-		var icerr error
-		url, icerr = interconv.ParseString(untypedUrl)
+	case string:
+
+		urlString, icerr := interconv.ParseString(untypedUrl)
 		if icerr != nil {
 			return nil, icerr
 		}
+		var parseErr error
+		url, parseErr = gourl.Parse(urlString)
+		if parseErr != nil {
+			return nil, errors.New("could not parse URL")
+		}
+
 	default:
 		return nil, errors.New("unsupported type for meeklite url option")
 	}
@@ -287,9 +293,9 @@ func ParseArgsMeeklite(args map[string]interface{}, target string) (*meeklite.Tr
 	return &transport, nil
 }
 
-func ParseArgsOptimizer(args map[string]interface{}, target string) (*Optimizer.OptimizerTransport, error) {
-	var transports string
-	var strategy string
+func ParseArgsOptimizer(args map[string]interface{}) (*Optimizer.OptimizerTransport, error) {
+	var transports []Optimizer.Transport
+	var strategy *Optimizer.Strategy
 
 	untypedTransports, ok := args["transports"]
 	if !ok {
@@ -297,11 +303,13 @@ func ParseArgsOptimizer(args map[string]interface{}, target string) (*Optimizer.
 	}
 
 	switch untypedTransports.(type) {
-	case string:
-		var icerr error
-		transports, icerr = interconv.ParseString(untypedTransports)
-		if icerr != nil {
-			return nil, icerr
+	case []map[string]interface{}:
+		otcs := untypedTransports.([]map[string]interface{})
+
+		var parseErr error
+		transports, parseErr = parseTransports(otcs)
+		if parseErr != nil {
+			return nil, errors.New("could not parse transports")
 		}
 	default:
 		return nil, errors.New("unsupported type for Optimizer transports option")
@@ -314,10 +322,14 @@ func ParseArgsOptimizer(args map[string]interface{}, target string) (*Optimizer.
 
 	switch untypedStrategy.(type) {
 	case string:
-		var icerr error
-		strategy, icerr = interconv.ParseString(untypedStrategy)
+		strategyString, icerr := interconv.ParseString(untypedStrategy)
 		if icerr != nil {
 			return nil, icerr
+		}
+		var parseErr error
+		strategy, parseErr = parseStrategy(strategyString, transports)
+		if parseErr != nil {
+			return nil, errors.New("could not parse strategy")
 		}
 	default:
 		return nil, errors.New("unsupported type for optimizer strategy option")
@@ -329,4 +341,120 @@ func ParseArgsOptimizer(args map[string]interface{}, target string) (*Optimizer.
 	}
 
 	return &transport, nil
+}
+
+func parseStrategy(strategyString string, transports []Optimizer.Transport) (*Optimizer.Strategy, error) {
+	switch strategyString {
+	case "first":
+		strategy := Optimizer.NewFirstStrategy(transports)
+		return &strategy, nil
+	case "random":
+		strategy := Optimizer.NewRandomStrategy(transports)
+		return &strategy, nil
+	case "rotate":
+		strategy := Optimizer.NewRotateStrategy(transports)
+		return &strategy, nil
+	case "track":
+		return Optimizer.NewTrackStrategy(transports), nil
+	case "minimizeDialDuration":
+		return Optimizer.NewMinimizeDialDuration(transports), nil
+
+	default:
+		return nil, errors.New("invalid strategy")
+	}
+}
+
+func parseTransports(otcs []map[string]interface{}) ([]Optimizer.Transport, error) {
+	transports := make([]Optimizer.Transport, len(otcs))
+	for index, otc := range otcs {
+		transport, err := parsedTransport(otc)
+		if err != nil {
+			return nil, errors.New("transport could not parse config")
+			//this error sucks and is uninformative
+		}
+		transports[index] = transport
+	}
+	return transports, nil
+}
+
+func parsedTransport(otc map[string]interface{}) (Optimizer.Transport, error) {
+	var address string
+	var name string
+	var config map[string]interface{}
+//start by parsing the address
+	untypedAddress, ok := otc["address"]
+	if !ok {
+		return nil, errors.New("missing address in transport parser")
+	}
+
+	switch untypedAddress.(type) {
+
+	case string:
+		var icerr error
+		address, icerr = interconv.ParseString(untypedAddress)
+		if icerr != nil {
+			return nil, icerr
+		}
+
+	default:
+		return nil, errors.New("unsupported type for optimizer address option")
+	}
+	//now to parse the name
+	untypedName, ok2 := otc["name"]
+	if !ok2 {
+		return nil, errors.New("missing name in transport parser")
+	}
+
+	switch untypedName.(type) {
+
+	case string:
+		var icerr error
+		name, icerr = interconv.ParseString(untypedName)
+		if icerr != nil {
+			return nil, icerr
+		}
+
+	default:
+		return nil, errors.New("unsupported type for optimizer name option")
+	}
+	//on to parsing the config
+	untypedConfig, ok3 := otc["config"]
+	if !ok3 {
+		return nil, errors.New("missing config in transport parser")
+	}
+
+	switch untypedConfig.(type) {
+
+	case map[string]interface{}:
+		config = untypedConfig.(map[string]interface{})
+
+	default:
+		return nil, errors.New("unsupported type for optimizer config option")
+	}
+
+	switch name {
+	case "shadow":
+		shadowTransport, parseErr := ParseArgsShadow(config, address)
+		if parseErr!= nil {
+			return nil, errors.New("could not parse shadow Args")
+		}
+		return shadowTransport, nil
+	case "obfs4":
+		break
+	case "meeklite":
+		break
+	case "Dust":
+		break
+	case "replicant":
+		break
+	default:
+		return nil, errors.New("unsupported transport name")
+	}
+
+	return nil, errors.New("unsupported transport name")
+}
+
+func ParseReplicantConfig(config string) (replicant.Config, error) {
+	return replicant.Config{}, errors.New("function not implemented")
+
 }
