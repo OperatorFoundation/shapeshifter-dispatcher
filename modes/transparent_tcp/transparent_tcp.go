@@ -34,6 +34,7 @@ import (
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
+	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
 	"io"
@@ -167,18 +168,18 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 		case "obfs4":
 			transport := obfs4.NewObfs4Server(statedir)
 			listen = transport.Listen
-		//case "Replicant":
-		//	shargs, aok := args["Replicant"]
-		//	if !aok {
-		//		return false, nil
-		//	}
-		//
-		//	config, ok := shargs.Get("config")
-		//	if !ok {
-		//		return false, nil
-		//	}
-		//	transport := replicant.New(config)
-		//	listen = transport.Listen
+		case "Replicant":
+			shargs, aok := args["Replicant"]
+			if !aok {
+				return false, nil
+			}
+
+			_, ok := shargs.Get("config")
+			if !ok {
+				return false, nil
+			}
+			transport := replicant.New(replicant.Config{})
+			listen = transport.Listen
 		case "Dust":
 			shargs, aok := args["Dust"]
 			if !aok {
@@ -339,3 +340,4 @@ func copyLoop(a net.Conn, b net.Conn) error {
 
 	return nil
 }
+

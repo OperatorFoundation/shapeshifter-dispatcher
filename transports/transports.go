@@ -31,6 +31,7 @@ package transports
 
 import (
 	"errors"
+	"fmt"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer"
 	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant"
@@ -214,8 +215,8 @@ func ParseArgsDust(args map[string]interface{}, target string) (*Dust.Transport,
 }
 
 func ParseArgsReplicant(args map[string]interface{}, target string) (*replicant.Transport, error) {
-	var conf replicant.Config
-
+	var conf string
+	fmt.Println(conf)
 	untypedConfig, ok := args["config"]
 	if !ok {
 		return nil, errors.New("replicant transport missing config argument")
@@ -233,8 +234,8 @@ func ParseArgsReplicant(args map[string]interface{}, target string) (*replicant.
 	}
 
 	transport := replicant.Transport{
-		replicant.Config{} config,
-		Address:    target,
+		Config:  replicant.Config{},
+		Address: target,
 	}
 
 	return &transport, nil
@@ -242,7 +243,7 @@ func ParseArgsReplicant(args map[string]interface{}, target string) (*replicant.
 
 func ParseArgsMeeklite(args map[string]interface{}, target string) (*meeklite.Transport, error) {
 
-	var url gourl.URL
+	var url *gourl.URL
 	var front string
 
 	untypedUrl, ok := args["url"]
@@ -287,8 +288,8 @@ func ParseArgsMeeklite(args map[string]interface{}, target string) (*meeklite.Tr
 }
 
 func ParseArgsOptimizer(args map[string]interface{}, target string) (*Optimizer.OptimizerTransport, error) {
-	var transports []Optimizer.Transport
-	var strategy Optimizer.Strategy
+	var transports string
+	var strategy string
 
 	untypedTransports, ok := args["transports"]
 	if !ok {
@@ -296,7 +297,7 @@ func ParseArgsOptimizer(args map[string]interface{}, target string) (*Optimizer.
 	}
 
 	switch untypedTransports.(type) {
-	case []Optimizer.Transport:
+	case string:
 		var icerr error
 		transports, icerr = interconv.ParseString(untypedTransports)
 		if icerr != nil {
@@ -312,7 +313,7 @@ func ParseArgsOptimizer(args map[string]interface{}, target string) (*Optimizer.
 	}
 
 	switch untypedStrategy.(type) {
-	case Optimizer.Strategy:
+	case string:
 		var icerr error
 		strategy, icerr = interconv.ParseString(untypedStrategy)
 		if icerr != nil {

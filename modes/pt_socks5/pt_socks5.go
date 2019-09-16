@@ -30,6 +30,7 @@
 package pt_socks5
 
 import (
+	"fmt"
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
@@ -202,10 +203,11 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 			}
 		case "replicant":
 			config, ok :=args.Get("config")
+			fmt.Println(config)
 			if !ok {
 				return false, nil
 			}
-			transport := replicant.New(config)
+			transport := replicant.New(replicant.Config{})
 			listen = transport.Listen
 		case "Dust":
 			idPath, ok :=args.Get("idPath")

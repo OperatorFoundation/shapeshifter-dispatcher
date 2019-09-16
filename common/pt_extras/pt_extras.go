@@ -205,6 +205,30 @@ func ArgsToDialer(target string, name string, args map[string]interface{}) (Opti
 		} else {
 			return transport, nil
 		}
+	case "Dust":
+		transport, err := transports.ParseArgsDust(args, target)
+		if err != nil {
+			log.Errorf("Could not parse options %s", err.Error())
+			return nil, err
+		} else {
+			return transport, nil
+		}
+	case "Meeklite":
+		transport, err := transports.ParseArgsMeeklite(args, target)
+		if err != nil {
+			log.Errorf("Could not parse options %s", err.Error())
+			return nil, err
+		} else {
+			return transport, nil
+		}
+	case "Replicant":
+		transport, err := transports.ParseArgsReplicant(args, target)
+		if err != nil {
+			log.Errorf("Could not parse options %s", err.Error())
+			return nil, err
+		} else {
+			return transport, nil
+		}
 
 	default:
 		log.Errorf("Unknown transport: %s", name)

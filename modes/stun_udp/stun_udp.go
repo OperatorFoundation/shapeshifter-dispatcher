@@ -246,7 +246,8 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 				return
 			}
 		case "replicant":
-			if _, ok := args["config"]; ok {
+			if config, ok := args["config"]; ok {
+				fmt.Println(config)
 				transport := replicant.New(replicant.Config{})
 				listen = transport.Listen
 			} else {
