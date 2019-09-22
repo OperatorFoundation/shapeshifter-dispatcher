@@ -295,7 +295,7 @@ func ParseArgsMeeklite(args map[string]interface{}, target string) (*meeklite.Tr
 
 func ParseArgsOptimizer(args map[string]interface{}) (*Optimizer.OptimizerTransport, error) {
 	var transports []Optimizer.Transport
-	var strategy *Optimizer.Strategy
+	var strategy Optimizer.Strategy
 
 	untypedTransports, ok := args["transports"]
 	if !ok {
@@ -343,17 +343,17 @@ func ParseArgsOptimizer(args map[string]interface{}) (*Optimizer.OptimizerTransp
 	return &transport, nil
 }
 
-func parseStrategy(strategyString string, transports []Optimizer.Transport) (*Optimizer.Strategy, error) {
+func parseStrategy(strategyString string, transports []Optimizer.Transport) (Optimizer.Strategy, error) {
 	switch strategyString {
 	case "first":
 		strategy := Optimizer.NewFirstStrategy(transports)
-		return &strategy, nil
+		return strategy, nil
 	case "random":
 		strategy := Optimizer.NewRandomStrategy(transports)
-		return &strategy, nil
+		return strategy, nil
 	case "rotate":
 		strategy := Optimizer.NewRotateStrategy(transports)
-		return &strategy, nil
+		return strategy, nil
 	case "track":
 		return Optimizer.NewTrackStrategy(transports), nil
 	case "minimizeDialDuration":
