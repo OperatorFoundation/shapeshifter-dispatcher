@@ -381,7 +381,7 @@ func parsedTransport(otc map[string]interface{}) (Optimizer.Transport, error) {
 	var address string
 	var name string
 	var config map[string]interface{}
-//start by parsing the address
+	//start by parsing the address
 	untypedAddress, ok := otc["address"]
 	if !ok {
 		return nil, errors.New("missing address in transport parser")
@@ -435,23 +435,37 @@ func parsedTransport(otc map[string]interface{}) (Optimizer.Transport, error) {
 	switch name {
 	case "shadow":
 		shadowTransport, parseErr := ParseArgsShadow(config, address)
-		if parseErr!= nil {
+		if parseErr != nil {
 			return nil, errors.New("could not parse shadow Args")
 		}
 		return shadowTransport, nil
 	case "obfs4":
-		break
+		obfs4Transport, parseErr := ParseArgsObfs4(config, address)
+		if parseErr != nil {
+			return nil, errors.New("could not parse obfs4 Args")
+		}
+		return obfs4Transport, nil
 	case "meeklite":
-		break
+		meekliteTransport, parseErr := ParseArgsMeeklite(config, address)
+		if parseErr != nil {
+			return nil, errors.New("could not parse meeklite Args")
+		}
+		return meekliteTransport, nil
 	case "Dust":
-		break
+		DustTransport, parseErr := ParseArgsDust(config, address)
+		if parseErr != nil {
+			return nil, errors.New("could not parse dust Args")
+		}
+		return DustTransport, nil
 	case "replicant":
-		break
+		replicantTransport, parseErr := ParseArgsReplicant(config, address)
+		if parseErr != nil {
+			return nil, errors.New("could not parse replicant Args")
+		}
+		return replicantTransport, nil
 	default:
 		return nil, errors.New("unsupported transport name")
 	}
-
-	return nil, errors.New("unsupported transport name")
 }
 
 func ParseReplicantConfig(config string) (replicant.Config, error) {

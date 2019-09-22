@@ -198,7 +198,7 @@ func ArgsToDialer(target string, name string, args map[string]interface{}) (Opti
 			return transport, nil
 		}
 	case "Optimizer":
-		transport, err := transports.ParseArgsOptimizer(args, target)
+		transport, err := transports.ParseArgsOptimizer(args)
 		if err != nil {
 			log.Errorf("Could not parse options %s", err.Error())
 			return nil, err
