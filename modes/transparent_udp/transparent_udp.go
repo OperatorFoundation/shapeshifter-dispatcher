@@ -55,8 +55,6 @@ import (
 	//"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 )
 
-var stateDir string
-
 type ConnState struct {
 	Conn    net.Conn
 	Waiting bool
@@ -137,8 +135,17 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 					fmt.Println("writing...")
 					fmt.Println(length16)
 					fmt.Println(lengthBuf.Bytes())
-					state.Conn.Write(lengthBuf.Bytes())
-					state.Conn.Write(buf)
+					_, writErr := state.Conn.Write(lengthBuf.Bytes())
+					if writErr != nil {
+						continue
+					} else {
+						_, writeBufErr :=state.Conn.Write(buf)
+						if writeBufErr != nil {
+							_ = state.Conn.Close()
+							_ = conn.Close()
+						}
+
+					}
 				}
 			}
 		} else {
@@ -305,31 +312,6 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 	}
 
 	return
-}
-
-func getServerBindaddrs(serverBindaddr string) ([]pt.Bindaddr, error) {
-	var result []pt.Bindaddr
-
-	for _, spec := range strings.Split(serverBindaddr, ",") {
-		var bindaddr pt.Bindaddr
-
-		parts := strings.SplitN(spec, "-", 2)
-		if len(parts) != 2 {
-			fmt.Println("TOR_PT_SERVER_BINDADDR: doesn't contain \"-\"", spec)
-			return nil, nil
-		}
-		bindaddr.MethodName = parts[0]
-		addr, err := resolveAddr(parts[1])
-		if err != nil {
-			fmt.Println("TOR_PT_SERVER_BINDADDR: ", spec, err.Error())
-			return nil, nil
-		}
-		bindaddr.Addr = addr
-		//		bindaddr.Options = optionsMap[bindaddr.MethodName]
-		result = append(result, bindaddr)
-	}
-
-	return result, nil
 }
 
 // Resolve an address string into a net.TCPAddr. We are a bit more strict than
