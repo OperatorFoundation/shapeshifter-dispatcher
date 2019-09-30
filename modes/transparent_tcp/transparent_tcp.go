@@ -30,8 +30,8 @@
 package transparent_tcp
 
 import (
-	"fmt"
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
+
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
@@ -74,14 +74,16 @@ func ClientSetup(termMon *termmon.TermMonitor, socksAddr string, target string, 
 	return
 }
 
-func clientAcceptLoop(target string, termMon *termmon.TermMonitor, name string, options string, ln net.Listener, proxyURI *url.URL) error {
+func clientAcceptLoop(target string, termMon *termmon.TermMonitor, name string, options string, ln net.Listener, proxyURI *url.URL) {
 	defer ln.Close()
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
 			if e, ok := err.(net.Error); ok && !e.Temporary() {
-				return err
+				log.Errorf("Fatal listener error: %s", err.Error())
+				return
 			}
+			log.Warnf("Failed to accept connection: %s", err.Error())
 			continue
 		}
 		go clientHandler(target, termMon, name, options, conn, proxyURI)
@@ -131,7 +133,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 	// 	return
 	// }
 	if err != nil {
-		fmt.Errorf("outgoing connection failed %q %q", f, target)
+		log.Errorf("outgoing connection failed %q", target)
 		return
 	}
 
@@ -142,11 +144,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 	} else {
 		log.Infof("%s(%s) - closed connection", name, target)
 	}
-
-	return
 }
-
-
 
 func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerInfo pt.ServerInfo, statedir string, options string) (launched bool, listeners []net.Listener) {
 	// Launch each of the server listeners.
@@ -260,13 +258,13 @@ func getServerBindaddrs(serverBindaddr string) ([]pt.Bindaddr, error) {
 
 		parts := strings.SplitN(spec, "-", 2)
 		if len(parts) != 2 {
-			fmt.Errorf("TOR_PT_SERVER_BINDADDR: doesn't contain \"-\" %q", spec)
+			log.Errorf("TOR_PT_SERVER_BINDADDR: doesn't contain \"-\" %q", spec)
 			return nil, nil
 		}
 		bindaddr.MethodName = parts[0]
 		addr, err := pt.ResolveAddr(parts[1])
 		if err != nil {
-			fmt.Errorf("TOR_PT_SERVER_BINDADDR: %q %q", spec, err.Error())
+			log.Errorf("TOR_PT_SERVER_BINDADDR: %q %q", spec, err.Error())
 			return nil, nil
 		}
 		bindaddr.Addr = addr
@@ -277,14 +275,16 @@ func getServerBindaddrs(serverBindaddr string) ([]pt.Bindaddr, error) {
 	return result, nil
 }
 
-func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln net.Listener, info *pt.ServerInfo) error {
+func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln net.Listener, info *pt.ServerInfo) {
 	defer ln.Close()
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
 			if e, ok := err.(net.Error); ok && !e.Temporary() {
-				return err
+				log.Errorf("Fatal listener error: %s", err.Error())
+				return
 			}
+			log.Warnf("Failed to accept connection: %s", err.Error())
 			continue
 		}
 		go serverHandler(termMon, name, conn, info)
@@ -308,8 +308,6 @@ func serverHandler(termMon *termmon.TermMonitor, name string, remote net.Conn, i
 	} else {
 		log.Infof("%s - closed connection", name)
 	}
-
-	return
 }
 
 func copyLoop(a net.Conn, b net.Conn) error {
