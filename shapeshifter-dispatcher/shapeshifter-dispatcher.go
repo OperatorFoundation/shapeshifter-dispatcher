@@ -311,7 +311,7 @@ func getClientNames(ptversion *string, transportsList *string, proxy *string) (c
 
 	// FIXME - instead of this, goptlib should be modified to accept command line flag override of EITHER ptversion or transports (or both)
 	if ptversion == nil || transportsList == nil {
-		log.Infof("Falling back to environment variables for ptversion/transports %q %q", ptversion, transportsList)
+		log.Infof("Falling back to environment variables for ptversion/transports %q %q", *ptversion, *transportsList)
 		ptClientInfo, err = pt.ClientSetup(transports.Transports())
 		if err != nil {
 			// FIXME - print a more useful error, specifying --ptversion and --transports flags
@@ -349,7 +349,7 @@ func getServerInfo(ptversion *string, bindaddrList *string, options *string, tra
 	ptServerInfo = pt.ServerInfo{Bindaddrs: bindaddrs}
 	ptServerInfo.OrAddr, err = pt.ResolveAddr(*orport)
 	if err != nil {
-		log.Errorf("Error resolving OR address %q %q", orport, err)
+		log.Errorf("Error resolving OR address %q %q", *orport, err)
 		return ptServerInfo
 	}
 
@@ -368,7 +368,7 @@ func getServerInfo(ptversion *string, bindaddrList *string, options *string, tra
 	} else {
 		ptServerInfo.ExtendedOrAddr, err = pt.ResolveAddr(pt.Getenv("TOR_PT_EXTENDED_SERVER_PORT"))
 		if err != nil {
-			log.Errorf("Error resolving Extended OR address %q %q", err)
+			log.Errorf("Error resolving Extended OR address %q", err)
 			return ptServerInfo
 		}
 	}

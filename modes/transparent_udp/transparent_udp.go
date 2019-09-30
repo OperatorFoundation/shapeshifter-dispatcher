@@ -83,7 +83,7 @@ func ClientSetup(termMon *termmon.TermMonitor, socksAddr string, target string, 
 
 		go clientHandler(target, termMon, name, options, ln, ptClientProxy)
 
-		log.Infof("%s - registered listener: %s", name, ln)
+		log.Infof("%s - registered listener", name)
 	}
 
 	return true
