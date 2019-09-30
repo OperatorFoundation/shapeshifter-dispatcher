@@ -293,7 +293,7 @@ func ParseArgsMeeklite(args map[string]interface{}, target string) (*meeklite.Tr
 	return &transport, nil
 }
 
-func ParseArgsOptimizer(args map[string]interface{}) (*Optimizer.OptimizerTransport, error) {
+func ParseArgsOptimizer(args map[string]interface{}) (*Optimizer.Client, error) {
 	var transports []Optimizer.Transport
 	var strategy Optimizer.Strategy
 
@@ -335,7 +335,7 @@ func ParseArgsOptimizer(args map[string]interface{}) (*Optimizer.OptimizerTransp
 		return nil, errors.New("unsupported type for optimizer strategy option")
 	}
 
-	transport := Optimizer.OptimizerTransport{
+	transport := Optimizer.Client{
 		Transports: transports,
 		Strategy:   strategy,
 	}
