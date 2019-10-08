@@ -270,3 +270,52 @@
 2019/09/03 21:04:04 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
 2019/09/03 21:04:04 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
 2019/09/03 21:04:04 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/10/07 19:20:33 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/10/07 19:20:38 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/10/07 19:20:42 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/10/07 19:20:47 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing server transport listeners
+2019/10/07 19:21:51 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/10/07 19:21:53 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/10/07 19:21:55 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/10/07 19:21:57 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/10/07 19:22:49 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/10/07 19:22:51 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/10/07 19:22:53 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/10/07 19:22:55 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/10/07 19:23:32 [ERROR]: failed to listen Optimizer listen tcp 127.0.0.1:1443: bind: address already in use
+2019/10/07 19:24:57 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/10/07 19:24:57 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/10/07 19:24:57 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/10/07 19:24:57 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/10/07 19:28:27 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/10/07 19:28:27 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/10/07 19:28:27 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/10/07 19:28:27 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/10/07 19:29:56 [INFO]: Optimizer - registered listener: 127.0.0.1:1444
+2019/10/07 19:29:56 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - accepting connections
+2019/10/07 19:30:14 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/10/07 19:30:14 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/10/07 19:30:14 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/10/07 19:30:14 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/10/07 19:30:30 [INFO]: Optimizer - registered listener: 127.0.0.1:1444
+2019/10/07 19:30:30 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - accepting connections
+2019/10/07 19:31:18 [ERROR]: Could not parse options unsupported type for Optimizer transports option
+2019/10/07 19:31:18 [ERROR]: Error parsing transport-specific options: map[strategy:first transports:[map[address:77.81.104.251:443 config:map[cert:a1cc6eI5H+1kTzXhbuwMR9w3ZkLeZuReniier8DYSlAg4ed9yTbnyDiWc1vF1WFWKFRYHQ iatMode:0] name:obfs4]]] (unsupported type for Optimizer transports option)
+2019/10/07 19:31:31 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/10/07 19:31:31 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/10/07 19:31:31 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/10/07 19:31:31 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/10/07 19:31:59 [INFO]: Optimizer - registered listener: 127.0.0.1:1444
+2019/10/07 19:31:59 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - accepting connections
+2019/10/07 19:34:01 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/10/07 19:34:01 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/10/07 19:34:01 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/10/07 19:34:01 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/10/07 19:34:01 [INFO]: Optimizer - registered listener: 127.0.0.1:1444
+2019/10/07 19:34:01 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - accepting connections
+2019/10/07 19:45:43 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/10/07 19:45:43 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/10/07 19:45:43 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/10/07 19:45:43 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/10/07 19:45:43 [INFO]: Optimizer - registered listener: 127.0.0.1:1444
+2019/10/07 19:45:43 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - accepting connections
