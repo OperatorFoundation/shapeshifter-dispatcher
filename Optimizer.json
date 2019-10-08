@@ -1,1 +1,13 @@
-{"cert": "a1cc6eI5H+1kTzXhbuwMR9w3ZkLeZuReniier8DYSlAg4ed9yTbnyDiWc1vF1WFWKFRYHQ", "iatMode": "0"}
+{
+  "transports": [
+    {
+      "address": "77.81.104.251:443",
+      "name": "obfs4",
+      "config": {
+        "cert": "a1cc6eI5H+1kTzXhbuwMR9w3ZkLeZuReniier8DYSlAg4ed9yTbnyDiWc1vF1WFWKFRYHQ",
+        "iatMode": "0"
+      }
+    }
+  ],
+  "strategy": "first"
+}
