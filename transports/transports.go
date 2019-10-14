@@ -71,9 +71,9 @@ func ParseArgsObfs4(args map[string]interface{}, target string) (*obfs4.Transpor
 		return nil, errors.New("unsupported type for obfs4 cert option")
 	}
 
-	untypedIatMode, ok2 := args["iatMode"]
+	untypedIatMode, ok2 := args["iat-mode"]
 	if !ok2 {
-		return nil, errors.New("obfs4 transport missing iatMode argument")
+		return nil, errors.New("obfs4 transport missing iat-mode argument")
 	}
 
 	switch untypedCert.(type) {
@@ -84,7 +84,7 @@ func ParseArgsObfs4(args map[string]interface{}, target string) (*obfs4.Transpor
 		}
 		iatModeInt, scerr := strconv.Atoi(iatModeStr)
 		if scerr != nil {
-			return nil, errors.New("obfs4 transport bad iatMode value")
+			return nil, errors.New("obfs4 transport bad iat-mode value")
 		}
 		switch iatModeInt {
 		case 0:
@@ -92,7 +92,7 @@ func ParseArgsObfs4(args map[string]interface{}, target string) (*obfs4.Transpor
 		case 1:
 			iatMode = iatModeInt
 		default:
-			return nil, errors.New("unsupported value for obfs4 iatMode option")
+			return nil, errors.New("unsupported value for obfs4 iat-mode option")
 		}
 	case float64:
 		iatModeFloat, icerr := interconv.ParseFloat64(untypedIatMode)
@@ -106,7 +106,7 @@ func ParseArgsObfs4(args map[string]interface{}, target string) (*obfs4.Transpor
 		case 1:
 			iatMode = iatModeInt
 		default:
-			return nil, errors.New("unsupported value for obfs4 iatMode option")
+			return nil, errors.New("unsupported value for obfs4 iat-mode option")
 		}
 	case int:
 		iatModeInt, icerr := interconv.ParseInt(untypedIatMode)
@@ -119,7 +119,7 @@ func ParseArgsObfs4(args map[string]interface{}, target string) (*obfs4.Transpor
 		case 1:
 			iatMode = iatModeInt
 		default:
-			return nil, errors.New("unsupported value for obfs4 iatMode option")
+			return nil, errors.New("unsupported value for obfs4 iat-mode option")
 		}
 	case bool:
 		iatModeBool, icerr := interconv.ParseBoolean(untypedCert)
@@ -133,7 +133,7 @@ func ParseArgsObfs4(args map[string]interface{}, target string) (*obfs4.Transpor
 			iatMode = 0
 		}
 	default:
-		return nil, errors.New("unsupported type for obfs4 iatMode option")
+		return nil, errors.New("unsupported type for obfs4 iat-mode option")
 	}
 
 	transport := obfs4.Transport{

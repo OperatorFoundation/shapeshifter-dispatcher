@@ -215,13 +215,13 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 			listen=transport.Listen
 		case "obfs4":
 			if cert, ok := args["cert"]; ok {
-				if iatModeStr, ok2 := args["iatMode"]; ok2 {
+				if iatModeStr, ok2 := args["iat-mode"]; ok2 {
 					iatMode, err := strconv.Atoi(iatModeStr[0])
 					if err != nil {
 						transport := obfs4.NewObfs4Client(cert[0], iatMode)
 						listen=transport.Listen
 					} else {
-						log.Errorf("obfs4 transport bad iatMode value: %s", iatModeStr)
+						log.Errorf("obfs4 transport bad iat-mode value: %s", iatModeStr)
 						return
 					}
 				} else {
