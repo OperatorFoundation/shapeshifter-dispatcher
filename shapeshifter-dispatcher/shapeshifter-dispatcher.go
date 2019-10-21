@@ -188,7 +188,7 @@ func main() {
 					// launched = transparent_udp.ServerSetup(termMon, *bindAddr, *target)
 
 					ptServerInfo := getServerInfo(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
-					launched, serverListeners = transparent_udp.ServerSetup(termMon, *bindAddr, ptServerInfo, *options)
+					launched, serverListeners = transparent_udp.ServerSetup(termMon, ptServerInfo, *options)
 				}
 			}
 		} else {
@@ -208,7 +208,7 @@ func main() {
 					log.Errorf("%s - transparent mode requires a bindaddr", execName)
 				} else {
 					ptServerInfo := getServerInfo(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
-					launched, serverListeners = transparent_tcp.ServerSetup(termMon, *bindAddr, ptServerInfo, *statePath, *options)
+					launched, serverListeners = transparent_tcp.ServerSetup(termMon, ptServerInfo, *statePath, *options)
 				}
 			}
 		}
@@ -230,7 +230,7 @@ func main() {
 					log.Errorf("%s - STUN mode requires a bindaddr", execName)
 				} else {
 					ptServerInfo := getServerInfo(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
-					launched, serverListeners = stun_udp.ServerSetup(termMon, *bindAddr, ptServerInfo, *options)
+					launched, serverListeners = stun_udp.ServerSetup(termMon, ptServerInfo, *options, stateDir)
 				}
 			}
 		} else {
@@ -244,7 +244,7 @@ func main() {
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
 				ptServerInfo := getServerInfo(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
-				launched, serverListeners = pt_socks5.ServerSetup(termMon, *bindAddr, ptServerInfo, *options)
+				launched, serverListeners = pt_socks5.ServerSetup(termMon, ptServerInfo, *options)
 			}
 		}
 	}
@@ -272,11 +272,11 @@ func main() {
 	// the parent dies, all the current connections are closed, or either
 	// a SIGINT/SIGTERM is received, and exit.
 	for _, ln := range clientListeners {
-		ln.Close()
+		_ = ln.Close()
 	}
 
 	for _, ln := range serverListeners {
-		ln.Close()
+		_ = ln.Close()
 	}
 
 	termMon.Wait(true)

@@ -325,3 +325,17 @@
 2019/10/13 21:11:57 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
 2019/10/13 21:11:57 [INFO]: Optimizer - registered listener: 127.0.0.1:1444
 2019/10/13 21:11:57 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - accepting connections
+2019/10/21 12:43:57 [ERROR]: Fatal listener error: accept tcp 127.0.0.1:1444: use of closed network connection
+2019/10/21 12:44:28 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/10/21 12:44:28 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/10/21 12:44:28 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/10/21 12:44:28 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/10/21 12:44:28 [INFO]: Optimizer - registered listener: 127.0.0.1:1444
+2019/10/21 12:44:28 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - accepting connections
+2019/10/21 15:13:08 [ERROR]: Fatal listener error: accept tcp 127.0.0.1:1444: use of closed network connection
+2019/10/21 15:13:16 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/10/21 15:13:16 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing transparent proxy
+2019/10/21 15:13:16 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing TCP transparent proxy
+2019/10/21 15:13:16 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
+2019/10/21 15:13:16 [INFO]: Optimizer - registered listener: 127.0.0.1:1444
+2019/10/21 15:13:16 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - accepting connections

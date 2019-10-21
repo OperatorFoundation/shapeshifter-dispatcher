@@ -33,6 +33,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer"
+	"golang.org/x/net/proxy"
 	"net"
 	"net/url"
 	"os"
@@ -46,19 +47,19 @@ import (
 
 func ptEnvError(msg string) error {
 	line := []byte(fmt.Sprintf("ENV-ERROR %s\n", msg))
-	pt.Stdout.Write(line)
+	_, _ = pt.Stdout.Write(line)
 	return errors.New(msg)
 }
 
 func ptProxyError(msg string) error {
 	line := []byte(fmt.Sprintf("PROXY-ERROR %s\n", msg))
-	pt.Stdout.Write(line)
+	_, _ = pt.Stdout.Write(line)
 	return errors.New(msg)
 }
 
 func PtProxyDone() {
 	line := []byte("PROXY DONE\n")
-	pt.Stdout.Write(line)
+	_, _ = pt.Stdout.Write(line)
 }
 
 func PtIsClient() (bool, error) {
@@ -174,7 +175,7 @@ func PtShouldExitOnStdinClose() bool {
 	return os.Getenv("TOR_PT_EXIT_ON_STDIN_CLOSE") == "1"
 }
 
-func ArgsToDialer(target string, name string, args map[string]interface{}) (Optimizer.Transport, error) {
+func ArgsToDialer(target string, name string, args map[string]interface{}, dialer proxy.Dialer) (Optimizer.Transport, error) {
 	switch name {
 	//case "obfs2":
 	//	transport := obfs2.NewObfs2Transport()
@@ -182,7 +183,7 @@ func ArgsToDialer(target string, name string, args map[string]interface{}) (Opti
 	//	return dialer, nil
 	case "obfs4":
 		//refactor starts here
-		transport, err := transports.ParseArgsObfs4(args, target)
+		transport, err := transports.ParseArgsObfs4(args, target, dialer)
 		if err != nil {
 			log.Errorf("Could not parse options %s", err.Error())
 			return nil, err
@@ -198,7 +199,7 @@ func ArgsToDialer(target string, name string, args map[string]interface{}) (Opti
 			return transport, nil
 		}
 	case "Optimizer":
-		transport, err := transports.ParseArgsOptimizer(args)
+		transport, err := transports.ParseArgsOptimizer(args, dialer)
 		if err != nil {
 			log.Errorf("Could not parse options %s", err.Error())
 			return nil, err

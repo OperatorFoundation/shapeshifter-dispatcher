@@ -30,16 +30,16 @@
 package transparent_tcp
 
 import (
+	"fmt"
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
-
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
+	"golang.org/x/net/proxy"
 	"io"
 	"net"
 	"net/url"
-	"strings"
 	"sync"
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
@@ -49,8 +49,6 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 )
-
-var stateDir string
 
 func ClientSetup(termMon *termmon.TermMonitor, socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) (launched bool, listeners []net.Listener) {
 	// Launch each of the client listeners.
@@ -73,7 +71,6 @@ func ClientSetup(termMon *termmon.TermMonitor, socksAddr string, target string, 
 }
 
 func clientAcceptLoop(target string, termMon *termmon.TermMonitor, name string, options string, ln net.Listener, proxyURI *url.URL) {
-	defer ln.Close()
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
@@ -89,11 +86,23 @@ func clientAcceptLoop(target string, termMon *termmon.TermMonitor, name string, 
 }
 
 func clientHandler(target string, termMon *termmon.TermMonitor, name string, options string, conn net.Conn, proxyURI *url.URL) {
-	defer conn.Close()
 	termMon.OnHandlerStart()
 	defer termMon.OnHandlerFinish()
 
-	var dialer func() (net.Conn, error)
+	var dialer proxy.Dialer
+	dialer = proxy.Direct
+	if proxyURI != nil {
+		var err error
+		dialer, err = proxy.FromURL(proxyURI, proxy.Direct)
+		if err != nil {
+			// This should basically never happen, since config protocol
+			// verifies this.
+			fmt.Println("failed to obtain dialer", proxyURI, proxy.Direct)
+			log.Errorf("(%s) - failed to obtain proxy dialer: %s", target, log.ElideError(err))
+			return
+		}
+
+	}
 //this is where the refactoring begins
 	args, argsErr := options2.ParseOptions(options)
 	if argsErr != nil {
@@ -103,39 +112,10 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 
 	// Deal with arguments.
 
-	transport, dialerErr := pt_extras.ArgsToDialer(target, name, args)
-	if dialerErr != nil {
-		log.Errorf("Error parsing transport-specific options: %s (%s)", args, dialerErr)
-		return
-	}
-	dialer = transport.Dial
-	f := dialer
+	transport, _ := pt_extras.ArgsToDialer(target, name, args, dialer)
 
-	// Obtain the proxy dialer if any, and create the outgoing TCP connection.
-	// dialFn := proxy.Direct.Dial
-	// if proxyURI != nil {
-	// 	dialer, err := proxy.FromURL(proxyURI, proxy.Direct)
-	// 	if err != nil {
-	// 		// This should basically never happen, since config protocol
-	// 		// verifies this.
-	// 		log.Errorf("%s(%s) - failed to obtain proxy dialer: %s", name, target, log.ElideError(err))
-	// 		return
-	// 	}
-	// 	dialFn = dialer.Dial
-	// }
-
-	// FIXME - use dialFn if a proxy is needed to connect to the network
-	remote, err := f()
-	// if err != nil {
-	// 	log.Errorf("%s(%s) - outgoing connection failed: %s", name, target, log.ElideError(err))
-	// 	return
-	// }
-	if err != nil {
-		log.Errorf("outgoing connection failed %q", target)
-		return
-	}
-
-	defer remote.Close()
+	fmt.Println("Dialing ", target)
+	remote, _ := transport.Dial()
 
 	if err := copyLoop(conn, remote); err != nil {
 		log.Warnf("%s(%s) - closed connection: %s", name, target, log.ElideError(err))
@@ -144,14 +124,14 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 	}
 }
 
-func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerInfo pt.ServerInfo, statedir string, options string) (launched bool, listeners []net.Listener) {
+func ServerSetup(termMon *termmon.TermMonitor, ptServerInfo pt.ServerInfo, statedir string, options string) (launched bool, listeners []net.Listener) {
 	// Launch each of the server listeners.
 	for _, bindaddr := range ptServerInfo.Bindaddrs {
 		name := bindaddr.MethodName
 
 		var listen func(address string) net.Listener
 
-		args, argsErr := pt.ParsePT2ServerParameters(options)
+		args, argsErr := options2.ParseServerOptions(options)
 		if argsErr != nil {
 			log.Errorf("Error parsing transport options: %s", options)
 			return
@@ -188,46 +168,73 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 				return false, nil
 			}
 
-			idPath, ok := shargs.Get("Url")
+			untypedIdPath, ok := shargs["Url"]
 			if !ok {
 				return false, nil
 			}
-			transport := Dust.NewDustServer(idPath)
+			idPath, err := options2.CoerceToString(untypedIdPath)
+			if err != nil {
+				log.Errorf("could not coerce Dust Url to string")
+				return false, nil
+			}
+			transport := Dust.NewDustServer(*idPath)
 			listen = transport.Listen
 		case "meeklite":
-			shargs, aok := args["meeklite"]
+			args, aok := args["meeklite"]
 			if !aok {
 				return false, nil
 			}
 
-			Url, ok := shargs.Get("Url")
+			untypedUrl, ok := args["Url"]
 			if !ok {
 				return false, nil
 			}
 
-			Front, ok2 := shargs.Get("Front")
-			if !ok2 {
+
+			Url, err := options2.CoerceToString(untypedUrl)
+			if err != nil {
+				log.Errorf("could not coerce meeklite Url to string")
+			}
+
+			untypedFront, ok := args["Front"]
+			if !ok {
 				return false, nil
 			}
-			transport := meeklite.NewMeekTransportWithFront(Url, Front)
+
+			Front, err := options2.CoerceToString(untypedFront)
+			if err != nil {
+				log.Errorf("could not coerce meeklite Front to string")
+			}
+			transport := meeklite.NewMeekTransportWithFront(*Url, *Front)
 			listen = transport.Listen
 		case "shadow":
-			shargs, aok := args["shadow"]
+			args, aok := args["shadow"]
 			if !aok {
 				return false, nil
 			}
 
-			password, ok := shargs.Get("password")
+			untypedPassword, ok := args["password"]
 			if !ok {
 				return false, nil
 			}
 
-			cipherName, ok2 := shargs.Get("cipherName")
-			if !ok2 {
+			Password, err := options2.CoerceToString(untypedPassword)
+			if err != nil {
+				log.Errorf("could not coerce meeklite Url to string")
+			}
+
+			untypedCertString, ok := args["Url"]
+			if !ok {
 				return false, nil
 			}
 
-			transport := shadow.NewShadowServer(password, cipherName)
+
+			certString, err := options2.CoerceToString(untypedCertString)
+			if err != nil {
+				log.Errorf("could not coerce meeklite Url to string")
+			}
+
+			transport := shadow.NewShadowServer(*Password, *certString)
 			listen = transport.Listen
 		default:
 			log.Errorf("Unknown transport: %s", name)
@@ -249,33 +256,32 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 	return
 }
 
-func getServerBindaddrs(serverBindaddr string) ([]pt.Bindaddr, error) {
-	var result []pt.Bindaddr
-
-	for _, spec := range strings.Split(serverBindaddr, ",") {
-		var bindaddr pt.Bindaddr
-
-		parts := strings.SplitN(spec, "-", 2)
-		if len(parts) != 2 {
-			log.Errorf("TOR_PT_SERVER_BINDADDR: doesn't contain \"-\" %q", spec)
-			return nil, nil
-		}
-		bindaddr.MethodName = parts[0]
-		addr, err := pt.ResolveAddr(parts[1])
-		if err != nil {
-			log.Errorf("TOR_PT_SERVER_BINDADDR: %q %q", spec, err.Error())
-			return nil, nil
-		}
-		bindaddr.Addr = addr
-		//		bindaddr.Options = optionsMap[bindaddr.MethodName]
-		result = append(result, bindaddr)
-	}
-
-	return result, nil
-}
+//func getServerBindaddrs(serverBindaddr string) ([]pt.Bindaddr, error) {
+//	var result []pt.Bindaddr
+//
+//	for _, spec := range strings.Split(serverBindaddr, ",") {
+//		var bindaddr pt.Bindaddr
+//
+//		parts := strings.SplitN(spec, "-", 2)
+//		if len(parts) != 2 {
+//			log.Errorf("TOR_PT_SERVER_BINDADDR: doesn't contain \"-\" %q", spec)
+//			return nil, nil
+//		}
+//		bindaddr.MethodName = parts[0]
+//		addr, err := pt.ResolveAddr(parts[1])
+//		if err != nil {
+//			log.Errorf("TOR_PT_SERVER_BINDADDR: %q %q", spec, err.Error())
+//			return nil, nil
+//		}
+//		bindaddr.Addr = addr
+//		//		bindaddr.Options = optionsMap[bindaddr.MethodName]
+//		result = append(result, bindaddr)
+//	}
+//
+//	return result, nil
+//}
 
 func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln net.Listener, info *pt.ServerInfo) {
-	defer ln.Close()
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
@@ -300,7 +306,6 @@ func serverHandler(termMon *termmon.TermMonitor, name string, remote net.Conn, i
 		log.Errorf("%s - failed to connect to ORPort: %s", name, log.ElideError(err))
 		return
 	}
-	defer orConn.Close()
 
 	if err = copyLoop(orConn, remote); err != nil {
 		log.Warnf("%s - closed connection: %s", name, log.ElideError(err))
@@ -318,15 +323,11 @@ func copyLoop(a net.Conn, b net.Conn) error {
 
 	go func() {
 		defer wg.Done()
-		defer b.Close()
-		defer a.Close()
 		_, err := io.Copy(b, a)
 		errChan <- err
 	}()
 	go func() {
 		defer wg.Done()
-		defer a.Close()
-		defer b.Close()
 		_, err := io.Copy(a, b)
 		errChan <- err
 	}()

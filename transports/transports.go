@@ -42,6 +42,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 	"github.com/mufti1/interconv/package"
+	"golang.org/x/net/proxy"
 	gourl "net/url"
 	"strconv"
 )
@@ -51,7 +52,7 @@ func Transports() []string {
 	return []string{"obfs2", "shadow", "obfs4", "Optimizer"}
 }
 
-func ParseArgsObfs4(args map[string]interface{}, target string) (*obfs4.Transport, error) {
+func ParseArgsObfs4(args map[string]interface{}, target string, dialer proxy.Dialer) (*obfs4.Transport, error) {
 	var cert string
 	var iatMode int
 
@@ -140,6 +141,7 @@ func ParseArgsObfs4(args map[string]interface{}, target string) (*obfs4.Transpor
 		CertString: cert,
 		IatMode:    iatMode,
 		Address:    target,
+		Dialer:     dialer,
 	}
 
 	return &transport, nil
@@ -687,7 +689,7 @@ func ParseArgsMeeklite(args map[string]interface{}, target string) (*meeklite.Tr
 	return &transport, nil
 }
 
-func ParseArgsOptimizer(args map[string]interface{}) (*Optimizer.Client, error) {
+func ParseArgsOptimizer(args map[string]interface{}, dialer proxy.Dialer) (*Optimizer.Client, error) {
 	var transports []Optimizer.Transport
 	var strategy Optimizer.Strategy
 
@@ -701,7 +703,7 @@ func ParseArgsOptimizer(args map[string]interface{}) (*Optimizer.Client, error) 
 		otcs := untypedTransports.([]interface{})
 
 		var parseErr error
-		transports, parseErr = parseTransports(otcs)
+		transports, parseErr = parseTransports(otcs, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse transports")
 		}
@@ -758,13 +760,13 @@ func parseStrategy(strategyString string, transports []Optimizer.Transport) (Opt
 	}
 }
 
-func parseTransports(otcs []interface{}) ([]Optimizer.Transport, error) {
+func parseTransports(otcs []interface{}, dialer proxy.Dialer) ([]Optimizer.Transport, error) {
 	transports := make([]Optimizer.Transport, len(otcs))
 	for index, untypedOtc := range otcs {
 		switch untypedOtc.(type) {
 		case map[string]interface{}:
 			otc := untypedOtc.(map[string]interface{})
-			transport, err := parsedTransport(otc)
+			transport, err := parsedTransport(otc, dialer)
 			if err != nil {
 				return nil, errors.New("transport could not parse config")
 				//this error sucks and is uninformative
@@ -778,10 +780,11 @@ func parseTransports(otcs []interface{}) ([]Optimizer.Transport, error) {
 	return transports, nil
 }
 
-func parsedTransport(otc map[string]interface{}) (Optimizer.Transport, error) {
+func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer.Transport, error) {
 	var address string
 	var name string
 	var config map[string]interface{}
+
 	//start by parsing the address
 	untypedAddress, ok := otc["address"]
 	if !ok {
@@ -841,7 +844,7 @@ func parsedTransport(otc map[string]interface{}) (Optimizer.Transport, error) {
 		}
 		return shadowTransport, nil
 	case "obfs4":
-		obfs4Transport, parseErr := ParseArgsObfs4(config, address)
+		obfs4Transport, parseErr := ParseArgsObfs4(config, address, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse obfs4 Args")
 		}
@@ -865,7 +868,7 @@ func parsedTransport(otc map[string]interface{}) (Optimizer.Transport, error) {
 		}
 		return replicantTransport, nil
 	case "Optimizer":
-		optimizerTransport, parseErr := ParseArgsOptimizer(config)
+		optimizerTransport, parseErr := ParseArgsOptimizer(config, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse Optimizer Args")
 		}

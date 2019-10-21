@@ -37,14 +37,12 @@ import (
 	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
+	common "github.com/willscott/goturn/common"
+	"golang.org/x/net/proxy"
 	"io"
 	golog "log"
 	"net"
 	"net/url"
-	"strconv"
-	"strings"
-
-	common "github.com/willscott/goturn/common"
 
 	"github.com/willscott/goturn"
 
@@ -54,8 +52,6 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
 )
-
-var stateDir string
 
 type ConnState struct {
 	Conn    net.Conn
@@ -92,9 +88,11 @@ func ClientSetup(termMon *termmon.TermMonitor, socksAddr string, target string, 
 }
 
 func clientHandler(target string, termMon *termmon.TermMonitor, name string, options string, conn *net.UDPConn, proxyURI *url.URL) {
-	defer conn.Close()
+
 	termMon.OnHandlerStart()
-	defer termMon.OnHandlerFinish()
+	//defers are never called due to infinite loop
+	//defer termMon.OnHandlerFinish()
+	//defer  conn.Close()
 
 	fmt.Println("@@@ handling...")
 
@@ -126,7 +124,8 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 				// There is an open transport connection.
 				// Send the packet through the transport.
 				fmt.Println("recv: write")
-				state.Conn.Write(buf)
+				//ignoring failed writes because packets can be dropped
+				_, _ = state.Conn.Write(buf)
 			}
 		} else {
 			// There is not an open transport connection and a connection attempt is not in progress.
@@ -152,19 +151,21 @@ func openConnection(tracker *ConnTracker, addr string, target string, termMon *t
 }
 
 func dialConn(tracker *ConnTracker, addr string, target string, name string, options string, proxyURI *url.URL) {
-	// Obtain the proxy dialer if any, and create the outgoing TCP connection.
-	// dialFn := proxy.Direct.Dial
-	// if proxyURI != nil {
-	// 	dialer, err := proxy.FromURL(proxyURI, proxy.Direct)
-	// 	if err != nil {
-	// 		// This should basically never happen, since config protocol
-	// 		// verifies this.
-	// 		fmt.Println("failed to obtain dialer", proxyURI, proxy.Direct)
-	// 		log.Errorf("(%s) - failed to obtain proxy dialer: %s", target, log.ElideError(err))
-	// 		return
-	// 	}
-	// 	dialFn = dialer.Dial
-	// }
+	//Obtain the proxy dialer if any, and create the outgoing TCP connection.
+	var dialer proxy.Dialer
+	dialer = proxy.Direct
+	if proxyURI != nil {
+		var err error
+		dialer, err = proxy.FromURL(proxyURI, proxy.Direct)
+		if err != nil {
+			// This should basically never happen, since config protocol
+			// verifies this.
+			fmt.Println("failed to obtain dialer", proxyURI, proxy.Direct)
+			log.Errorf("(%s) - failed to obtain proxy dialer: %s", target, log.ElideError(err))
+			return
+		}
+
+	}
 
 	fmt.Println("Dialing....")
 
@@ -175,7 +176,7 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 	}
 
 	// Deal with arguments.
-	transport, _ := pt_extras.ArgsToDialer(target, name, args)
+	transport, _ := pt_extras.ArgsToDialer(target, name, args, dialer)
 
 	fmt.Println("Dialing ", target)
 	remote, _ := transport.Dial()
@@ -192,7 +193,7 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 	(*tracker)[addr] = ConnState{remote, false}
 }
 
-func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerInfo pt.ServerInfo, options string) (launched bool, listeners []net.Listener) {
+func ServerSetup(termMon *termmon.TermMonitor, ptServerInfo pt.ServerInfo, options string, stateDir string) (launched bool, listeners []net.Listener) {
 	fmt.Println("ServerSetup")
 
 	// Launch each of the server listeners.
@@ -212,26 +213,10 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 		switch name {
 		case "obfs2":
 			transport := obfs2.NewObfs2Transport()
-			listen=transport.Listen
+			listen = transport.Listen
 		case "obfs4":
-			if cert, ok := args["cert"]; ok {
-				if iatModeStr, ok2 := args["iat-mode"]; ok2 {
-					iatMode, err := strconv.Atoi(iatModeStr[0])
-					if err != nil {
-						transport := obfs4.NewObfs4Client(cert[0], iatMode)
-						listen=transport.Listen
-					} else {
-						log.Errorf("obfs4 transport bad iat-mode value: %s", iatModeStr)
-						return
-					}
-				} else {
-					log.Errorf("obfs4 transport missing cert argument: %s", args)
-					return
-				}
-			} else {
-				log.Errorf("obfs4 transport missing cert argument: %s", args)
-				return
-			}
+			transport := obfs4.NewObfs4Server(stateDir)
+			listen = transport.Listen
 		case "meeklite":
 			if Url, ok := args["Url"]; ok {
 				if Front, ok2 := args["Front"]; ok2 {
@@ -256,25 +241,25 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 			}
 		case "Dust":
 			if idPath, ok := args["idPath"]; ok {
-					transport := Dust.NewDustServer(idPath[0])
-					listen = transport.Listen
+				transport := Dust.NewDustServer(idPath[0])
+				listen = transport.Listen
 			} else {
 				log.Errorf("Dust transport missing idPath argument: %s", args)
 				return
 			}
-			case "shadow":
-				if password, ok := args["password"]; ok {
-					if cipher, ok2 := args["cipherName"]; ok2 {
-			transport := shadow.NewShadowClient(password[0], cipher[0])
-			listen = transport.Listen
+		case "shadow":
+			if password, ok := args["password"]; ok {
+				if cipher, ok2 := args["cipherName"]; ok2 {
+					transport := shadow.NewShadowClient(password[0], cipher[0])
+					listen = transport.Listen
+				} else {
+					log.Errorf("shadow transport missing cipher argument: %s", args)
+					return
+				}
 			} else {
-				log.Errorf("shadow transport missing cipher argument: %s", args)
+				log.Errorf("shadow transport missing password argument: %s", args)
 				return
 			}
-		} else {
-			log.Errorf("shadow transport missing password argument: %s", args)
-			return
-		}
 
 		default:
 			log.Errorf("Unknown transport: %s", name)
@@ -294,80 +279,81 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 	return
 }
 
-func getServerBindaddrs(serverBindaddr string) ([]pt.Bindaddr, error) {
-	var result []pt.Bindaddr
-
-	for _, spec := range strings.Split(serverBindaddr, ",") {
-		var bindaddr pt.Bindaddr
-
-		parts := strings.SplitN(spec, "-", 2)
-		if len(parts) != 2 {
-			fmt.Println("TOR_PT_SERVER_BINDADDR: doesn't contain \"-\"", spec)
-			return nil, nil
-		}
-		bindaddr.MethodName = parts[0]
-		addr, err := resolveAddr(parts[1])
-		if err != nil {
-			fmt.Println("TOR_PT_SERVER_BINDADDR: ", spec, err.Error())
-			return nil, nil
-		}
-		bindaddr.Addr = addr
-		//		bindaddr.Options = optionsMap[bindaddr.MethodName]
-		result = append(result, bindaddr)
-	}
-
-	return result, nil
-}
+//func getServerBindaddrs(serverBindaddr string) ([]pt.Bindaddr, error) {
+//	var result []pt.Bindaddr
+//
+//	for _, spec := range strings.Split(serverBindaddr, ",") {
+//		var bindaddr pt.Bindaddr
+//
+//		parts := strings.SplitN(spec, "-", 2)
+//		if len(parts) != 2 {
+//			fmt.Println("TOR_PT_SERVER_BINDADDR: doesn't contain \"-\"", spec)
+//			return nil, nil
+//		}
+//		bindaddr.MethodName = parts[0]
+//		addr, err := resolveAddr(parts[1])
+//		if err != nil {
+//			fmt.Println("TOR_PT_SERVER_BINDADDR: ", spec, err.Error())
+//			return nil, nil
+//		}
+//		bindaddr.Addr = addr
+//		//		bindaddr.Options = optionsMap[bindaddr.MethodName]
+//		result = append(result, bindaddr)
+//	}
+//
+//	return result, nil
+//}
 
 // Resolve an address string into a net.TCPAddr. We are a bit more strict than
 // net.ResolveTCPAddr; we don't allow an empty host or port, and the host part
 // must be a literal IP address.
-func resolveAddr(addrStr string) (*net.TCPAddr, error) {
-	ipStr, portStr, err := net.SplitHostPort(addrStr)
-	if err != nil {
-		// Before the fixing of bug #7011, tor doesn't put brackets around IPv6
-		// addresses. Split after the last colon, assuming it is a port
-		// separator, and try adding the brackets.
-		parts := strings.Split(addrStr, ":")
-		if len(parts) <= 2 {
-			return nil, err
-		}
-		addrStr := "[" + strings.Join(parts[:len(parts)-1], ":") + "]:" + parts[len(parts)-1]
-		ipStr, portStr, err = net.SplitHostPort(addrStr)
-	}
-	if err != nil {
-		return nil, err
-	}
-	if ipStr == "" {
-		return nil, net.InvalidAddrError(fmt.Sprintf("address string %q lacks a host part", addrStr))
-	}
-	if portStr == "" {
-		return nil, net.InvalidAddrError(fmt.Sprintf("address string %q lacks a port part", addrStr))
-	}
-	ip := net.ParseIP(ipStr)
-	if ip == nil {
-		return nil, net.InvalidAddrError(fmt.Sprintf("not an IP string: %q", ipStr))
-	}
-	port, err := parsePort(portStr)
-	if err != nil {
-		return nil, err
-	}
-	return &net.TCPAddr{IP: ip, Port: port}, nil
-}
+////func resolveAddr(addrStr string) (*net.TCPAddr, error) {
+////	ipStr, portStr, err := net.SplitHostPort(addrStr)
+////	if err != nil {
+////		// Before the fixing of bug #7011, tor doesn't put brackets around IPv6
+////		// addresses. Split after the last colon, assuming it is a port
+////		// separator, and try adding the brackets.
+////		parts := strings.Split(addrStr, ":")
+////		if len(parts) <= 2 {
+////			return nil, err
+////		}
+////		addrStr := "[" + strings.Join(parts[:len(parts)-1], ":") + "]:" + parts[len(parts)-1]
+////		ipStr, portStr, err = net.SplitHostPort(addrStr)
+////	}
+////	if err != nil {
+////		return nil, err
+////	}
+////	if ipStr == "" {
+////		return nil, net.InvalidAddrError(fmt.Sprintf("address string %q lacks a host part", addrStr))
+////	}
+////	if portStr == "" {
+////		return nil, net.InvalidAddrError(fmt.Sprintf("address string %q lacks a port part", addrStr))
+////	}
+////	ip := net.ParseIP(ipStr)
+////	if ip == nil {
+////		return nil, net.InvalidAddrError(fmt.Sprintf("not an IP string: %q", ipStr))
+////	}
+////	port, err := parsePort(portStr)
+////	if err != nil {
+////		return nil, err
+////	}
+////	return &net.TCPAddr{IP: ip, Port: port}, nil
+////}
+//
+//func parsePort(portStr string) (int, error) {
+//	port, err := strconv.ParseUint(portStr, 10, 16)
+//	return int(port), err
+//}
 
-func parsePort(portStr string) (int, error) {
-	port, err := strconv.ParseUint(portStr, 10, 16)
-	return int(port), err
-}
-
-func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln net.Listener, info *pt.ServerInfo) error {
-	defer ln.Close()
+func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln net.Listener, info *pt.ServerInfo){
 	for {
 		conn, err := ln.Accept()
 		fmt.Println("accepted")
 		if err != nil {
 			if e, ok := err.(net.Error); ok && !e.Temporary() {
-				return err
+				log.Errorf("serverAcceptLoop failed")
+				_ = ln.Close()
+				return
 			}
 			continue
 		}
@@ -378,9 +364,7 @@ func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln net.Listener
 func serverHandler(termMon *termmon.TermMonitor, name string, remote net.Conn, info *pt.ServerInfo) {
 	var header *common.Message
 
-	defer remote.Close()
 	termMon.OnHandlerStart()
-	defer termMon.OnHandlerFinish()
 
 	addrStr := log.ElideAddr(remote.RemoteAddr().String())
 	fmt.Println("### handling", name)
@@ -388,16 +372,22 @@ func serverHandler(termMon *termmon.TermMonitor, name string, remote net.Conn, i
 
 	serverAddr, err := net.ResolveUDPAddr("udp", info.OrAddr.String())
 	if err != nil {
+		_ = remote.Close()
+		termMon.OnHandlerFinish()
 		golog.Fatal(err)
 	}
 
 	localAddr, err := net.ResolveUDPAddr("udp", "127.0.0.1:0")
 	if err != nil {
+		_ = remote.Close()
+		termMon.OnHandlerFinish()
 		golog.Fatal(err)
 	}
 
 	dest, err := net.DialUDP("udp", localAddr, serverAddr)
 	if err != nil {
+		_ = remote.Close()
+		termMon.OnHandlerFinish()
 		golog.Fatal(err)
 	}
 
@@ -435,6 +425,9 @@ func serverHandler(termMon *termmon.TermMonitor, name string, remote net.Conn, i
 
 		writeBuffer := append(headerBuffer, readBuffer...)
 
-		dest.Write(writeBuffer)
+		_, _ = dest.Write(writeBuffer)
 	}
+
+	_ = remote.Close()
+	termMon.OnHandlerFinish()
 }

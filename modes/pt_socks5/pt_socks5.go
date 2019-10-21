@@ -37,6 +37,7 @@ import (
 	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
+	"golang.org/x/net/proxy"
 	"io"
 	"net"
 	"net/url"
@@ -50,8 +51,6 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
 )
-
-var stateDir string
 
 func ClientSetup(termMon *termmon.TermMonitor, socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) (launched bool, listeners []net.Listener) {
 	// Launch each of the client listeners.
@@ -74,14 +73,15 @@ func ClientSetup(termMon *termmon.TermMonitor, socksAddr string, target string, 
 
 	return
 }
-
-func clientAcceptLoop(target string, termMon *termmon.TermMonitor, name string, ln net.Listener, proxyURI *url.URL, options string) error {
-	defer ln.Close()
+//FIXME figure out how to make this function match the other modes
+func clientAcceptLoop(target string, termMon *termmon.TermMonitor, name string, ln net.Listener, proxyURI *url.URL, options string){
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
 			if e, ok := err.(net.Error); ok && !e.Temporary() {
-				return err
+				log.Errorf("serverAcceptLoop failed")
+				_ = ln.Close()
+				return
 			}
 			continue
 		}
@@ -90,7 +90,6 @@ func clientAcceptLoop(target string, termMon *termmon.TermMonitor, name string, 
 }
 
 func clientHandler(target string, termMon *termmon.TermMonitor, name string, conn net.Conn, proxyURI *url.URL, options string) {
-	defer conn.Close()
 	termMon.OnHandlerStart()
 	defer termMon.OnHandlerFinish()
 
@@ -120,36 +119,33 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, con
 		return
 	}
 
-	var dialer func() (net.Conn, error)
+	var dialer proxy.Dialer
 
 	// Deal with arguments.
-	transport, _ := pt_extras.ArgsToDialer(socksReq.Target, name, args)
-	dialer = transport.Dial
-	f := dialer
+	transport, _ := pt_extras.ArgsToDialer(socksReq.Target, name, args,dialer)
 
 	// Obtain the proxy dialer if any, and create the outgoing TCP connection.
-	// dialFn := proxy.Direct.Dial
-	// if proxyURI != nil {
-	// 	dialer, err := proxy.FromURL(proxyURI, proxy.Direct)
-	// 	if err != nil {
-	// 		// This should basically never happen, since config protocol
-	// 		// verifies this.
-	// 		log.Errorf("%s(%s) - failed to obtain proxy dialer: %s", name, addrStr, log.ElideError(err))
-	// 		socksReq.Reply(socks5.ReplyGeneralFailure)
-	// 		return
-	// 	}
-	// 	dialFn = dialer.Dial
-	// }
-	//
-	// fmt.Println("Got dialer", dialFn, proxyURI, proxy.Direct)
+	dialFn := proxy.Direct.Dial
+	if proxyURI != nil {
+		dialer, err := proxy.FromURL(proxyURI, proxy.Direct)
+		if err != nil {
+			// This should basically never happen, since config protocol
+			// verifies this.
+			log.Errorf("%s(%s) - failed to obtain proxy dialer: %s", name, addrStr, log.ElideError(err))
+			socksReq.Reply(socks5.ReplyGeneralFailure)
+			return
+		}
+		dialFn = dialer.Dial
+	}
 
-	remote, _ := f()
+	fmt.Println("Got dialer", dialFn, proxyURI, proxy.Direct)
+
+	remote, _ := transport.Dial()
 	if err != nil {
 		log.Errorf("%s(%s) - outgoing connection failed: %s", name, addrStr, log.ElideError(err))
 		socksReq.Reply(socks5.ErrorToReplyCode(err))
 		return
 	}
-	defer remote.Close()
 	err = socksReq.Reply(socks5.ReplySucceeded)
 	if err != nil {
 		log.Errorf("%s(%s) - SOCKS reply failed: %s", name, addrStr, log.ElideError(err))
@@ -165,7 +161,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, con
 	return
 }
 
-func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerInfo pt.ServerInfo, options string) (launched bool, listeners []net.Listener) {
+func ServerSetup(termMon *termmon.TermMonitor, ptServerInfo pt.ServerInfo, options string) (launched bool, listeners []net.Listener) {
 	for _, bindaddr := range ptServerInfo.Bindaddrs {
 		name := bindaddr.MethodName
 
@@ -183,11 +179,12 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 			transport := obfs2.NewObfs2Transport()
 			listen = transport.Listen
 		case "obfs4":
+			var dialer proxy.Dialer
 			if cert, ok := args["cert"]; ok {
 				if iatModeStr, ok2 := args["iat-mode"]; ok2 {
 					iatMode, err := strconv.Atoi(iatModeStr[0])
 					if err != nil {
-						transport := obfs4.NewObfs4Client(cert[0], iatMode)
+						transport := obfs4.NewObfs4Client(cert[0], iatMode, dialer)
 						listen = transport.Listen
 					} else {
 						log.Errorf("obfs4 transport bad iat-mode value: %s", iatModeStr)
@@ -271,13 +268,12 @@ func ServerSetup(termMon *termmon.TermMonitor, bindaddrString string, ptServerIn
 	return
 }
 
-func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln net.Listener, info *pt.ServerInfo) error {
-	defer ln.Close()
+func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln net.Listener, info *pt.ServerInfo){
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
 			if e, ok := err.(net.Error); ok && !e.Temporary() {
-				return err
+				return
 			}
 			continue
 		}
@@ -286,7 +282,6 @@ func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln net.Listener
 }
 
 func serverHandler(termMon *termmon.TermMonitor, name string, remote net.Conn, info *pt.ServerInfo) {
-	defer remote.Close()
 	termMon.OnHandlerStart()
 	defer termMon.OnHandlerFinish()
 
@@ -299,7 +294,6 @@ func serverHandler(termMon *termmon.TermMonitor, name string, remote net.Conn, i
 		log.Errorf("%s(%s) - failed to connect to ORPort: %s", name, addrStr, log.ElideError(err))
 		return
 	}
-	defer orConn.Close()
 
 	if err = copyLoop(orConn, remote); err != nil {
 		log.Warnf("%s(%s) - closed connection: %s", name, addrStr, log.ElideError(err))
@@ -319,15 +313,11 @@ func copyLoop(a net.Conn, b net.Conn) error {
 
 	go func() {
 		defer wg.Done()
-		defer b.Close()
-		defer a.Close()
 		_, err := io.Copy(b, a)
 		errChan <- err
 	}()
 	go func() {
 		defer wg.Done()
-		defer a.Close()
-		defer b.Close()
 		_, err := io.Copy(a, b)
 		errChan <- err
 	}()
