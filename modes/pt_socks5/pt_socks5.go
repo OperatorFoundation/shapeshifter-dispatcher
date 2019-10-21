@@ -33,6 +33,7 @@ import (
 	"fmt"
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
 	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
@@ -41,7 +42,6 @@ import (
 	"io"
 	"net"
 	"net/url"
-	"strconv"
 	"sync"
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
@@ -156,13 +156,13 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 	return
 }
 
-func ServerSetup(ptServerInfo pt.ServerInfo, options string) (launched bool, listeners []net.Listener) {
+func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (launched bool, listeners []net.Listener) {
 	for _, bindaddr := range ptServerInfo.Bindaddrs {
 		name := bindaddr.MethodName
 
 		var listen func(address string) net.Listener
 
-		args, argsErr := pt.ParsePT2ClientParameters(options)
+		args, argsErr := options2.ParseServerOptions(options)
 		if argsErr != nil {
 			log.Errorf("Error parsing transport options: %s", options)
 			return
@@ -174,65 +174,92 @@ func ServerSetup(ptServerInfo pt.ServerInfo, options string) (launched bool, lis
 			transport := obfs2.NewObfs2Transport()
 			listen = transport.Listen
 		case "obfs4":
-			var dialer proxy.Dialer
-			if cert, ok := args["cert"]; ok {
-				if iatModeStr, ok2 := args["iat-mode"]; ok2 {
-					iatMode, err := strconv.Atoi(iatModeStr[0])
-					if err != nil {
-						transport := obfs4.NewObfs4Client(cert[0], iatMode, dialer)
-						listen = transport.Listen
-					} else {
-						log.Errorf("obfs4 transport bad iat-mode value: %s", iatModeStr)
-						return
-					}
-				} else {
-					log.Errorf("obfs4 transport missing cert argument: %s", args)
-					return
-				}
-			} else {
-				log.Errorf("obfs4 transport missing cert argument: %s", args)
-				return
-			}
+			transport := obfs4.NewObfs4Server(statedir)
+			listen = transport.Listen
 		case "replicant":
-			config, ok := args.Get("config")
-			fmt.Println(config)
+			shargs, aok := args["Replicant"]
+			if !aok {
+				return false, nil
+			}
+
+			config, err := transports.ParseReplicantConfig(shargs)
+			if err != nil {
+				return false, nil
+			}
+			transport := replicant.New(*config)
+			listen = transport.Listen
+		case "Dust":
+			shargs, aok := args["Dust"]
+			if !aok {
+				return false, nil
+			}
+
+			untypedIdPath, ok := shargs["Url"]
 			if !ok {
 				return false, nil
 			}
-			transport := replicant.New(replicant.Config{})
-			listen = transport.Listen
-		case "Dust":
-			idPath, ok := args.Get("idPath")
-			if !ok {
+			idPath, err := options2.CoerceToString(untypedIdPath)
+			if err != nil {
+				log.Errorf("could not coerce Dust Url to string")
 				return false, nil
 			}
 			transport := Dust.NewDustServer(idPath)
 			listen = transport.Listen
 		case "meeklite":
-			Url, ok := args.Get("Url")
+			args, aok := args["meeklite"]
+			if !aok {
+				return false, nil
+			}
+
+			untypedUrl, ok := args["Url"]
 			if !ok {
 				return false, nil
 			}
 
-			Front, ok2 := args.Get("Front")
-			if !ok2 {
+			Url, err := options2.CoerceToString(untypedUrl)
+			if err != nil {
+				log.Errorf("could not coerce meeklite Url to string")
+			}
+
+			untypedFront, ok := args["front"]
+			if !ok {
 				return false, nil
 			}
-			transport := meeklite.NewMeekTransportWithFront(Url, Front)
+
+			front, err2 := options2.CoerceToString(untypedFront)
+			if err2 != nil {
+				log.Errorf("could not coerce meeklite front to string")
+			}
+
+			transport := meeklite.NewMeekTransportWithFront(Url, front)
 			listen = transport.Listen
-
 		case "shadow":
-			password, ok := args.Get("password")
+			args, aok := args["shadow"]
+			if !aok {
+				return false, nil
+			}
+
+			untypedPassword, ok := args["password"]
 			if !ok {
 				return false, nil
 			}
 
-			cipherName, ok2 := args.Get("cipherName")
-			if !ok2 {
+			Password, err := options2.CoerceToString(untypedPassword)
+			if err != nil {
+				log.Errorf("could not coerce shadow password to string")
+			}
+
+			untypedCertString, ok := args["Url"]
+			if !ok {
 				return false, nil
 			}
 
-			transport := shadow.NewShadowServer(password, cipherName)
+			certString, err2 := options2.CoerceToString(untypedCertString)
+			if err2 != nil {
+				log.Errorf("could not coerce meeklite Url to string")
+			}
+
+			transport := shadow.NewShadowServer(Password, certString)
 			listen = transport.Listen
 		default:
 			log.Errorf("Unknown transport: %s", name)

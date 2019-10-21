@@ -33,7 +33,9 @@ import (
 	"fmt"
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
+	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
 	"golang.org/x/net/proxy"
@@ -140,23 +142,18 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 		case "obfs4":
 			transport := obfs4.NewObfs4Server(statedir)
 			listen = transport.Listen
-			//FIXME make replicant case work for server side
-		//case "Replicant":
-		//	shargs, aok := args["Replicant"]
-		//	if !aok {
-		//		return false, nil
-		//	}
-		//
-		//	configString, ok := shargs.Get("config")
-		//	if !ok {
-		//		return false, nil
-		//	}
-		//	config, err := transports.ParseReplicantConfig(configString)
-		//	if err != nil {
-		//		return false, nil
-		//	}
-		//	transport := replicant.New(config)
-		//	listen = transport.Listen
+		case "Replicant":
+			shargs, aok := args["Replicant"]
+			if !aok {
+				return false, nil
+			}
+
+			config, err := transports.ParseReplicantConfig(shargs)
+			if err != nil {
+				return false, nil
+			}
+			transport := replicant.New(*config)
+			listen = transport.Listen
 		case "Dust":
 			shargs, aok := args["Dust"]
 			if !aok {

@@ -79,8 +79,7 @@ func main() {
 	}
 
 	// PT 2.0 specification, 3.3.1.1. Common Configuration Parameters
-	// FIXME: in the spec, this is -version, which is already used for printing the version number
-	ptversion := flag.String("ptversion", "", "Specify the Pluggable Transport protocol version to use")
+	ptversion := flag.String("version", "", "Specify the Pluggable Transport protocol version to use")
 	statePath := flag.String("state", "", "Specify the directory to use to store state information required by the transports")
 	exitOnStdinClose := flag.Bool("exit-on-stdin-close", false, "Set to true to force the dispatcher to close when the stdin pipe is closed")
 
@@ -102,7 +101,7 @@ func main() {
 	optionsFile := flag.String("optionsFile", "", "store all the options in a single file")
 	fmt.Println("checking for optionsFile")
 	// Additional command line flags inherited from obfs4proxy
-	showVer := flag.Bool("version", false, "Print version and exit")
+	showVer := flag.Bool("showVersion", false, "Print version and exit")
 	logLevelStr := flag.String("logLevel", "ERROR", "Log level (ERROR/WARN/INFO/DEBUG)")
 	enableLogging := flag.Bool("enableLogging", false, "Log to TOR_PT_STATE_LOCATION/"+dispatcherLogFile)
 
@@ -173,8 +172,11 @@ func main() {
 				if *target == "" {
 					log.Errorf("%s - transparent mode requires a target", execName)
 				} else {
-					ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
-
+					ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
+					if nameErr != nil {
+						log.Errorf("must specify -version and -transports")
+						return
+					}
 					launched = transparent_udp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options)
 				}
 			} else {
@@ -185,7 +187,7 @@ func main() {
 					// launched = transparent_udp.ServerSetup(termMon, *bindAddr, *target)
 
 					ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
-					launched, _ = transparent_udp.ServerSetup(ptServerInfo, *options)
+					launched, _ = transparent_udp.ServerSetup(ptServerInfo, stateDir, *options)
 				}
 			}
 		} else {
@@ -195,8 +197,11 @@ func main() {
 				if *target == "" {
 					log.Errorf("%s - transparent mode requires a target", execName)
 				} else {
-					ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
-
+					ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
+					if nameErr != nil {
+						log.Errorf("must specify -version and -transports")
+						return
+					}
 					launched, _ = transparent_tcp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options)
 				}
 			} else {
@@ -205,7 +210,7 @@ func main() {
 					log.Errorf("%s - transparent mode requires a bindaddr", execName)
 				} else {
 					ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
-					launched, _ = transparent_tcp.ServerSetup(ptServerInfo, *statePath, *options)
+					launched, _ = transparent_tcp.ServerSetup(ptServerInfo, stateDir, *options)
 				}
 			}
 		}
@@ -217,8 +222,11 @@ func main() {
 				if *target == "" {
 					log.Errorf("%s - STUN mode requires a target", execName)
 				} else {
-					ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
-
+					ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
+					if nameErr != nil {
+						log.Errorf("must specify -version and -transports")
+						return
+					}
 					launched = stun_udp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options)
 				}
 			} else {
@@ -227,7 +235,7 @@ func main() {
 					log.Errorf("%s - STUN mode requires a bindaddr", execName)
 				} else {
 					ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
-					launched, _ = stun_udp.ServerSetup(ptServerInfo, *options, stateDir)
+					launched, _ = stun_udp.ServerSetup(ptServerInfo, stateDir, *options)
 				}
 			}
 		} else {
@@ -235,13 +243,16 @@ func main() {
 			log.Infof("%s - initializing PT 2.0 proxy", execName)
 			if isClient {
 				log.Infof("%s - initializing client transport listeners", execName)
-				ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
-
+				ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
+				if nameErr != nil {
+					log.Errorf("must specify -version and -transports")
+					return
+				}
 				launched, _ = pt_socks5.ClientSetup(*socksAddr, ptClientProxy, names, *options)
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
 				ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
-				launched, _ = pt_socks5.ServerSetup(ptServerInfo, *options)
+				launched, _ = pt_socks5.ServerSetup(ptServerInfo, stateDir, *options)
 			}
 		}
 	}
@@ -285,7 +296,7 @@ func makeStateDir(statePath string) (string, error) {
 	}
 }
 
-func getClientNames(ptversion *string, transportsList *string, proxy *string) (clientProxy *url.URL, names []string) {
+func getClientNames(ptversion *string, transportsList *string, proxy *string) (clientProxy *url.URL, names []string, retErr error) {
 	var ptClientInfo pt.ClientInfo
 	var err error
 
@@ -293,8 +304,7 @@ func getClientNames(ptversion *string, transportsList *string, proxy *string) (c
 		log.Infof("Falling back to environment variables for ptversion/transports")
 		ptClientInfo, err = pt.ClientSetup(transports.Transports())
 		if err != nil {
-			// FIXME - print a more useful error, specifying --ptversion and --transports flags
-			golog.Fatal(err)
+			return nil, nil, err
 		}
 	} else {
 		if *transportsList == "*" {
@@ -304,14 +314,14 @@ func getClientNames(ptversion *string, transportsList *string, proxy *string) (c
 		}
 	}
 
-	ptClientProxy, err := pt_extras.PtGetProxy(proxy)
-	if err != nil {
-		golog.Fatal(err)
+	ptClientProxy, proxyErr := pt_extras.PtGetProxy(proxy)
+	if proxyErr != nil {
+		return nil, nil, proxyErr
 	} else if ptClientProxy != nil {
 		pt_extras.PtProxyDone()
 	}
 
-	return ptClientProxy, ptClientInfo.MethodNames
+	return ptClientProxy, ptClientInfo.MethodNames, nil
 }
 
 func getServerInfo(bindaddrList *string, options *string, transportList *string, orport *string, extorport *string, authcookie *string) pt.ServerInfo {

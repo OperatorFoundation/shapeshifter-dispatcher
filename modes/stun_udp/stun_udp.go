@@ -33,6 +33,7 @@ import (
 	"fmt"
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
 	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
@@ -189,7 +190,7 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 	(*tracker)[addr] = ConnState{remote, false}
 }
 
-func ServerSetup(ptServerInfo pt.ServerInfo, options string, stateDir string) (launched bool, listeners []net.Listener) {
+func ServerSetup(ptServerInfo pt.ServerInfo,  stateDir string, options string) (launched bool, listeners []net.Listener) {
 	fmt.Println("ServerSetup")
 
 	// Launch each of the server listeners.
@@ -199,7 +200,7 @@ func ServerSetup(ptServerInfo pt.ServerInfo, options string, stateDir string) (l
 
 		var listen func(address string) net.Listener
 
-		args, argsErr := pt.ParsePT2ClientParameters(options)
+		args, argsErr := options2.ParseServerOptions(options)
 		if argsErr != nil {
 			log.Errorf("Error parsing transport options: %s", options)
 			return
@@ -213,49 +214,91 @@ func ServerSetup(ptServerInfo pt.ServerInfo, options string, stateDir string) (l
 		case "obfs4":
 			transport := obfs4.NewObfs4Server(stateDir)
 			listen = transport.Listen
+		case "Replicant":
+			shargs, aok := args["Replicant"]
+			if !aok {
+				return false, nil
+			}
+
+			config, err := transports.ParseReplicantConfig(shargs)
+			if err != nil {
+				return false, nil
+			}
+			transport := replicant.New(*config)
+			listen = transport.Listen
 		case "meeklite":
-			if Url, ok := args["Url"]; ok {
-				if Front, ok2 := args["Front"]; ok2 {
-					transport := meeklite.NewMeekTransportWithFront(Url[0], Front[0])
-					listen = transport.Listen
-				} else {
-					log.Errorf("meeklite transport missing Url argument: %s", args)
-					return
-				}
-			} else {
-				log.Errorf("meeklite transport missing Front argument: %s", args)
-				return
+			args, aok := args["meeklite"]
+			if !aok {
+				return false, nil
 			}
-		case "replicant":
-			if config, ok := args["config"]; ok {
-				fmt.Println(config)
-				transport := replicant.New(replicant.Config{})
-				listen = transport.Listen
-			} else {
-				log.Errorf("replicant transport missing config argument: %s", args)
-				return
+
+			untypedUrl, ok := args["Url"]
+			if !ok {
+				return false, nil
 			}
+
+			Url, err := options2.CoerceToString(untypedUrl)
+			if err != nil {
+				log.Errorf("could not coerce meeklite Url to string")
+			}
+
+			untypedFront, ok := args["front"]
+			if !ok {
+				return false, nil
+			}
+
+			front, err2 := options2.CoerceToString(untypedFront)
+			if err2 != nil {
+				log.Errorf("could not coerce meeklite front to string")
+			}
+
+			transport := meeklite.NewMeekTransportWithFront(Url, front)
+			listen = transport.Listen
 		case "Dust":
-			if idPath, ok := args["idPath"]; ok {
-				transport := Dust.NewDustServer(idPath[0])
-				listen = transport.Listen
-			} else {
-				log.Errorf("Dust transport missing idPath argument: %s", args)
-				return
+			shargs, aok := args["Dust"]
+			if !aok {
+				return false, nil
 			}
+
+			untypedIdPath, ok := shargs["Url"]
+			if !ok {
+				return false, nil
+			}
+			idPath, err := options2.CoerceToString(untypedIdPath)
+			if err != nil {
+				log.Errorf("could not coerce Dust Url to string")
+				return false, nil
+			}
+			transport := Dust.NewDustServer(idPath)
+			listen = transport.Listen
 		case "shadow":
-			if password, ok := args["password"]; ok {
-				if cipher, ok2 := args["cipherName"]; ok2 {
-					transport := shadow.NewShadowClient(password[0], cipher[0])
-					listen = transport.Listen
-				} else {
-					log.Errorf("shadow transport missing cipher argument: %s", args)
-					return
-				}
-			} else {
-				log.Errorf("shadow transport missing password argument: %s", args)
-				return
+			args, aok := args["shadow"]
+			if !aok {
+				return false, nil
 			}
+
+			untypedPassword, ok := args["password"]
+			if !ok {
+				return false, nil
+			}
+
+			Password, err := options2.CoerceToString(untypedPassword)
+			if err != nil {
+				log.Errorf("could not coerce shadow password to string")
+			}
+
+			untypedCertString, ok := args["Url"]
+			if !ok {
+				return false, nil
+			}
+
+			certString, err2 := options2.CoerceToString(untypedCertString)
+			if err2 != nil {
+				log.Errorf("could not coerce meeklite Url to string")
+			}
+
+			transport := shadow.NewShadowServer(Password, certString)
+			listen = transport.Listen
 
 		default:
 			log.Errorf("Unknown transport: %s", name)
