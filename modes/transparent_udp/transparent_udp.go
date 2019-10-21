@@ -36,7 +36,6 @@ import (
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
 	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant"
@@ -65,7 +64,7 @@ func NewConnState() ConnState {
 
 type ConnTracker map[string]ConnState
 
-func ClientSetup(termMon *termmon.TermMonitor, socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) bool {
+func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) bool {
 	// Launch each of the client listeners.
 	for _, name := range names {
 		udpAddr, err := net.ResolveUDPAddr("udp", socksAddr)
@@ -80,7 +79,7 @@ func ClientSetup(termMon *termmon.TermMonitor, socksAddr string, target string, 
 			continue
 		}
 
-		go clientHandler(target, termMon, name, options, ln, ptClientProxy)
+		go clientHandler(target, name, options, ln, ptClientProxy)
 
 		log.Infof("%s - registered listener", name)
 	}
@@ -88,12 +87,10 @@ func ClientSetup(termMon *termmon.TermMonitor, socksAddr string, target string, 
 	return true
 }
 
-func clientHandler(target string, termMon *termmon.TermMonitor, name string, options string, conn *net.UDPConn, proxyURI *url.URL) {
+func clientHandler(target string, name string, options string, conn *net.UDPConn, proxyURI *url.URL) {
 	var length16 uint16
 
 	defer conn.Close()
-	termMon.OnHandlerStart()
-	defer termMon.OnHandlerFinish()
 
 	fmt.Println("@@@ handling...")
 
@@ -153,7 +150,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 
 			fmt.Println("Opening connection to ", target)
 
-			openConnection(&tracker, addr.String(), target, termMon, name, options, proxyURI)
+			openConnection(&tracker, addr.String(), target, name, options, proxyURI)
 
 			// Drop the packet.
 			fmt.Println("recv: Open")
@@ -161,7 +158,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 	}
 }
 
-func openConnection(tracker *ConnTracker, addr string, target string, termMon *termmon.TermMonitor, name string, options string, proxyURI *url.URL) {
+func openConnection(tracker *ConnTracker, addr string, target string, name string, options string, proxyURI *url.URL) {
 	fmt.Println("Making dialer...")
 
 	newConn := NewConnState()
@@ -211,7 +208,7 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 	(*tracker)[addr] = ConnState{remote, false}
 }
 
-func ServerSetup(termMon *termmon.TermMonitor, ptServerInfo pt.ServerInfo, options string) (launched bool, listeners []net.Listener) {
+func ServerSetup(ptServerInfo pt.ServerInfo, options string) (launched bool, listeners []net.Listener) {
 	fmt.Println("ServerSetup")
 
 	// Launch each of the server listeners.
@@ -304,7 +301,7 @@ func ServerSetup(termMon *termmon.TermMonitor, ptServerInfo pt.ServerInfo, optio
 
 		transportLn := f(bindaddr.Addr.String())
 
-		go serverAcceptLoop(termMon, name, transportLn, &ptServerInfo)
+		go serverAcceptLoop(name, transportLn, &ptServerInfo)
 
 		log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
 
@@ -356,7 +353,7 @@ func ServerSetup(termMon *termmon.TermMonitor, ptServerInfo pt.ServerInfo, optio
 //	return int(port), err
 //}
 
-func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln net.Listener, info *pt.ServerInfo) {
+func serverAcceptLoop(name string, ln net.Listener, info *pt.ServerInfo) {
 	for {
 		conn, err := ln.Accept()
 		fmt.Println("accepted")
@@ -368,15 +365,12 @@ func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln net.Listener
 			}
 			continue
 		}
-		go serverHandler(termMon, name, conn, info)
+		go serverHandler(name, conn, info)
 	}
 }
 
-func serverHandler(termMon *termmon.TermMonitor, name string, remote net.Conn, info *pt.ServerInfo) {
+func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 	var length16 uint16
-
-	termMon.OnHandlerStart()
-	defer termMon.OnHandlerFinish()
 
 	addrStr := log.ElideAddr(remote.RemoteAddr().String())
 	fmt.Println("### handling", name)

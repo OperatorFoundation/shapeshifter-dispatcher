@@ -40,7 +40,7 @@ func ParseServerOptions(s string) (params map[string]map[string]interface{}, err
 	return result, nil
 }
 
-func CoerceToString(futureString interface{}) (*string, error) {
+func CoerceToString(futureString interface{}) (string, error) {
 		var result string
 
 		switch futureString.(type) {
@@ -48,10 +48,10 @@ func CoerceToString(futureString interface{}) (*string, error) {
 			var icerr error
 			result, icerr = interconv.ParseString(futureString)
 			if icerr != nil {
-				return nil, icerr
+				return "", icerr
 			}
-			return &result, nil
+			return result, nil
 		default:
-			return nil, errors.New("unable to coerce empty interface to string")
+			return "", errors.New("unable to coerce empty interface to string")
 		}
 }

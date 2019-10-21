@@ -46,22 +46,21 @@ import (
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
 )
 
-func ClientSetup(termMon *termmon.TermMonitor, socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) (launched bool, listeners []net.Listener) {
+func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, options string) (launched bool, listeners []net.Listener) {
 	// Launch each of the client listeners.
 	for _, name := range names {
 		ln, err := net.Listen("tcp", socksAddr)
 		if err != nil {
-			pt.CmethodError(name, err.Error())
+			_ = pt.CmethodError(name, err.Error())
 			continue
 		}
 
-		go clientAcceptLoop(target, termMon, name, ln, ptClientProxy, options)
+		go clientAcceptLoop(name, ln, ptClientProxy, options)
 		pt.Cmethod(name, socks5.Version(), ln.Addr())
 
 		log.Infof("%s - registered listener: %s", name, ln.Addr())
@@ -73,8 +72,8 @@ func ClientSetup(termMon *termmon.TermMonitor, socksAddr string, target string, 
 
 	return
 }
-//FIXME figure out how to make this function match the other modes
-func clientAcceptLoop(target string, termMon *termmon.TermMonitor, name string, ln net.Listener, proxyURI *url.URL, options string){
+
+func clientAcceptLoop(name string, ln net.Listener, proxyURI *url.URL, options string) {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
@@ -85,15 +84,12 @@ func clientAcceptLoop(target string, termMon *termmon.TermMonitor, name string, 
 			}
 			continue
 		}
-		go clientHandler(target, termMon, name, conn, proxyURI, options)
+		go clientHandler(name, conn, proxyURI, options)
 	}
 }
 
-func clientHandler(target string, termMon *termmon.TermMonitor, name string, conn net.Conn, proxyURI *url.URL, options string) {
-	termMon.OnHandlerStart()
-	defer termMon.OnHandlerFinish()
-
-	var needOptions bool = options == ""
+func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string) {
+	var needOptions = options == ""
 
 	// Read the client's SOCKS handshake.
 	socksReq, err := socks5.Handshake(conn, needOptions)
@@ -122,28 +118,27 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, con
 	var dialer proxy.Dialer
 
 	// Deal with arguments.
-	transport, _ := pt_extras.ArgsToDialer(socksReq.Target, name, args,dialer)
+	transport, _ := pt_extras.ArgsToDialer(socksReq.Target, name, args, dialer)
 
 	// Obtain the proxy dialer if any, and create the outgoing TCP connection.
-	dialFn := proxy.Direct.Dial
 	if proxyURI != nil {
-		dialer, err := proxy.FromURL(proxyURI, proxy.Direct)
-		if err != nil {
+		var proxyErr error
+		dialer, proxyErr = proxy.FromURL(proxyURI, proxy.Direct)
+		if proxyErr != nil {
 			// This should basically never happen, since config protocol
 			// verifies this.
 			log.Errorf("%s(%s) - failed to obtain proxy dialer: %s", name, addrStr, log.ElideError(err))
-			socksReq.Reply(socks5.ReplyGeneralFailure)
+			_ = socksReq.Reply(socks5.ReplyGeneralFailure)
 			return
 		}
-		dialFn = dialer.Dial
 	}
 
-	fmt.Println("Got dialer", dialFn, proxyURI, proxy.Direct)
+	fmt.Println("Got dialer", dialer, proxyURI, proxy.Direct)
 
-	remote, _ := transport.Dial()
-	if err != nil {
+	remote, err2 := transport.Dial()
+	if err2 != nil {
 		log.Errorf("%s(%s) - outgoing connection failed: %s", name, addrStr, log.ElideError(err))
-		socksReq.Reply(socks5.ErrorToReplyCode(err))
+		_ = socksReq.Reply(socks5.ErrorToReplyCode(err))
 		return
 	}
 	err = socksReq.Reply(socks5.ReplySucceeded)
@@ -161,7 +156,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, con
 	return
 }
 
-func ServerSetup(termMon *termmon.TermMonitor, ptServerInfo pt.ServerInfo, options string) (launched bool, listeners []net.Listener) {
+func ServerSetup(ptServerInfo pt.ServerInfo, options string) (launched bool, listeners []net.Listener) {
 	for _, bindaddr := range ptServerInfo.Bindaddrs {
 		name := bindaddr.MethodName
 
@@ -199,7 +194,7 @@ func ServerSetup(termMon *termmon.TermMonitor, ptServerInfo pt.ServerInfo, optio
 				return
 			}
 		case "replicant":
-			config, ok :=args.Get("config")
+			config, ok := args.Get("config")
 			fmt.Println(config)
 			if !ok {
 				return false, nil
@@ -207,7 +202,7 @@ func ServerSetup(termMon *termmon.TermMonitor, ptServerInfo pt.ServerInfo, optio
 			transport := replicant.New(replicant.Config{})
 			listen = transport.Listen
 		case "Dust":
-			idPath, ok :=args.Get("idPath")
+			idPath, ok := args.Get("idPath")
 			if !ok {
 				return false, nil
 			}
@@ -244,13 +239,11 @@ func ServerSetup(termMon *termmon.TermMonitor, ptServerInfo pt.ServerInfo, optio
 			return
 		}
 
-
-
 		f := listen
 
 		transportLn := f(bindaddr.Addr.String())
 
-		go serverAcceptLoop(termMon, name, transportLn, &ptServerInfo)
+		go serverAcceptLoop(name, transportLn, &ptServerInfo)
 
 		// if args := f.Args(); args != nil {
 		// 	pt.SmethodArgs(name, ln.Addr(), *args)
@@ -268,7 +261,7 @@ func ServerSetup(termMon *termmon.TermMonitor, ptServerInfo pt.ServerInfo, optio
 	return
 }
 
-func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln net.Listener, info *pt.ServerInfo){
+func serverAcceptLoop(name string, ln net.Listener, info *pt.ServerInfo) {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
@@ -277,13 +270,11 @@ func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln net.Listener
 			}
 			continue
 		}
-		go serverHandler(termMon, name, conn, info)
+		go serverHandler(name, conn, info)
 	}
 }
 
-func serverHandler(termMon *termmon.TermMonitor, name string, remote net.Conn, info *pt.ServerInfo) {
-	termMon.OnHandlerStart()
-	defer termMon.OnHandlerFinish()
+func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 
 	addrStr := log.ElideAddr(remote.RemoteAddr().String())
 	log.Infof("%s(%s) - new connection", name, addrStr)

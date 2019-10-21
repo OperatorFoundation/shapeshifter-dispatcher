@@ -285,8 +285,8 @@ func ParseReplicantConfig(args map[string]interface{}) (*replicant.Config, error
 	}
 
 	replicantConfig := replicant.Config{
-		toneburstConfig,
-		polishConfig,
+		Toneburst: toneburstConfig,
+		Polish:    polishConfig,
 	}
 
 	return &replicantConfig, nil
@@ -328,8 +328,8 @@ func parseToneburstConfig(args map[string]interface{}) (*toneburst.Config, error
 			}
 
 			toneburstConfig := toneburst.Config{
-				selector,
-				whalesongConfig,
+				Selector:  selector,
+				Whalesong: whalesongConfig,
 			}
 
 			return &toneburstConfig, nil
@@ -378,8 +378,8 @@ func parsePolishConfig(args map[string]interface{}) (*polish.Config, error) {
 			}
 
 			polishConfig := polish.Config{
-				selector,
-				silverConfig,
+				Selector: selector,
+				Silver:   silverConfig,
 			}
 
 			return &polishConfig, nil
@@ -449,8 +449,8 @@ func parseWhalesongConfig(args map[string]interface{}) (*toneburst.WhalesongConf
 	}
 
 	whalesongConfig := toneburst.WhalesongConfig{
-		addSequences,
-		removeSequences,
+		AddSequences:    addSequences,
+		RemoveSequences: removeSequences,
 	}
 
 	return &whalesongConfig, nil
@@ -512,9 +512,9 @@ func parseSilverConfig(args map[string]interface{}) (*polish.SilverPolishConfig,
 	}
 
 	silverConfig := polish.SilverPolishConfig{
-		clientOrServer,
-		clientConfig,
-		serverConfig,
+		ClientOrServer: clientOrServer,
+		ClientConfig:   clientConfig,
+		ServerConfig:   serverConfig,
 	}
 
 	return &silverConfig, nil
@@ -560,8 +560,8 @@ func parseClientConfig(args map[string]interface{}) (*polish.SilverPolishClientC
 	}
 
 	silverPolishClientConfig := polish.SilverPolishClientConfig{
-		serverPublicKey,
-		chunkSize,
+		ServerPublicKey: serverPublicKey,
+		ChunkSize:       chunkSize,
 	}
 
 	return &silverPolishClientConfig, nil
@@ -629,9 +629,9 @@ func parseServerConfig(args map[string]interface{}) (*polish.SilverPolishServerC
 	}
 
 	silverPolishServerConfig := polish.SilverPolishServerConfig{
-		serverPublicKey,
-		serverPrivateKey,
-		chunkSize,
+		ServerPublicKey:  serverPublicKey,
+		ServerPrivateKey: serverPrivateKey,
+		ChunkSize:        chunkSize,
 	}
 
 	return &silverPolishServerConfig, nil
