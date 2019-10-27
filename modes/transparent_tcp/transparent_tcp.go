@@ -215,14 +215,14 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 				log.Errorf("could not coerce shadow password to string")
 			}
 
-			untypedCertString, ok := args["Url"]
+			untypedCertString, ok := args["certString"]
 			if !ok {
 				return false, nil
 			}
 
 			certString, err2 := options2.CoerceToString(untypedCertString)
 			if err2 != nil {
-				log.Errorf("could not coerce meeklite Url to string")
+				log.Errorf("could not coerce shadow certString to string")
 			}
 
 			transport := shadow.NewShadowServer(Password, certString)
