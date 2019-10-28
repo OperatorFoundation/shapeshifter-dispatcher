@@ -212,7 +212,7 @@ func ServerSetup(ptServerInfo pt.ServerInfo,  stateDir string, options string) (
 			transport := obfs2.NewObfs2Transport()
 			listen = transport.Listen
 		case "obfs4":
-			transport := obfs4.NewObfs4Server(stateDir)
+			transport, _ := obfs4.NewObfs4Server(stateDir)
 			listen = transport.Listen
 		case "Replicant":
 			shargs, aok := args["Replicant"]
