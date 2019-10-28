@@ -190,7 +190,7 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 	(*tracker)[addr] = ConnState{remote, false}
 }
 
-func ServerSetup(ptServerInfo pt.ServerInfo,  stateDir string, options string) (launched bool, listeners []net.Listener) {
+func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (launched bool, listeners []net.Listener) {
 	fmt.Println("ServerSetup")
 
 	// Launch each of the server listeners.
@@ -212,7 +212,11 @@ func ServerSetup(ptServerInfo pt.ServerInfo,  stateDir string, options string) (
 			transport := obfs2.NewObfs2Transport()
 			listen = transport.Listen
 		case "obfs4":
-			transport, _ := obfs4.NewObfs4Server(stateDir)
+			transport, err := obfs4.NewObfs4Server(stateDir)
+			if err != nil {
+				log.Errorf("Can't start obfs4 transport: %v", err)
+				return
+			}
 			listen = transport.Listen
 		case "Replicant":
 			shargs, aok := args["Replicant"]
