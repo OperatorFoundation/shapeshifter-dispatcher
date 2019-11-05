@@ -208,7 +208,7 @@ func ArgsToDialer(target string, name string, args map[string]interface{}, diale
 		} else {
 			return transport, nil
 		}
-	case "Meeklite":
+	case "meeklite":
 		transport, err := transports.ParseArgsMeeklite(args, target)
 		if err != nil {
 			log.Errorf("Could not parse options %s", err.Error())
