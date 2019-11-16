@@ -173,7 +173,12 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 	}
 
 	// Deal with arguments.
-	transport, _ := pt_extras.ArgsToDialer(target, name, args, dialer)
+	transport, argsToDialerErr := pt_extras.ArgsToDialer(target, name, args, dialer)
+	if argsToDialerErr != nil {
+		log.Errorf("Error creating a transport with the provided options: %s", options)
+		log.Errorf("Error: %s", argsToDialerErr)
+		return
+	}
 
 	fmt.Println("Dialing ", target)
 	remote, _ := transport.Dial()
