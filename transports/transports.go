@@ -147,7 +147,7 @@ func ParseArgsObfs4(args map[string]interface{}, target string, dialer proxy.Dia
 	return &transport, nil
 }
 
-func ParseArgsShadow(args map[string]interface{}, target string, dialer proxy.Dialer) (*shadow.Transport, error) {
+func ParseArgsShadow(args map[string]interface{}, target string) (*shadow.Transport, error) {
 	var password string
 	var cipherName string
 
@@ -187,13 +187,12 @@ func ParseArgsShadow(args map[string]interface{}, target string, dialer proxy.Di
 		Password:   password,
 		CipherName: cipherName,
 		Address:    target,
-		Dialer:     dialer,
 	}
 
 	return &transport, nil
 }
 
-func ParseArgsDust(args map[string]interface{}, target string, dialer proxy.Dialer) (*Dust.Transport, error) {
+func ParseArgsDust(args map[string]interface{}, target string) (*Dust.Transport, error) {
 	var serverPublic string
 
 	untypedServerPublic, ok := args["serverPublic"]
@@ -215,13 +214,12 @@ func ParseArgsDust(args map[string]interface{}, target string, dialer proxy.Dial
 	transport := Dust.Transport{
 		ServerPublic: serverPublic,
 		Address:      target,
-		Dialer:       dialer,
 	}
 
 	return &transport, nil
 }
 
-func ParseArgsReplicant(args map[string]interface{}, target string, dialer proxy.Dialer) (*replicant.Transport, error) {
+func ParseArgsReplicant(args map[string]interface{}, target string) (*replicant.Transport, error) {
 	var config *replicant.Config
 	untypedConfig, ok := args["config"]
 	if !ok {
@@ -244,7 +242,6 @@ func ParseArgsReplicant(args map[string]interface{}, target string, dialer proxy
 	transport := replicant.Transport{
 		Config:  *config,
 		Address: target,
-		Dialer:  dialer,
 	}
 
 	return &transport, nil
@@ -640,7 +637,7 @@ func parseServerConfig(args map[string]interface{}) (*polish.SilverPolishServerC
 	return &silverPolishServerConfig, nil
 }
 
-func ParseArgsMeeklite(args map[string]interface{}, target string, dialer proxy.Dialer) (*meeklite.Transport, error) {
+func ParseArgsMeeklite(args map[string]interface{}, target string) (*meeklite.Transport, error) {
 
 	var url *gourl.URL
 	var front string
@@ -687,7 +684,6 @@ func ParseArgsMeeklite(args map[string]interface{}, target string, dialer proxy.
 		Url:     url,
 		Front:   front,
 		Address: target,
-		Dialer:  dialer,
 	}
 
 	return &transport, nil
@@ -842,7 +838,7 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 
 	switch name {
 	case "shadow":
-		shadowTransport, parseErr := ParseArgsShadow(config, address, dialer)
+		shadowTransport, parseErr := ParseArgsShadow(config, address)
 		if parseErr != nil {
 			return nil, errors.New("could not parse shadow Args")
 		}
@@ -854,19 +850,19 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 		}
 		return obfs4Transport, nil
 	case "meeklite":
-		meekliteTransport, parseErr := ParseArgsMeeklite(config, address, dialer)
+		meekliteTransport, parseErr := ParseArgsMeeklite(config, address)
 		if parseErr != nil {
 			return nil, errors.New("could not parse meeklite Args")
 		}
 		return meekliteTransport, nil
 	case "Dust":
-		DustTransport, parseErr := ParseArgsDust(config, address, dialer)
+		DustTransport, parseErr := ParseArgsDust(config, address)
 		if parseErr != nil {
 			return nil, errors.New("could not parse dust Args")
 		}
 		return DustTransport, nil
 	case "replicant":
-		replicantTransport, parseErr := ParseArgsReplicant(config, address, dialer)
+		replicantTransport, parseErr := ParseArgsReplicant(config, address)
 		if parseErr != nil {
 			return nil, errors.New("could not parse replicant Args")
 		}
