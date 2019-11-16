@@ -251,7 +251,8 @@ func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (l
 			if err != nil {
 				return false, nil
 			}
-			transport := replicant.New(*config)
+			var dialer proxy.Dialer
+			transport := replicant.New(*config, dialer)
 			listen = transport.Listen
 		case "Dust":
 			shargs, aok := args["Dust"]
@@ -295,8 +296,8 @@ func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (l
 			if err2 != nil {
 				log.Errorf("could not coerce meeklite front to string")
 			}
-
-			transport := meeklite.NewMeekTransportWithFront(Url, front)
+			var dialer proxy.Dialer
+			transport := meeklite.NewMeekTransportWithFront(Url, front, dialer)
 			listen = transport.Listen
 		case "shadow":
 			args, aok := args["shadow"]

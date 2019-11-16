@@ -186,7 +186,7 @@ func ArgsToDialer(target string, name string, args map[string]interface{}, diale
 			return transport, nil
 		}
 	case "shadow":
-		transport, err := transports.ParseArgsShadow(args, target)
+		transport, err := transports.ParseArgsShadow(args, target, dialer)
 		if err != nil {
 			log.Errorf("Could not parse options %s", err.Error())
 			return nil, err
@@ -202,7 +202,7 @@ func ArgsToDialer(target string, name string, args map[string]interface{}, diale
 			return transport, nil
 		}
 	case "Dust":
-		transport, err := transports.ParseArgsDust(args, target)
+		transport, err := transports.ParseArgsDust(args, target, dialer)
 		if err != nil {
 			log.Errorf("Could not parse options %s", err.Error())
 			return nil, err
@@ -210,7 +210,7 @@ func ArgsToDialer(target string, name string, args map[string]interface{}, diale
 			return transport, nil
 		}
 	case "meeklite":
-		transport, err := transports.ParseArgsMeeklite(args, target)
+		transport, err := transports.ParseArgsMeeklite(args, target, dialer)
 		if err != nil {
 			log.Errorf("Could not parse options %s", err.Error())
 			return nil, err
@@ -218,7 +218,7 @@ func ArgsToDialer(target string, name string, args map[string]interface{}, diale
 			return transport, nil
 		}
 	case "Replicant":
-		transport, err := transports.ParseArgsReplicant(args, target)
+		transport, err := transports.ParseArgsReplicant(args, target, dialer)
 		if err != nil {
 			log.Errorf("Could not parse options %s", err.Error())
 			return nil, err
