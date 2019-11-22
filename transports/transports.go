@@ -49,7 +49,7 @@ import (
 
 // Transports returns the list of registered transport protocols.
 func Transports() []string {
-	return []string{"obfs2", "shadow", "Dust", "meeklite", "replicant", "obfs4", "Optimizer"}
+	return []string{"obfs2", "shadow", "Dust", "meeklite", "Replicant", "obfs4", "Optimizer"}
 }
 
 func ParseArgsObfs4(args map[string]interface{}, target string, dialer proxy.Dialer) (*obfs4.Transport, error) {
@@ -865,7 +865,7 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 			return nil, errors.New("could not parse dust Args")
 		}
 		return DustTransport, nil
-	case "replicant":
+	case "Replicant":
 		replicantTransport, parseErr := ParseArgsReplicant(config, address, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse replicant Args")
