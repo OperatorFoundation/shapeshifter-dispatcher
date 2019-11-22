@@ -72,14 +72,17 @@ func main() {
 
 	flag.Usage = func() {
 		_, _ = fmt.Fprintf(os.Stderr, "shapeshifter-dispatcher is a PT v2.0 proxy supporting multiple transports and proxy modes\n\n")
-		_, _ = fmt.Fprintf(os.Stderr, "Usage:\n\t%s --client --state [statedir] --ptversion 2 --transports [transport1,transport2,...]\n\n", os.Args[0])
-		_, _ = fmt.Fprintf(os.Stderr, "Example:\n\t%s --client --state state --ptversion 2 --transports obfs2\n\n", os.Args[0])
+		_, _ = fmt.Fprintf(os.Stderr, "Usage:\n\t%s --client --state [statedir] --version 2 --transports [transport1,transport2,...]\n\n", os.Args[0])
+		_, _ = fmt.Fprintf(os.Stderr, "Example:\n\t%s --client --state state --version 2 --transports obfs2\n\n", os.Args[0])
 		_, _ = fmt.Fprintf(os.Stderr, "Flags:\n\n")
 		flag.PrintDefaults()
 	}
 
 	// PT 2.0 specification, 3.3.1.1. Common Configuration Parameters
-	ptversion := flag.String("version", "", "Specify the Pluggable Transport protocol version to use")
+	var ptversion = flag.String("version", "", "Specify the Pluggable Transport protocol version to use")
+	if ptversion == nil {
+		ptversion = flag.String("ptversion", "", "Specify the Pluggable Transport protocol version to use")
+	}
 	statePath := flag.String("state", "", "Specify the directory to use to store state information required by the transports")
 	exitOnStdinClose := flag.Bool("exit-on-stdin-close", false, "Set to true to force the dispatcher to close when the stdin pipe is closed")
 
