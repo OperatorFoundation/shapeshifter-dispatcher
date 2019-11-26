@@ -225,17 +225,17 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 				log.Errorf("could not coerce shadow password to string")
 			}
 
-			untypedCertString, ok := args["certString"]
+			untypedCipherNameString, ok := args["cipherName"]
 			if !ok {
 				return false, nil
 			}
 
-			certString, err2 := options2.CoerceToString(untypedCertString)
+			cipherNameString, err2 := options2.CoerceToString(untypedCipherNameString)
 			if err2 != nil {
 				log.Errorf("could not coerce shadow certString to string")
 			}
 
-			transport := shadow.NewShadowServer(Password, certString)
+			transport := shadow.NewShadowServer(Password, cipherNameString)
 			listen = transport.Listen
 		default:
 			log.Errorf("Unknown transport: %s", name)

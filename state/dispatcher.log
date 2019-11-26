@@ -402,3 +402,21 @@
 2019/11/26 16:59:03 [INFO]: ___go_build_shapeshifter_dispatcher_go - initializing transparent proxy
 2019/11/26 16:59:03 [INFO]: ___go_build_shapeshifter_dispatcher_go - initializing TCP transparent proxy
 2019/11/26 16:59:03 [INFO]: ___go_build_shapeshifter_dispatcher_go - initializing server transport listeners
+2019/11/26 17:13:03 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/11/26 17:13:05 [INFO]: ___go_build_shapeshifter_dispatcher_go - initializing transparent proxy
+2019/11/26 17:13:08 [INFO]: ___go_build_shapeshifter_dispatcher_go - initializing TCP transparent proxy
+2019/11/26 17:13:20 [INFO]: ___go_build_shapeshifter_dispatcher_go - initializing server transport listeners
+2019/11/26 17:17:51 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/11/26 17:17:51 [INFO]: ___go_build_shapeshifter_dispatcher_go - initializing transparent proxy
+2019/11/26 17:17:51 [INFO]: ___go_build_shapeshifter_dispatcher_go - initializing TCP transparent proxy
+2019/11/26 17:17:51 [INFO]: ___go_build_shapeshifter_dispatcher_go - initializing server transport listeners
+2019/11/26 17:20:25 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/11/26 17:20:27 [INFO]: ___go_build_shapeshifter_dispatcher_go - initializing transparent proxy
+2019/11/26 17:20:31 [INFO]: ___go_build_shapeshifter_dispatcher_go - initializing TCP transparent proxy
+2019/11/26 17:20:38 [INFO]: ___go_build_shapeshifter_dispatcher_go - initializing server transport listeners
+2019/11/26 17:24:11 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/11/26 17:24:11 [INFO]: ___go_build_shapeshifter_dispatcher_go - initializing transparent proxy
+2019/11/26 17:24:11 [INFO]: ___go_build_shapeshifter_dispatcher_go - initializing TCP transparent proxy
+2019/11/26 17:24:11 [INFO]: ___go_build_shapeshifter_dispatcher_go - initializing server transport listeners
+2019/11/26 17:24:11 [INFO]: shadow - registered listener: [scrubbed]:2345
+2019/11/26 17:24:11 [INFO]: ___go_build_shapeshifter_dispatcher_go - accepting connections
