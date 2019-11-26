@@ -394,3 +394,11 @@
 2019/11/15 22:09:28 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - initializing client transport listeners
 2019/11/15 22:09:28 [INFO]: Optimizer - registered listener: 127.0.0.1:1444
 2019/11/15 22:09:28 [INFO]: ___go_build_github_com_OperatorFoundation_shapeshifter_dispatcher_shapeshifter_dispatcher - accepting connections
+2019/11/26 16:56:48 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/11/26 16:56:48 [INFO]: ___go_build_shapeshifter_dispatcher_go - initializing transparent proxy
+2019/11/26 16:56:48 [INFO]: ___go_build_shapeshifter_dispatcher_go - initializing TCP transparent proxy
+2019/11/26 16:56:48 [INFO]: ___go_build_shapeshifter_dispatcher_go - initializing server transport listeners
+2019/11/26 16:59:03 [NOTICE]: dispatcher-0.0.7-dev - launched
+2019/11/26 16:59:03 [INFO]: ___go_build_shapeshifter_dispatcher_go - initializing transparent proxy
+2019/11/26 16:59:03 [INFO]: ___go_build_shapeshifter_dispatcher_go - initializing TCP transparent proxy
+2019/11/26 16:59:03 [INFO]: ___go_build_shapeshifter_dispatcher_go - initializing server transport listeners

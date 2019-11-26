@@ -80,8 +80,16 @@ func main() {
 
 	// PT 2.0 specification, 3.3.1.1. Common Configuration Parameters
 	var ptversion = flag.String("version", "", "Specify the Pluggable Transport protocol version to use")
-	if ptversion == nil {
+
+	if *ptversion != "" {
+		println("--> version is ", *ptversion)
+	}
+
+	if *ptversion == "" {
 		ptversion = flag.String("ptversion", "", "Specify the Pluggable Transport protocol version to use")
+		if *ptversion != "" {
+			println("--> version is ", *ptversion)
+		}
 	}
 	statePath := flag.String("state", "", "Specify the directory to use to store state information required by the transports")
 	exitOnStdinClose := flag.Bool("exit-on-stdin-close", false, "Set to true to force the dispatcher to close when the stdin pipe is closed")
@@ -94,6 +102,10 @@ func main() {
 
 	// PT 2.0 specification, 3.3.1.3. Pluggable PT Server Environment Variables
 	options := flag.String("options", "", "Specify the transport options for the server")
+	if *options != "" {
+		println("--> -options flag found: ", *options)
+	}
+
 	bindAddr := flag.String("bindaddr", "", "Specify the bind address for transparent server")
 	orport := flag.String("orport", "", "Specify the address the server should forward traffic to in host:port format")
 	extorport := flag.String("extorport", "", "Specify the address of a server implementing the Extended OR Port protocol, which is used for per-connection metadata")
@@ -102,7 +114,7 @@ func main() {
 	// Experimental flags under consideration for PT 2.1
 	socksAddr := flag.String("proxylistenaddr", "127.0.0.1:0", "Specify the bind address for the local SOCKS server provided by the client")
 	optionsFile := flag.String("optionsFile", "", "store all the options in a single file")
-	fmt.Println("checking for optionsFile")
+
 	// Additional command line flags inherited from obfs4proxy
 	showVer := flag.Bool("showVersion", false, "Print version and exit")
 	logLevelStr := flag.String("logLevel", "ERROR", "Log level (ERROR/WARN/INFO/DEBUG)")
@@ -138,12 +150,15 @@ func main() {
 		golog.Fatalf("[ERROR]: %s - No state directory: Use --state or TOR_PT_STATE_LOCATION environment variable", execName)
 	}
 	if err = log.Init(*enableLogging, path.Join(stateDir, dispatcherLogFile)); err != nil {
-		golog.Fatalf("[ERROR]: %s - failed to initialize logging", execName)
+		println("stateDir:", stateDir)
+		println("--> Error: ", err.Error())
+		golog.Fatalf("--> [ERROR]: %s - failed to initialize logging", execName)
 	}
 	if *options != "" && *optionsFile != "" {
 		golog.Fatal("cannot specify -options and -optionsFile at the same time")
 	}
 	if *optionsFile != "" {
+		fmt.Println("checking for optionsFile")
 		_, err := os.Stat(*optionsFile)
 		if err != nil {
 			log.Errorf("optionsFile does not exist with error %s %s", *optionsFile, err.Error())
