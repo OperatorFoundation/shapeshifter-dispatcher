@@ -79,18 +79,9 @@ func main() {
 	}
 
 	// PT 2.0 specification, 3.3.1.1. Common Configuration Parameters
-	var ptversion = flag.String("version", "", "Specify the Pluggable Transport protocol version to use")
+	var version = flag.String("version", "", "Specify the Pluggable Transport protocol version to use")
+	var ptversion = flag.String("ptversion", "", "Specify the Pluggable Transport protocol version to use")
 
-	if *ptversion != "" {
-		println("--> version is ", *ptversion)
-	}
-
-	if *ptversion == "" {
-		ptversion = flag.String("ptversion", "", "Specify the Pluggable Transport protocol version to use")
-		if *ptversion != "" {
-			println("--> version is ", *ptversion)
-		}
-	}
 	statePath := flag.String("state", "", "Specify the directory to use to store state information required by the transports")
 	exitOnStdinClose := flag.Bool("exit-on-stdin-close", false, "Set to true to force the dispatcher to close when the stdin pipe is closed")
 
@@ -127,6 +118,10 @@ func main() {
 	udp := flag.Bool("udp", false, "Enable UDP proxy mode. The default is TCP proxy mode.")
 	target := flag.String("target", "", "Specify transport server destination address")
 	flag.Parse()
+
+	if *version != ""{
+		ptversion = version
+	}
 
 	if *showVer {
 		fmt.Printf("%s\n", getVersion())
