@@ -104,25 +104,25 @@ Example:
 
     bin/shapeshifter-dispatcher -client -state state -transports obfs2
 
-Use either --client or --server to place the proxy into client or server mode,
-respectively. Use --state to specify a directory to put transports state
-information. Use --transports to specify which transports to launch.
+Use either -client or -server to place the proxy into client or server mode,
+respectively. Use -state to specify a directory to put transports state
+information. Use -transports to specify which transports to launch.
 
 The default proxy mode is SOCKS5 (with optional PT 2.0 authentication protocol),
 which can only proxy SOCKS5-aware TCP connections. For some transports, the
 proxied connection will also need to know how to speak the PT 1.0 authentication
 protocol. This requirement varies by the transport used.
 
-Another TCP proxy mode is available, Transparent TCP, by using the --transparent
+Another TCP proxy mode is available, Transparent TCP, by using the -transparent
 flag. In this mode, the proxy listens on a socket and any data from incoming
 connections is forwarded over the transport.
 
-UDP proxying can be enabled with the --udp flag. The default UDP mode is STUN
+UDP proxying can be enabled with the -udp flag. The default UDP mode is STUN
 packet proxying. This requires that the application only send STUN packets, so
 works for protocols such as WebRTC, which are based on top of STUN.
 
-Another UDP proxy mode is available, Transparent UDP, by using the --transparent
-flag with the --udp flag. In this mode, the proxy listens on a UDP socket and
+Another UDP proxy mode is available, Transparent UDP, by using the -transparent
+flag with the -udp flag. In this mode, the proxy listens on a UDP socket and
 any incoming packets are forwarded over the transport.
 
 Only one proxy mode can be used at a time.
