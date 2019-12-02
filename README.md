@@ -99,10 +99,10 @@ Run without argument to get usage information:
 
     bin/shapeshifter-dispatcher
 
-A minimal configuration requires at least --client, --state, and --transports.
+A minimal configuration requires at least -client, -state, and -transports.
 Example:
 
-    bin/shapeshifter-dispatcher --client --state state --transports obfs2
+    bin/shapeshifter-dispatcher -client -state state -transports obfs2
 
 Use either --client or --server to place the proxy into client or server mode,
 respectively. Use --state to specify a directory to put transports state
