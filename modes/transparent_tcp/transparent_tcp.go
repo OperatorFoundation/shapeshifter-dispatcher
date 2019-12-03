@@ -341,9 +341,14 @@ func copyLoop(a net.Conn, b net.Conn) error {
 	var wg sync.WaitGroup
 	wg.Add(2)
 
-	if b == nil || a == nil {
-		println("--> Copy loop has a nil connection")
-		return errors.New("Copy loop has a nil connection")
+	if b == nil {
+		println("--> Copy loop has a nil connection (b).")
+		return errors.New("Copy loop has a nil connection (b).")
+	}
+
+	if a == nil {
+		println("--> Copy loop has a nil connection (a).")
+		return errors.New("Copy loop has a nil connection (a).")
 	}
 
 	go func() {
