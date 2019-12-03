@@ -30,6 +30,7 @@
 package transparent_tcp
 
 import (
+	"errors"
 	"fmt"
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
@@ -323,11 +324,17 @@ func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 }
 
 func copyLoop(a net.Conn, b net.Conn) error {
+	println("--> Entering copy loop.")
 	// Note: b is always the pt connection.  a is the SOCKS/ORPort connection.
 	errChan := make(chan error, 2)
 
 	var wg sync.WaitGroup
 	wg.Add(2)
+
+	if b == nil || a == nil {
+		println("--> Copy loop has a nil connection")
+		return errors.New("Copy loop has a nil connection")
+	}
 
 	go func() {
 		defer wg.Done()
