@@ -223,6 +223,21 @@ func ParseArgsDust(args map[string]interface{}, target string, dialer proxy.Dial
 
 func ParseArgsReplicant(args map[string]interface{}, target string, dialer proxy.Dialer) (*replicant.Transport, error) {
 	var config *replicant.Config
+
+	if args == nil {
+		config := replicant.Config{
+			Toneburst: nil,
+			Polish:    nil,
+		}
+		transport := replicant.Transport{
+			Config:  config,
+			Address: target,
+			Dialer:  dialer,
+		}
+
+		return &transport, nil
+	}
+
 	untypedConfig, ok := args["config"]
 	if !ok {
 		return nil, errors.New("replicant transport missing config argument")

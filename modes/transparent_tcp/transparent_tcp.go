@@ -120,6 +120,16 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 	fmt.Println("Dialing ", target)
 	remote, _ := transport.Dial()
 
+	if conn == nil {
+		println("--> Application connection is nil")
+		log.Errorf("%s - closed connection. Application connection is nil", name)
+	}
+
+	if remote == nil {
+		println("--> Transport server connection is nil.")
+		log.Errorf("%s - closed connection. Transport server connection is nil", name)
+	}
+
 	if err := copyLoop(conn, remote); err != nil {
 		log.Warnf("%s(%s) - closed connection: %s", name, target, log.ElideError(err))
 	} else {
