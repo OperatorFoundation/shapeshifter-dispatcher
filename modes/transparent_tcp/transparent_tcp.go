@@ -153,17 +153,27 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 			listen = transport.Listen
 		case "Replicant":
 			shargs, aok := args["Replicant"]
-			if !aok {
-				return false, nil
-			}
+			if shargs == nil {
+				var dialer proxy.Dialer
+				config := replicant.Config{
+					Toneburst: nil,
+					Polish:    nil,
+				}
+				transport := replicant.New(config, dialer)
+				listen = transport.Listen
+			} else {
+				if !aok {
+					return false, nil
+				}
 
-			config, err := transports.ParseReplicantConfig(shargs)
-			if err != nil {
-				return false, nil
+				config, err := transports.ParseReplicantConfig(shargs)
+				if err != nil {
+					return false, nil
+				}
+				var dialer proxy.Dialer
+				transport := replicant.New(*config, dialer)
+				listen = transport.Listen
 			}
-			var dialer proxy.Dialer
-			transport := replicant.New(*config, dialer)
-			listen = transport.Listen
 		case "Dust":
 			shargs, aok := args["Dust"]
 			if !aok {
