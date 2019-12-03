@@ -118,7 +118,12 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 	}
 
 	fmt.Println("Dialing ", target)
-	remote, _ := transport.Dial()
+	remote, dialErr := transport.Dial()
+	if dialErr != nil {
+		println("--> Unable to dial transport server: %s", dialErr.Error())
+		log.Errorf("--> Unable to dial transport server: %s", dialErr.Error())
+		return
+	}
 
 	if conn == nil {
 		println("--> Application connection is nil")
