@@ -221,24 +221,34 @@ func ParseArgsDust(args map[string]interface{}, target string, dialer proxy.Dial
 	return &transport, nil
 }
 
+func CreateDefaultReplicant(target string, dialer proxy.Dialer) (*replicant.Transport) {
+	config := replicant.Config{
+	Toneburst: nil,
+	Polish:    nil,
+	}
+	transport := replicant.Transport{
+	Config:  config,
+	Address: target,
+	Dialer:  dialer,
+	}
+
+	return &transport
+}
+
 func ParseArgsReplicant(args map[string]interface{}, target string, dialer proxy.Dialer) (*replicant.Transport, error) {
 	var config *replicant.Config
 
-	if args == nil {
-		config := replicant.Config{
-			Toneburst: nil,
-			Polish:    nil,
-		}
-		transport := replicant.Transport{
-			Config:  config,
-			Address: target,
-			Dialer:  dialer,
-		}
 
-		return &transport, nil
+	if args == nil{
+		transport := CreateDefaultReplicant(target, dialer)
+		return transport, nil
 	}
 
 	untypedConfig, ok := args["config"]
+	if untypedConfig == nil {
+		transport := CreateDefaultReplicant(target, dialer)
+		return transport, nil
+	}
 	if !ok {
 		return nil, errors.New("replicant transport missing config argument")
 	}
