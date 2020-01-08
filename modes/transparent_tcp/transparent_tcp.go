@@ -112,16 +112,16 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 	// Deal with arguments.
 	transport, argsToDialerErr := pt_extras.ArgsToDialer(target, name, args, dialer)
 	if argsToDialerErr != nil {
-		log.Errorf("Error creating a transport with the provided options: %s", options)
-		log.Errorf("Error: %s", argsToDialerErr)
+		log.Errorf("Error creating a transport with the provided options: ", options)
+		log.Errorf("Error: ", argsToDialerErr)
 		return
 	}
 
 	fmt.Println("Dialing ", target)
 	remote, dialErr := transport.Dial()
 	if dialErr != nil {
-		println("--> Unable to dial transport server: %s", dialErr.Error())
-		log.Errorf("--> Unable to dial transport server: %s", dialErr.Error())
+		println("--> Unable to dial transport server: ", dialErr.Error())
+		log.Errorf("--> Unable to dial transport server: ", dialErr.Error())
 		return
 	}
 
@@ -179,11 +179,15 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 				listen = transport.Listen
 			} else {
 				if !aok {
+					println("error parsing Replicant arguments: ", shargs)
+					log.Errorf("Unable to parse Replicant arguments.")
 					return false, nil
 				}
 
 				config, err := transports.ParseReplicantConfig(shargs)
 				if err != nil {
+					println("Received a Replicant config error: ", err.Error())
+					log.Errorf(err.Error())
 					return false, nil
 				}
 				var dialer proxy.Dialer
@@ -348,12 +352,12 @@ func copyLoop(a net.Conn, b net.Conn) error {
 
 	if b == nil {
 		println("--> Copy loop has a nil connection (b).")
-		return errors.New("Copy loop has a nil connection (b).")
+		return errors.New("copy loop has a nil connection (b)")
 	}
 
 	if a == nil {
 		println("--> Copy loop has a nil connection (a).")
-		return errors.New("Copy loop has a nil connection (a).")
+		return errors.New("copy loop has a nil connection (a)")
 	}
 
 	go func() {

@@ -32,6 +32,7 @@ package transports
 import (
 	"encoding/hex"
 	"errors"
+	"github.com/OperatorFoundation/monolith-go/monolith"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer"
@@ -364,6 +365,32 @@ func parseToneburstConfig(args map[string]interface{}) (*toneburst.Config, error
 		default:
 			return nil, errors.New("unsupported type for replicant toneburst whalesong option")
 		}
+	case "monotone":
+		untypedMonotoneConfig, ok := args["monotone"]
+		if !ok {
+			return nil, errors.New("replicant transport missing replicant toneburst monotone argument")
+		}
+
+		switch untypedMonotoneConfig.(type) {
+		case map[string]interface{}:
+			otcs := untypedMonotoneConfig.(map[string]interface{})
+			var parseErr error
+
+			monotoneConfig, parseErr := parseMonotoneConfig(otcs)
+			if parseErr != nil {
+				return nil, errors.New("could not parse replicant toneburst monotone config")
+			}
+
+			toneburstConfig := toneburst.Config{
+				Selector:  selector,
+				Whalesong: nil,
+				Monotone:  monotoneConfig,
+			}
+
+			return &toneburstConfig, nil
+		default:
+			return nil, errors.New("unsupported type for replicant toneburst monotone option")
+		}
 	default:
 		return nil, errors.New("unsupported value for replicant toneburst selector")
 	}
@@ -482,6 +509,84 @@ func parseWhalesongConfig(args map[string]interface{}) (*toneburst.WhalesongConf
 	}
 
 	return &whalesongConfig, nil
+}
+
+func parseMonotoneConfig(args map[string]interface{}) (*toneburst.MonotoneConfig, error) {
+	var addSequences []monolith.Instance
+	var removeSequences []monolith.Description
+
+	untypedAddSequences, ok := args["add"]
+	if !ok {
+		return nil, errors.New("replicant transport missing toneburst monotone add argument")
+	}
+
+	switch untypedAddSequences.(type) {
+	case []interface{}:
+		otcs := untypedAddSequences.([]interface{})
+		addSequences = make([]monolith.Instance, len(otcs))
+		for index, otc := range otcs {
+			var sequence monolith.Instance
+			sequenceString, icError := interconv.ParseString(otc)
+			if icError != nil {
+				log.Errorf("could not parse add sequence string")
+			}
+			bytes, byteErr := hex.DecodeString(sequenceString)
+			if byteErr != nil {
+				log.Errorf("could not parse add sequence string bytes")
+			}
+
+			items := []monolith.Monolith{monolith.EnumeratedByteType{bytes}}
+			part := monolith.BytesPart{Items: items}
+			parts := []monolith.Monolith{part}
+			sequence = monolith.Instance{
+				Desc: monolith.Description{Parts: parts},
+				Args: nil,
+			}
+			addSequences[index] = sequence
+		}
+	default:
+		return nil, errors.New("unsupported type for replicant toneburst monotone add option")
+	}
+
+	untypedRemoveSequences, ok := args["remove"]
+	if !ok {
+		return nil, errors.New("replicant transport missing toneburst monotone remove argument")
+	}
+
+	switch untypedRemoveSequences.(type) {
+	case []interface{}:
+		otcs := untypedRemoveSequences.([]interface{})
+		removeSequences = make([]monolith.Description, len(otcs))
+		for index, otc := range otcs {
+			var sequence monolith.Description
+			sequenceString, icError := interconv.ParseString(otc)
+			if icError != nil {
+				log.Errorf("could not parse remove sequence string")
+			}
+
+			bytes, byteErr := hex.DecodeString(sequenceString)
+			if byteErr != nil {
+				log.Errorf("could not parse remove sequence string bytes")
+			}
+
+			items := []monolith.Monolith{monolith.EnumeratedByteType{bytes}}
+			part := monolith.BytesPart{Items: items}
+			parts := []monolith.Monolith{part}
+			sequence = monolith.Description{Parts: parts}
+
+			removeSequences[index] = sequence
+		}
+	default:
+		return nil, errors.New("unsupported type for replicant toneburst monotone option")
+	}
+
+	monotoneConfig := toneburst.MonotoneConfig{
+		AddSequences:    addSequences,
+		RemoveSequences: removeSequences,
+		SpeakFirst:      false,
+	}
+
+	return &monotoneConfig, nil
 }
 
 func parseSilverConfig(args map[string]interface{}) (*polish.SilverPolishConfig, error) {
