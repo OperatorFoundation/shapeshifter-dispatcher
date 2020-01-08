@@ -99,7 +99,6 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 			log.Errorf("(%s) - failed to obtain proxy dialer: %s", target, log.ElideError(err))
 			return
 		}
-
 	}
 	//this is where the refactoring begins
 	args, argsErr := options2.ParseOptions(options)
@@ -121,6 +120,9 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 	remote, dialErr := transport.Dial()
 	if dialErr != nil {
 		println("--> Unable to dial transport server: ", dialErr.Error())
+		println("-> Name: ", name)
+		println("-> Raw options: ", options)
+		println("-> Transport arguments: ", args)
 		log.Errorf("--> Unable to dial transport server: ", dialErr.Error())
 		return
 	}
