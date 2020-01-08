@@ -121,8 +121,7 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 	if dialErr != nil {
 		println("--> Unable to dial transport server: ", dialErr.Error())
 		println("-> Name: ", name)
-		println("-> Raw options: ", options)
-		println("-> Transport arguments: ", args)
+		println("-> Options: ", options)
 		log.Errorf("--> Unable to dial transport server: ", dialErr.Error())
 		return
 	}
