@@ -39,9 +39,11 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/polish"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/toneburst"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 	"github.com/mufti1/interconv/package"
+	"golang.org/x/crypto/acme/autocert"
 	"golang.org/x/net/proxy"
 	gourl "net/url"
 	"strconv"
@@ -49,7 +51,7 @@ import (
 
 // Transports returns the list of registered transport protocols.
 func Transports() []string {
-	return []string{"obfs2", "shadow", "Dust", "meeklite", "replicant", "obfs4", "Optimizer"}
+	return []string{"obfs2", "shadow", "Dust", "meeklite", "meekserver", "replicant", "obfs4", "Optimizer"}
 }
 
 func ParseArgsObfs4(args map[string]interface{}, target string, dialer proxy.Dialer) (*obfs4.Transport, error) {
@@ -693,6 +695,97 @@ func ParseArgsMeeklite(args map[string]interface{}, target string, dialer proxy.
 	return &transport, nil
 }
 
+func ParseArgsMeekserver (args map[string]interface{}) (*meekserver.MeekServer, error) {
+	var disableTLS bool
+	var acmeEmail string
+	var acmeHostname string
+	var certManager *autocert.Manager
+
+	untypedDisableTLS, ok := args ["disableTLS"]
+	if !ok {
+		return nil, errors.New("meekserver transport missing disableTLS argument")
+	}
+
+	switch untypedDisableTLS.(type) {
+	case bool:
+		disableTLSBool, icerr := interconv.ParseBoolean(untypedDisableTLS)
+		if icerr != nil {
+			return nil, icerr
+		}
+		switch disableTLSBool {
+		case true:
+			disableTLS = true
+		case false:
+			disableTLS = false
+		}
+
+	default:
+		return nil, errors.New("unsupported type for meekserver disableTLS option")
+	}
+
+	untypedAcmeEmail, ok2 := args["acmeEmail"]
+	if !ok2 {
+		return nil, errors.New("meekserver transport missing acmeEmail argument")
+	}
+
+	switch untypedAcmeEmail.(type) {
+	case string:
+		var icerr error
+		acmeEmail, icerr = interconv.ParseString(untypedAcmeEmail)
+		if icerr != nil {
+			return nil, icerr
+		}
+	default:
+		return nil, errors.New("unsupported type for meekserver acmeEmail option")
+	}
+
+	untypedAcmeHostname, ok3 := args["acmeHostname"]
+	if !ok3 {
+		return nil, errors.New("meekserver transport missing acmeHostname argument")
+	}
+
+	switch untypedAcmeHostname.(type) {
+	case string:
+		var icerr error
+		acmeHostname, icerr = interconv.ParseString(untypedAcmeHostname)
+		if icerr != nil {
+			return nil, icerr
+		}
+	default:
+		return nil, errors.New("unsupported type for meekserver acmeHostname option")
+	}
+
+	untypedCertManager, ok4 := args["certManager"]
+	if !ok4 {
+		return nil, errors.New("meekserver transport missing certManager argument")
+	}
+
+	switch untypedCertManager.(type) {
+	case string:
+		certManagerString, icerr := interconv.ParseString(untypedCertManager)
+		if icerr != nil {
+			return nil, icerr
+		}
+		var parseErr error
+		certManager, parseErr = parseCertManager(certManagerString)
+		if parseErr != nil {
+			return nil, errors.New("could not parse certManager")
+		}
+	default:
+		return nil, errors.New("unsupported type for meekserver certManager option")
+	}
+	transport := meekserver.MeekServer{
+		DisableTLS:   disableTLS,
+		AcmeEmail:    acmeEmail,
+		AcmeHostname: acmeHostname,
+		CertManager:  certManager,
+	}
+
+	return &transport, nil
+}
+func parseCertManager (args map[string]interface{}) (*autocert.Manager, error) {
+
+}
 func ParseArgsOptimizer(args map[string]interface{}, dialer proxy.Dialer) (*Optimizer.Client, error) {
 	var transports []Optimizer.Transport
 	var strategy Optimizer.Strategy

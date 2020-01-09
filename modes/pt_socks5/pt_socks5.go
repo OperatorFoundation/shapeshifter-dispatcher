@@ -37,6 +37,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
 	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 	"golang.org/x/net/proxy"
 	"io"
@@ -242,6 +243,34 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 			}
 			var dialer proxy.Dialer
 			transport := meeklite.NewMeekTransportWithFront(Url, front, dialer)
+			listen = transport.Listen
+		case "meekserver":
+			args, aok := args["meekserver"]
+			if !aok {
+				return false, nil
+			}
+
+			untypedUrl, ok := args["Url"]
+			if !ok {
+				return false, nil
+			}
+
+			Url, err := options2.CoerceToString(untypedUrl)
+			if err != nil {
+				log.Errorf("could not coerce meeklite Url to string")
+			}
+
+			untypedFront, ok := args["front"]
+			if !ok {
+				return false, nil
+			}
+
+			front, err2 := options2.CoerceToString(untypedFront)
+			if err2 != nil {
+				log.Errorf("could not coerce meeklite front to string")
+			}
+			var dialer proxy.Dialer
+			transport := meekserver.NewMeekTransportServer(disableTLS, acmeEmail, acmeHostname, certManager)
 			listen = transport.Listen
 		case "shadow":
 			args, aok := args["shadow"]
