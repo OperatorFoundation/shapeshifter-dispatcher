@@ -34,9 +34,7 @@ import (
 	"fmt"
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
-	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
 	"golang.org/x/net/proxy"
@@ -169,32 +167,33 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 			}
 			listen = transport.Listen
 		case "Replicant":
-			shargs, aok := args["Replicant"]
-			if shargs == nil {
-				var dialer proxy.Dialer
-				config := replicant.Config{
-					Toneburst: nil,
-					Polish:    nil,
-				}
-				transport := replicant.New(config, dialer)
-				listen = transport.Listen
-			} else {
-				if !aok {
-					println("error parsing Replicant arguments: ", shargs)
-					log.Errorf("Unable to parse Replicant arguments.")
-					return false, nil
-				}
-
-				config, err := transports.ParseReplicantConfig(shargs)
-				if err != nil {
-					println("Received a Replicant config error: ", err.Error())
-					log.Errorf(err.Error())
-					return false, nil
-				}
-				var dialer proxy.Dialer
-				transport := replicant.New(*config, dialer)
-				listen = transport.Listen
-			}
+			//shargs, aok := args["Replicant"]
+			//if shargs == nil {
+			//	var dialer proxy.Dialer
+			//	config := replicant.ServerConfig{
+			//		Toneburst: nil,
+			//		Polish:    nil,
+			//	}
+			//
+			//	transport := replicant.New(config, dialer)
+			//	listen = transport.Listen
+			//} else {
+			//	if !aok {
+			//		println("error parsing Replicant arguments: ", shargs)
+			//		log.Errorf("Unable to parse Replicant arguments.")
+			//		return false, nil
+			//	}
+			//
+			//	config, err := transports.ParseReplicantConfig(shargs)
+			//	if err != nil {
+			//		println("Received a Replicant config error: ", err.Error())
+			//		log.Errorf(err.Error())
+			//		return false, nil
+			//	}
+			//	var dialer proxy.Dialer
+			//	transport := replicant.New(*config, dialer)
+			//	listen = transport.Listen
+			//}
 		case "Dust":
 			shargs, aok := args["Dust"]
 			if !aok {

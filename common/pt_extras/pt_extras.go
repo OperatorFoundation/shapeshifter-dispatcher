@@ -217,14 +217,14 @@ func ArgsToDialer(target string, name string, args map[string]interface{}, diale
 		} else {
 			return transport, nil
 		}
-	case "Replicant":
-		transport, err := transports.ParseArgsReplicant(args, target, dialer)
-		if err != nil {
-			log.Errorf("Could not parse options %s", err.Error())
-			return nil, err
-		} else {
-			return transport, nil
-		}
+	//case "Replicant":
+	//	transport, err := transports.ParseArgsReplicant(args, target, dialer)
+	//	if err != nil {
+	//		log.Errorf("Could not parse options %s", err.Error())
+	//		return nil, err
+	//	} else {
+	//		return transport, nil
+	//	}
 
 	default:
 		log.Errorf("Unknown transport: %s", name)
