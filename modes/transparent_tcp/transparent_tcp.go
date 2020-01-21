@@ -34,7 +34,9 @@ import (
 	"fmt"
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
+	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
 	"golang.org/x/net/proxy"
@@ -93,7 +95,7 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 		if err != nil {
 			// This should basically never happen, since config protocol
 			// verifies this.
-			fmt.Println("failed to obtain dialer", proxyURI, proxy.Direct)
+			fmt.Println("-> failed to obtain dialer", proxyURI, proxy.Direct)
 			log.Errorf("(%s) - failed to obtain proxy dialer: %s", target, log.ElideError(err))
 			return
 		}
@@ -103,6 +105,8 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 	if argsErr != nil {
 		log.Errorf("Error parsing transport options: %s", options)
 		log.Errorf("Error: %s", argsErr)
+		println("-> Error parsing transport options: %s", options)
+		println("-> Error: %s", argsErr)
 		return
 	}
 
@@ -111,6 +115,8 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 	if argsToDialerErr != nil {
 		log.Errorf("Error creating a transport with the provided options: ", options)
 		log.Errorf("Error: ", argsToDialerErr)
+		println("-> Error creating a transport with the provided options: ", options)
+		println("-> Error: ", argsToDialerErr)
 		return
 	}
 
@@ -136,8 +142,10 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 
 	if err := copyLoop(conn, remote); err != nil {
 		log.Warnf("%s(%s) - closed connection: %s", name, target, log.ElideError(err))
+		println("%s(%s) - closed connection: %s", name, target, log.ElideError(err))
 	} else {
 		log.Infof("%s(%s) - closed connection", name, target)
+		println("%s(%s) - closed connection", name, target)
 	}
 }
 
@@ -167,33 +175,29 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 			}
 			listen = transport.Listen
 		case "Replicant":
-			//shargs, aok := args["Replicant"]
-			//if shargs == nil {
-			//	var dialer proxy.Dialer
-			//	config := replicant.ServerConfig{
-			//		Toneburst: nil,
-			//		Polish:    nil,
-			//	}
-			//
-			//	transport := replicant.New(config, dialer)
-			//	listen = transport.Listen
-			//} else {
-			//	if !aok {
-			//		println("error parsing Replicant arguments: ", shargs)
-			//		log.Errorf("Unable to parse Replicant arguments.")
-			//		return false, nil
-			//	}
-			//
-			//	config, err := transports.ParseReplicantConfig(shargs)
-			//	if err != nil {
-			//		println("Received a Replicant config error: ", err.Error())
-			//		log.Errorf(err.Error())
-			//		return false, nil
-			//	}
-			//	var dialer proxy.Dialer
-			//	transport := replicant.New(*config, dialer)
-			//	listen = transport.Listen
-			//}
+			shargs, aok := args["Replicant"]
+			if shargs == nil {
+				config := replicant.ServerConfig{
+					Toneburst: nil,
+					Polish:    nil,
+				}
+				listen = config.Listen
+			} else {
+				if !aok {
+					println("error parsing Replicant arguments: ", shargs)
+					log.Errorf("Unable to parse Replicant arguments.")
+					return false, nil
+				}
+
+				config, err := transports.ParseArgsReplicantServer(shargs)
+				if err != nil {
+					println("Received a Replicant config error: ", err.Error())
+					log.Errorf(err.Error())
+					return false, nil
+				}
+
+				listen = config.Listen
+			}
 		case "Dust":
 			shargs, aok := args["Dust"]
 			if !aok {
@@ -272,9 +276,7 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 			return false, nil
 		}
 
-		f := listen
-
-		transportLn := f(bindaddr.Addr.String())
+		transportLn := listen(bindaddr.Addr.String())
 
 		go serverAcceptLoop(name, transportLn, &ptServerInfo)
 

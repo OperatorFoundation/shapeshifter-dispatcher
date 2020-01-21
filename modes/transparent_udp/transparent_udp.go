@@ -36,6 +36,7 @@ import (
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
@@ -239,19 +240,19 @@ func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (l
 				return false, nil
 			}
 			listen = transport.Listen
-		//case "Replicant":
-		//	shargs, aok := args["Replicant"]
-		//	if !aok {
-		//		return false, nil
-		//	}
-		//
-		//	config, err := transports.ParseReplicantConfig(shargs)
-		//	if err != nil {
-		//		return false, nil
-		//	}
-		//	var dialer proxy.Dialer
-		//	transport := replicant.New(*config, dialer)
-		//	listen = transport.Listen
+		case "Replicant":
+			shargs, aok := args["Replicant"]
+			if !aok {
+				return false, nil
+			}
+
+			config, err := transports.ParseArgsReplicantServer(shargs)
+			if err != nil {
+				return false, nil
+			}
+
+			config.Listen(bindaddr.Addr.String())
+
 		case "Dust":
 			shargs, aok := args["Dust"]
 			if !aok {
