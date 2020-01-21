@@ -33,18 +33,16 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	golog "log"
-	"net"
 	"net/url"
 	"os"
 	"path"
 	"strings"
-	"syscall"
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/pt_socks5"
@@ -63,7 +61,6 @@ const (
 )
 
 var stateDir string
-var termMon *termmon.TermMonitor
 
 func getVersion() string {
 	return fmt.Sprintf("dispatcher-%s", dispatcherVersion)
@@ -74,16 +71,17 @@ func main() {
 	_, execName := path.Split(os.Args[0])
 
 	flag.Usage = func() {
-		fmt.Fprintf(os.Stderr, "shapeshifter-dispatcher is a PT v2.0 proxy supporting multiple transports and proxy modes\n\n")
-		fmt.Fprintf(os.Stderr, "Usage:\n\t%s --client --state [statedir] --ptversion 2 --transports [transport1,transport2,...]\n\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "Example:\n\t%s --client --state state --ptversion 2 --transports obfs2\n\n", os.Args[0])
-		fmt.Fprintf(os.Stderr, "Flags:\n\n")
+		_, _ = fmt.Fprintf(os.Stderr, "shapeshifter-dispatcher is a PT v2.0 proxy supporting multiple transports and proxy modes\n\n")
+		_, _ = fmt.Fprintf(os.Stderr, "Usage:\n\t%s -client -state [statedir] -version 2 -transports [transport1,transport2,...]\n\n", os.Args[0])
+		_, _ = fmt.Fprintf(os.Stderr, "Example:\n\t%s -client -state state -version 2 -transports obfs2\n\n", os.Args[0])
+		_, _ = fmt.Fprintf(os.Stderr, "Flags:\n\n")
 		flag.PrintDefaults()
 	}
 
 	// PT 2.0 specification, 3.3.1.1. Common Configuration Parameters
-	// FIXME: in the spec, this is -version, which is already used for printing the version number
-	ptversion := flag.String("ptversion", "", "Specify the Pluggable Transport protocol version to use")
+	var version = flag.String("version", "", "Specify the Pluggable Transport protocol version to use")
+	var ptversion = flag.String("ptversion", "", "Specify the Pluggable Transport protocol version to use")
+
 	statePath := flag.String("state", "", "Specify the directory to use to store state information required by the transports")
 	exitOnStdinClose := flag.Bool("exit-on-stdin-close", false, "Set to true to force the dispatcher to close when the stdin pipe is closed")
 
@@ -95,6 +93,10 @@ func main() {
 
 	// PT 2.0 specification, 3.3.1.3. Pluggable PT Server Environment Variables
 	options := flag.String("options", "", "Specify the transport options for the server")
+	if *options != "" {
+		println("--> -options flag found: ", *options)
+	}
+
 	bindAddr := flag.String("bindaddr", "", "Specify the bind address for transparent server")
 	orport := flag.String("orport", "", "Specify the address the server should forward traffic to in host:port format")
 	extorport := flag.String("extorport", "", "Specify the address of a server implementing the Extended OR Port protocol, which is used for per-connection metadata")
@@ -103,12 +105,11 @@ func main() {
 	// Experimental flags under consideration for PT 2.1
 	socksAddr := flag.String("proxylistenaddr", "127.0.0.1:0", "Specify the bind address for the local SOCKS server provided by the client")
 	optionsFile := flag.String("optionsFile", "", "store all the options in a single file")
-	fmt.Println("checking for optionsFile")
+
 	// Additional command line flags inherited from obfs4proxy
-	showVer := flag.Bool("version", false, "Print version and exit")
+	showVer := flag.Bool("showVersion", false, "Print version and exit")
 	logLevelStr := flag.String("logLevel", "ERROR", "Log level (ERROR/WARN/INFO/DEBUG)")
 	enableLogging := flag.Bool("enableLogging", false, "Log to TOR_PT_STATE_LOCATION/"+dispatcherLogFile)
-	unsafeLogging := flag.Bool("unsafeLogging", false, "Disable the address scrubber")
 
 	// Additional command line flags added to shapeshifter-dispatcher
 	clientMode := flag.Bool("client", false, "Enable client mode")
@@ -118,21 +119,21 @@ func main() {
 	target := flag.String("target", "", "Specify transport server destination address")
 	flag.Parse()
 
-	// Initialize the termination state monitor as soon as possible.
-	termMon = termmon.NewTermMonitor(*exitOnStdinClose)
+	if *version != ""{
+		ptversion = version
+	}
 
 	if *showVer {
 		fmt.Printf("%s\n", getVersion())
 		os.Exit(0)
 	}
+
 	if err := log.SetLogLevel(*logLevelStr); err != nil {
 		fmt.Println("failed to set log level")
 		golog.Fatalf("[ERROR]: %s - failed to set log level: %s", execName, err)
 	}
 
 	// Determine if this is a client or server, initialize the common state.
-	var clientListeners []net.Listener
-	var serverListeners []net.Listener
 	launched := false
 	isClient, err := checkIsClient(*clientMode, *serverMode)
 	if err != nil {
@@ -143,13 +144,16 @@ func main() {
 		flag.Usage()
 		golog.Fatalf("[ERROR]: %s - No state directory: Use --state or TOR_PT_STATE_LOCATION environment variable", execName)
 	}
-	if err = log.Init(*enableLogging, path.Join(stateDir, dispatcherLogFile), *unsafeLogging); err != nil {
-		golog.Fatalf("[ERROR]: %s - failed to initialize logging", execName)
+	if err = log.Init(*enableLogging, path.Join(stateDir, dispatcherLogFile)); err != nil {
+		println("stateDir:", stateDir)
+		println("--> Error: ", err.Error())
+		golog.Fatalf("--> [ERROR]: %s - failed to initialize logging", execName)
 	}
 	if *options != "" && *optionsFile != "" {
 		golog.Fatal("cannot specify -options and -optionsFile at the same time")
 	}
 	if *optionsFile != "" {
+		fmt.Println("checking for optionsFile")
 		_, err := os.Stat(*optionsFile)
 		if err != nil {
 			log.Errorf("optionsFile does not exist with error %s %s", *optionsFile, err.Error())
@@ -162,6 +166,11 @@ func main() {
 				*options = string(contents)
 			}
 		}
+	}
+	//in socks5 mode, target is not needed
+	if !*udp && !*transparent && *target != "" {
+		log.Errorf("--target option cannot be used in SOCKS5 mode")
+		return
 	}
 
 	log.Noticef("%s - launched", getVersion())
@@ -176,9 +185,12 @@ func main() {
 				if *target == "" {
 					log.Errorf("%s - transparent mode requires a target", execName)
 				} else {
-					ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
-
-					launched = transparent_udp.ClientSetup(termMon, *socksAddr, *target, ptClientProxy, names, *options)
+					ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
+					if nameErr != nil {
+						log.Errorf("must specify -version and -transports")
+						return
+					}
+					launched = transparent_udp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options)
 				}
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
@@ -187,8 +199,8 @@ func main() {
 				} else {
 					// launched = transparent_udp.ServerSetup(termMon, *bindAddr, *target)
 
-					ptServerInfo := getServerInfo(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
-					launched, serverListeners = transparent_udp.ServerSetup(termMon, ptServerInfo, *options)
+					ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
+					launched, _ = transparent_udp.ServerSetup(ptServerInfo, stateDir, *options)
 				}
 			}
 		} else {
@@ -198,17 +210,20 @@ func main() {
 				if *target == "" {
 					log.Errorf("%s - transparent mode requires a target", execName)
 				} else {
-					ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
-
-					launched, clientListeners = transparent_tcp.ClientSetup(termMon, *socksAddr, *target, ptClientProxy, names, *options)
+					ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
+					if nameErr != nil {
+						log.Errorf("must specify -version and -transports")
+						return
+					}
+					launched, _ = transparent_tcp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options)
 				}
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
 				if *bindAddr == "" {
 					log.Errorf("%s - transparent mode requires a bindaddr", execName)
 				} else {
-					ptServerInfo := getServerInfo(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
-					launched, serverListeners = transparent_tcp.ServerSetup(termMon, ptServerInfo, *statePath, *options)
+					ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
+					launched, _ = transparent_tcp.ServerSetup(ptServerInfo, stateDir, *options)
 				}
 			}
 		}
@@ -220,17 +235,20 @@ func main() {
 				if *target == "" {
 					log.Errorf("%s - STUN mode requires a target", execName)
 				} else {
-					ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
-
-					launched = stun_udp.ClientSetup(termMon, *socksAddr, *target, ptClientProxy, names, *options)
+					ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
+					if nameErr != nil {
+						log.Errorf("must specify -version and -transports")
+						return
+					}
+					launched = stun_udp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options)
 				}
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
 				if *bindAddr == "" {
 					log.Errorf("%s - STUN mode requires a bindaddr", execName)
 				} else {
-					ptServerInfo := getServerInfo(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
-					launched, serverListeners = stun_udp.ServerSetup(termMon, ptServerInfo, *options, stateDir)
+					ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
+					launched, _ = stun_udp.ServerSetup(ptServerInfo, stateDir, *options)
 				}
 			}
 		} else {
@@ -238,13 +256,16 @@ func main() {
 			log.Infof("%s - initializing PT 2.0 proxy", execName)
 			if isClient {
 				log.Infof("%s - initializing client transport listeners", execName)
-				ptClientProxy, names := getClientNames(ptversion, transportsList, proxy)
-
-				launched, clientListeners = pt_socks5.ClientSetup(termMon, *socksAddr, *target, ptClientProxy, names, *options)
+				ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
+				if nameErr != nil {
+					log.Errorf("must specify -version and -transports")
+					return
+				}
+				launched, _ = pt_socks5.ClientSetup(*socksAddr, ptClientProxy, names, *options)
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
-				ptServerInfo := getServerInfo(ptversion, bindAddr, options, transportsList, orport, extorport, authcookie)
-				launched, serverListeners = pt_socks5.ServerSetup(termMon, ptServerInfo, *options)
+				ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
+				launched, _ = pt_socks5.ServerSetup(ptServerInfo, stateDir, *options)
 			}
 		}
 	}
@@ -256,34 +277,17 @@ func main() {
 	}
 
 	log.Infof("%s - accepting connections", execName)
-	defer func() {
-		log.Noticef("%s - terminated", execName)
-	}()
 
-	// At this point, the pt config protocol is finished, and incoming
-	// connections will be processed.  Wait till the parent dies
-	// (immediate exit), a SIGTERM is received (immediate exit),
-	// or a SIGINT is received.
-	if sig := termMon.Wait(false); sig == syscall.SIGTERM {
-		return
+	if *exitOnStdinClose || PtShouldExitOnStdinClose() {
+		_, _ = io.Copy(ioutil.Discard, os.Stdin)
+		os.Exit(-1)
+	} else {
+		select{}
 	}
+}
 
-	// Ok, it was the first SIGINT, close all listeners, and wait till,
-	// the parent dies, all the current connections are closed, or either
-	// a SIGINT/SIGTERM is received, and exit.
-	for _, ln := range clientListeners {
-		_ = ln.Close()
-	}
-
-	for _, ln := range serverListeners {
-		_ = ln.Close()
-	}
-
-	termMon.Wait(true)
-	// FIXME - block because termMon.Wait is not blocking
-	//for {
-	//
-	//}
+func PtShouldExitOnStdinClose() bool {
+	return os.Getenv("TOR_PT_EXIT_ON_STDIN_CLOSE") == "1"
 }
 
 func checkIsClient(client bool, server bool) (bool, error) {
@@ -305,17 +309,15 @@ func makeStateDir(statePath string) (string, error) {
 	}
 }
 
-func getClientNames(ptversion *string, transportsList *string, proxy *string) (clientProxy *url.URL, names []string) {
+func getClientNames(ptversion *string, transportsList *string, proxy *string) (clientProxy *url.URL, names []string, retErr error) {
 	var ptClientInfo pt.ClientInfo
 	var err error
 
-	// FIXME - instead of this, goptlib should be modified to accept command line flag override of EITHER ptversion or transports (or both)
 	if ptversion == nil || transportsList == nil {
-		log.Infof("Falling back to environment variables for ptversion/transports %q %q", *ptversion, *transportsList)
+		log.Infof("Falling back to environment variables for ptversion/transports")
 		ptClientInfo, err = pt.ClientSetup(transports.Transports())
 		if err != nil {
-			// FIXME - print a more useful error, specifying --ptversion and --transports flags
-			golog.Fatal(err)
+			return nil, nil, err
 		}
 	} else {
 		if *transportsList == "*" {
@@ -325,17 +327,17 @@ func getClientNames(ptversion *string, transportsList *string, proxy *string) (c
 		}
 	}
 
-	ptClientProxy, err := pt_extras.PtGetProxy(proxy)
-	if err != nil {
-		golog.Fatal(err)
+	ptClientProxy, proxyErr := pt_extras.PtGetProxy(proxy)
+	if proxyErr != nil {
+		return nil, nil, proxyErr
 	} else if ptClientProxy != nil {
 		pt_extras.PtProxyDone()
 	}
 
-	return ptClientProxy, ptClientInfo.MethodNames
+	return ptClientProxy, ptClientInfo.MethodNames, nil
 }
 
-func getServerInfo(ptversion *string, bindaddrList *string, options *string, transportList *string, orport *string, extorport *string, authcookie *string) pt.ServerInfo {
+func getServerInfo(bindaddrList *string, options *string, transportList *string, orport *string, extorport *string, authcookie *string) pt.ServerInfo {
 	var ptServerInfo pt.ServerInfo
 	var err error
 	var bindaddrs []pt.Bindaddr

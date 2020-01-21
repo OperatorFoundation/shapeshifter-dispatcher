@@ -59,7 +59,7 @@ var enableLogging bool
 var unsafeLogging bool
 
 // Init initializes logging with the given path, and log safety options.
-func Init(enable bool, logFilePath string, unsafe bool) error {
+func Init(enable bool, logFilePath string) error {
 	if enable {
 		f, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 		if err != nil {
@@ -76,12 +76,6 @@ func Init(enable bool, logFilePath string, unsafe bool) error {
 // Enabled returns if logging is enabled.
 func Enabled() bool {
 	return enableLogging
-}
-
-// Unsafe returns if unsafe logging is allowed (the caller MAY skip eliding
-// addresses and other bits of sensitive information).
-func Unsafe() bool {
-	return unsafeLogging
 }
 
 // Level returns the current log level.
@@ -137,14 +131,6 @@ func Infof(format string, a ...interface{}) {
 	if enableLogging && logLevel >= LevelInfo {
 		msg := fmt.Sprintf(format, a...)
 		log.Print("[INFO]: " + msg)
-	}
-}
-
-// Debugf logs the given format string/arguments at the DEBUG log level.
-func Debugf(format string, a ...interface{}) {
-	if enableLogging && logLevel >= LevelDebug {
-		msg := fmt.Sprintf(format, a...)
-		log.Print("[DEBUG]: " + msg)
 	}
 }
 

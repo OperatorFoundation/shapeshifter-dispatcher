@@ -33,35 +33,33 @@ import (
 	"fmt"
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
-	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 	"golang.org/x/net/proxy"
 	"io"
 	"net"
 	"net/url"
-	"strconv"
 	"sync"
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
 )
 
-func ClientSetup(termMon *termmon.TermMonitor, socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) (launched bool, listeners []net.Listener) {
+func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, options string) (launched bool, listeners []net.Listener) {
 	// Launch each of the client listeners.
 	for _, name := range names {
 		ln, err := net.Listen("tcp", socksAddr)
 		if err != nil {
-			pt.CmethodError(name, err.Error())
+			_ = pt.CmethodError(name, err.Error())
 			continue
 		}
 
-		go clientAcceptLoop(target, termMon, name, ln, ptClientProxy, options)
+		go clientAcceptLoop(name, ln, ptClientProxy, options)
 		pt.Cmethod(name, socks5.Version(), ln.Addr())
 
 		log.Infof("%s - registered listener: %s", name, ln.Addr())
@@ -73,8 +71,8 @@ func ClientSetup(termMon *termmon.TermMonitor, socksAddr string, target string, 
 
 	return
 }
-//FIXME figure out how to make this function match the other modes
-func clientAcceptLoop(target string, termMon *termmon.TermMonitor, name string, ln net.Listener, proxyURI *url.URL, options string){
+
+func clientAcceptLoop(name string, ln net.Listener, proxyURI *url.URL, options string) {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
@@ -85,15 +83,12 @@ func clientAcceptLoop(target string, termMon *termmon.TermMonitor, name string, 
 			}
 			continue
 		}
-		go clientHandler(target, termMon, name, conn, proxyURI, options)
+		go clientHandler(name, conn, proxyURI, options)
 	}
 }
 
-func clientHandler(target string, termMon *termmon.TermMonitor, name string, conn net.Conn, proxyURI *url.URL, options string) {
-	termMon.OnHandlerStart()
-	defer termMon.OnHandlerFinish()
-
-	var needOptions bool = options == ""
+func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string) {
+	var needOptions = options == ""
 
 	// Read the client's SOCKS handshake.
 	socksReq, err := socks5.Handshake(conn, needOptions)
@@ -122,28 +117,31 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, con
 	var dialer proxy.Dialer
 
 	// Deal with arguments.
-	transport, _ := pt_extras.ArgsToDialer(socksReq.Target, name, args,dialer)
-
+	transport, argsToDialerErr := pt_extras.ArgsToDialer(socksReq.Target, name, args, dialer)
+	if argsToDialerErr != nil {
+		log.Errorf("Error creating a transport with the provided options: %s", options)
+		log.Errorf("Error: %s", argsToDialerErr)
+		return
+	}
 	// Obtain the proxy dialer if any, and create the outgoing TCP connection.
-	dialFn := proxy.Direct.Dial
 	if proxyURI != nil {
-		dialer, err := proxy.FromURL(proxyURI, proxy.Direct)
-		if err != nil {
+		var proxyErr error
+		dialer, proxyErr = proxy.FromURL(proxyURI, proxy.Direct)
+		if proxyErr != nil {
 			// This should basically never happen, since config protocol
 			// verifies this.
 			log.Errorf("%s(%s) - failed to obtain proxy dialer: %s", name, addrStr, log.ElideError(err))
-			socksReq.Reply(socks5.ReplyGeneralFailure)
+			_ = socksReq.Reply(socks5.ReplyGeneralFailure)
 			return
 		}
-		dialFn = dialer.Dial
 	}
 
-	fmt.Println("Got dialer", dialFn, proxyURI, proxy.Direct)
+	fmt.Println("Got dialer", dialer, proxyURI, proxy.Direct)
 
-	remote, _ := transport.Dial()
-	if err != nil {
+	remote, err2 := transport.Dial()
+	if err2 != nil {
 		log.Errorf("%s(%s) - outgoing connection failed: %s", name, addrStr, log.ElideError(err))
-		socksReq.Reply(socks5.ErrorToReplyCode(err))
+		_ = socksReq.Reply(socks5.ErrorToReplyCode(err))
 		return
 	}
 	err = socksReq.Reply(socks5.ReplySucceeded)
@@ -161,13 +159,13 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, con
 	return
 }
 
-func ServerSetup(termMon *termmon.TermMonitor, ptServerInfo pt.ServerInfo, options string) (launched bool, listeners []net.Listener) {
+func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (launched bool, listeners []net.Listener) {
 	for _, bindaddr := range ptServerInfo.Bindaddrs {
 		name := bindaddr.MethodName
 
 		var listen func(address string) net.Listener
 
-		args, argsErr := pt.ParsePT2ClientParameters(options)
+		args, argsErr := options2.ParseServerOptions(options)
 		if argsErr != nil {
 			log.Errorf("Error parsing transport options: %s", options)
 			return
@@ -179,78 +177,112 @@ func ServerSetup(termMon *termmon.TermMonitor, ptServerInfo pt.ServerInfo, optio
 			transport := obfs2.NewObfs2Transport()
 			listen = transport.Listen
 		case "obfs4":
-			var dialer proxy.Dialer
-			if cert, ok := args["cert"]; ok {
-				if iatModeStr, ok2 := args["iat-mode"]; ok2 {
-					iatMode, err := strconv.Atoi(iatModeStr[0])
-					if err != nil {
-						transport := obfs4.NewObfs4Client(cert[0], iatMode, dialer)
-						listen = transport.Listen
-					} else {
-						log.Errorf("obfs4 transport bad iat-mode value: %s", iatModeStr)
-						return
-					}
-				} else {
-					log.Errorf("obfs4 transport missing cert argument: %s", args)
-					return
-				}
-			} else {
-				log.Errorf("obfs4 transport missing cert argument: %s", args)
+			transport, err := obfs4.NewObfs4Server(statedir)
+			if err != nil {
+				log.Errorf("Can't start obfs4 transport: %v", err)
 				return
 			}
+
+			listen = transport.Listen
 		case "replicant":
-			config, ok :=args.Get("config")
-			fmt.Println(config)
+			shargs, aok := args["Replicant"]
+			if !aok {
+				return false, nil
+			}
+
+			config, err := transports.ParseArgsReplicantServer(shargs)
+			if err != nil {
+				return false, nil
+			}
+
+			//FIXME: Correct address for listen
+			config.Listen(bindaddr.Addr.String())
+			//var dialer proxy.Dialer
+			//transport := replicant.New(*config, dialer)
+			//listen = transport.Listen
+		case "Dust":
+			shargs, aok := args["Dust"]
+			if !aok {
+				return false, nil
+			}
+
+			untypedIdPath, ok := shargs["Url"]
 			if !ok {
 				return false, nil
 			}
-			transport := replicant.New(replicant.Config{})
-			listen = transport.Listen
-		case "Dust":
-			idPath, ok :=args.Get("idPath")
-			if !ok {
+			idPath, err := options2.CoerceToString(untypedIdPath)
+			if err != nil {
+				log.Errorf("could not coerce Dust Url to string")
 				return false, nil
 			}
 			transport := Dust.NewDustServer(idPath)
 			listen = transport.Listen
 		case "meeklite":
-			Url, ok := args.Get("Url")
+			args, aok := args["meeklite"]
+			if !aok {
+				return false, nil
+			}
+
+			untypedUrl, ok := args["Url"]
 			if !ok {
 				return false, nil
 			}
 
-			Front, ok2 := args.Get("Front")
-			if !ok2 {
+			Url, err := options2.CoerceToString(untypedUrl)
+			if err != nil {
+				log.Errorf("could not coerce meeklite Url to string")
+			}
+
+			untypedFront, ok := args["front"]
+			if !ok {
 				return false, nil
 			}
-			transport := meeklite.NewMeekTransportWithFront(Url, Front)
+
+			front, err2 := options2.CoerceToString(untypedFront)
+			if err2 != nil {
+				log.Errorf("could not coerce meeklite front to string")
+			}
+			var dialer proxy.Dialer
+			transport := meeklite.NewMeekTransportWithFront(Url, front, dialer)
 			listen = transport.Listen
-
 		case "shadow":
-			password, ok := args.Get("password")
+			args, aok := args["shadow"]
+			if !aok {
+				return false, nil
+			}
+
+			untypedPassword, ok := args["password"]
 			if !ok {
 				return false, nil
 			}
 
-			cipherName, ok2 := args.Get("cipherName")
-			if !ok2 {
+			Password, err := options2.CoerceToString(untypedPassword)
+			if err != nil {
+				log.Errorf("could not coerce shadow password to string")
+			}
+
+			untypedCertString, ok := args["certString"]
+			if !ok {
 				return false, nil
 			}
 
-			transport := shadow.NewShadowServer(password, cipherName)
+			certString, err2 := options2.CoerceToString(untypedCertString)
+			if err2 != nil {
+				log.Errorf("could not coerce shadow certString to string")
+			}
+
+			transport := shadow.NewShadowServer(Password, certString)
 			listen = transport.Listen
 		default:
 			log.Errorf("Unknown transport: %s", name)
 			return
 		}
 
-
-
 		f := listen
 
 		transportLn := f(bindaddr.Addr.String())
 
-		go serverAcceptLoop(termMon, name, transportLn, &ptServerInfo)
+		go serverAcceptLoop(name, transportLn, &ptServerInfo)
 
 		// if args := f.Args(); args != nil {
 		// 	pt.SmethodArgs(name, ln.Addr(), *args)
@@ -268,7 +300,7 @@ func ServerSetup(termMon *termmon.TermMonitor, ptServerInfo pt.ServerInfo, optio
 	return
 }
 
-func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln net.Listener, info *pt.ServerInfo){
+func serverAcceptLoop(name string, ln net.Listener, info *pt.ServerInfo) {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
@@ -277,13 +309,11 @@ func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln net.Listener
 			}
 			continue
 		}
-		go serverHandler(termMon, name, conn, info)
+		go serverHandler(name, conn, info)
 	}
 }
 
-func serverHandler(termMon *termmon.TermMonitor, name string, remote net.Conn, info *pt.ServerInfo) {
-	termMon.OnHandlerStart()
-	defer termMon.OnHandlerFinish()
+func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 
 	addrStr := log.ElideAddr(remote.RemoteAddr().String())
 	log.Infof("%s(%s) - new connection", name, addrStr)

@@ -37,7 +37,6 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer"
 	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/polish"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/toneburst"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
@@ -49,7 +48,7 @@ import (
 
 // Transports returns the list of registered transport protocols.
 func Transports() []string {
-	return []string{"obfs2", "shadow", "obfs4", "Optimizer"}
+	return []string{"obfs2", "shadow", "Dust", "meeklite", "Replicant", "obfs4", "Optimizer"}
 }
 
 func ParseArgsObfs4(args map[string]interface{}, target string, dialer proxy.Dialer) (*obfs4.Transport, error) {
@@ -147,7 +146,7 @@ func ParseArgsObfs4(args map[string]interface{}, target string, dialer proxy.Dia
 	return &transport, nil
 }
 
-func ParseArgsShadow(args map[string]interface{}, target string) (*shadow.Transport, error) {
+func ParseArgsShadow(args map[string]interface{}, target string, dialer proxy.Dialer) (*shadow.Transport, error) {
 	var password string
 	var cipherName string
 
@@ -187,12 +186,13 @@ func ParseArgsShadow(args map[string]interface{}, target string) (*shadow.Transp
 		Password:   password,
 		CipherName: cipherName,
 		Address:    target,
+		Dialer:     dialer,
 	}
 
 	return &transport, nil
 }
 
-func ParseArgsDust(args map[string]interface{}, target string) (*Dust.Transport, error) {
+func ParseArgsDust(args map[string]interface{}, target string, dialer proxy.Dialer) (*Dust.Transport, error) {
 	var serverPublic string
 
 	untypedServerPublic, ok := args["serverPublic"]
@@ -214,24 +214,59 @@ func ParseArgsDust(args map[string]interface{}, target string) (*Dust.Transport,
 	transport := Dust.Transport{
 		ServerPublic: serverPublic,
 		Address:      target,
+		Dialer:       dialer,
 	}
 
 	return &transport, nil
 }
 
-func ParseArgsReplicant(args map[string]interface{}, target string) (*replicant.Transport, error) {
-	var config *replicant.Config
+func CreateDefaultReplicantClient(target string, dialer proxy.Dialer) (*replicant.Transport) {
+	config := replicant.ClientConfig{
+		Toneburst: nil,
+		Polish:    nil,
+	}
+
+	transport := replicant.Transport{
+		Config:  config,
+		Address: target,
+		Dialer:  dialer,
+	}
+
+	return &transport
+}
+
+func CreateDefaultReplicantServer() (replicant.ServerConfig) {
+	config := replicant.ServerConfig{
+		Toneburst: nil,
+		Polish:    nil,
+	}
+
+	return config
+}
+
+func ParseArgsReplicantClient(args map[string]interface{}, target string, dialer proxy.Dialer) (*replicant.Transport, error) {
+	var config *replicant.ClientConfig
+
+	if args == nil{
+		transport := CreateDefaultReplicantClient(target, dialer)
+		return transport, nil
+	}
+
 	untypedConfig, ok := args["config"]
+	if untypedConfig == nil {
+		transport := CreateDefaultReplicantClient(target, dialer)
+		return transport, nil
+	}
 	if !ok {
 		return nil, errors.New("replicant transport missing config argument")
 	}
 
 	switch untypedConfig.(type) {
-	case map[string]interface{}:
-		otcs := untypedConfig.(map[string]interface{})
+	case string:
+		configString := untypedConfig.(string)
 
 		var parseErr error
-		config, parseErr = ParseReplicantConfig(otcs)
+		config, parseErr = replicant.DecodeClientConfig(configString)
 		if parseErr != nil {
 			return nil, errors.New("could not parse config")
 		}
@@ -242,310 +277,75 @@ func ParseArgsReplicant(args map[string]interface{}, target string) (*replicant.
 	transport := replicant.Transport{
 		Config:  *config,
 		Address: target,
+		Dialer:  dialer,
 	}
 
 	return &transport, nil
 }
 
-func ParseReplicantConfig(args map[string]interface{}) (*replicant.Config, error) {
-	var toneburstConfig *toneburst.Config
-	var polishConfig *polish.Config
-	untypedToneburstConfig, ok := args["toneburst"]
-	if !ok {
-		return nil, errors.New("replicant transport missing toneburst argument")
+//  target string, dialer proxy.Dialer
+func ParseArgsReplicantServer(args map[string]interface{}) (*replicant.ServerConfig, error) {
+
+	if args == nil{
+		defaultConfig := CreateDefaultReplicantServer()
+		configPointer := &defaultConfig
+		return configPointer, nil
 	}
 
-	switch untypedToneburstConfig.(type) {
-	case map[string]interface{}:
-		otcs := untypedToneburstConfig.(map[string]interface{})
+	untypedConfig, ok := args["config"]
+	if untypedConfig == nil {
+		defaultConfig := CreateDefaultReplicantServer()
+		configPointer := &defaultConfig
+		return configPointer, nil
+	}
+	if !ok {
+		return nil, errors.New("replicant transport missing config argument")
+	}
 
+	switch untypedConfig.(type) {
+	case string:
+		configString := untypedConfig.(string)
+
+		var config *replicant.ServerConfig
 		var parseErr error
-		toneburstConfig, parseErr = parseToneburstConfig(otcs)
+		config, parseErr = replicant.DecodeServerConfig(configString)
 		if parseErr != nil {
 			return nil, errors.New("could not parse config")
 		}
+
+		return config, nil
 	default:
-		return nil, errors.New("unsupported type for replicant toneburst option")
+		return nil, errors.New("unsupported type for replicant config option")
 	}
-	untypedPolishConfig, ok := args["polish"]
-	if !ok {
-		return nil, errors.New("replicant transport missing polish argument")
-	}
-
-	switch untypedPolishConfig.(type) {
-	case map[string]interface{}:
-		otcs := untypedPolishConfig.(map[string]interface{})
-		var parseErr error
-		polishConfig, parseErr = parsePolishConfig(otcs)
-		if parseErr != nil {
-			return nil, errors.New("could not parse polish config")
-		}
-	default:
-		return nil, errors.New("unsupported type for replicant polish option")
-	}
-
-	replicantConfig := replicant.Config{
-		toneburstConfig,
-		polishConfig,
-	}
-
-	return &replicantConfig, nil
 }
 
-func parseToneburstConfig(args map[string]interface{}) (*toneburst.Config, error) {
-	var selector string
-
-	untypedSelector, ok := args["selector"]
-	if !ok {
-		return nil, errors.New("replicant toneburst missing selector argument")
-	}
-
-	switch untypedSelector.(type) {
-	case string:
-		var icerr error
-		selector, icerr = interconv.ParseString(untypedSelector)
-		if icerr != nil {
-			return nil, icerr
-		}
-	default:
-		return nil, errors.New("unsupported type for replicant toneburst selector option")
-	}
-	switch selector {
-	case "whalesong":
-		untypedWhalesongConfig, ok := args["whalesong"]
-		if !ok {
-			return nil, errors.New("replicant transport missing toneburst argument")
-		}
-
-		switch untypedWhalesongConfig.(type) {
-		case map[string]interface{}:
-			otcs := untypedWhalesongConfig.(map[string]interface{})
-
-			var parseErr error
-			whalesongConfig, parseErr := parseWhalesongConfig(otcs)
-			if parseErr != nil {
-				return nil, errors.New("could not parse config")
-			}
-
-			toneburstConfig := toneburst.Config{
-				selector,
-				whalesongConfig,
-			}
-
-			return &toneburstConfig, nil
-		default:
-			return nil, errors.New("unsupported type for replicant toneburst whalesong option")
-		}
-	default:
-		return nil, errors.New("unsupported value for replicant toneburst selector")
-	}
-
-}
-
-func parsePolishConfig(args map[string]interface{}) (*polish.Config, error) {
-	var selector string
-
-	untypedSelector, ok := args["selector"]
-	if !ok {
-		return nil, errors.New("replicant toneburst missing selector argument")
-	}
-
-	switch untypedSelector.(type) {
-	case string:
-		var icerr error
-		selector, icerr = interconv.ParseString(untypedSelector)
-		if icerr != nil {
-			return nil, icerr
-		}
-	default:
-		return nil, errors.New("unsupported type for replicant toneburst selector option")
-	}
-	switch selector {
-	case "silver":
-		untypedSilverConfig, ok := args["silver"]
-		if !ok {
-			return nil, errors.New("replicant transport missing toneburst argument")
-		}
-
-		switch untypedSilverConfig.(type) {
-		case map[string]interface{}:
-			otcs := untypedSilverConfig.(map[string]interface{})
-
-			var parseErr error
-			silverConfig, parseErr := parseSilverConfig(otcs)
-			if parseErr != nil {
-				return nil, errors.New("could not parse config")
-			}
-
-			polishConfig := polish.Config{
-				selector,
-				silverConfig,
-			}
-
-			return &polishConfig, nil
-		default:
-			return nil, errors.New("unsupported type for replicant toneburst whalesong option")
-		}
-	default:
-		return nil, errors.New("unsupported value for replicant toneburst selector")
-	}
-
-}
-
-func parseWhalesongConfig(args map[string]interface{}) (*toneburst.WhalesongConfig, error) {
-	var addSequences []toneburst.Sequence
-	var removeSequences []toneburst.Sequence
-
-	untypedAddSequences, ok := args["add"]
-	if !ok {
-		return nil, errors.New("replicant transport missing toneburst whalesong add argument")
-	}
-
-	switch untypedAddSequences.(type) {
-	case []interface{}:
-		otcs := untypedAddSequences.([]interface{})
-		addSequences = make([]toneburst.Sequence, len(otcs))
-		for index, otc := range otcs {
-			var sequence toneburst.Sequence
-			sequenceString, icError := interconv.ParseString(otc)
-			if icError != nil {
-				log.Errorf("could not parse sequence string")
-			}
-			bytes, byteErr := hex.DecodeString(sequenceString)
-			if byteErr != nil {
-				log.Errorf("could not parse sequence string bytes")
-			}
-			sequence = bytes
-			addSequences[index] = sequence
-		}
-	default:
-		return nil, errors.New("unsupported type for replicant toneburst option")
-	}
-
-	untypedRemoveSequences, ok := args["remove"]
-	if !ok {
-		return nil, errors.New("replicant transport missing toneburst whalesong remove argument")
-	}
-
-	switch untypedRemoveSequences.(type) {
-	case []interface{}:
-		otcs := untypedRemoveSequences.([]interface{})
-		removeSequences = make([]toneburst.Sequence, len(otcs))
-		for index, otc := range otcs {
-			var sequence toneburst.Sequence
-			sequenceString, icError := interconv.ParseString(otc)
-			if icError != nil {
-				log.Errorf("could not parse sequence string")
-			}
-			bytes, byteErr := hex.DecodeString(sequenceString)
-			if byteErr != nil {
-				log.Errorf("could not parse sequence string bytes")
-			}
-			sequence = bytes
-			removeSequences[index] = sequence
-		}
-	default:
-		return nil, errors.New("unsupported type for replicant toneburst option")
-	}
-
-	whalesongConfig := toneburst.WhalesongConfig{
-		addSequences,
-		removeSequences,
-	}
-
-	return &whalesongConfig, nil
-}
-
-func parseSilverConfig(args map[string]interface{}) (*polish.SilverPolishConfig, error) {
-	var clientOrServer bool
-	var clientConfig *polish.SilverPolishClientConfig
-	var serverConfig *polish.SilverPolishServerConfig
-
-	untypedClientOrServer, ok := args["client or server"]
-	if !ok {
-		return nil, errors.New("replicant transport missing toneburst whalesong add argument")
-	}
-
-	switch untypedClientOrServer.(type) {
-	case bool:
-		var icerr error
-		clientOrServer, icerr = interconv.ParseBoolean(untypedClientOrServer)
-		if icerr != nil {
-			return nil, icerr
-		}
-	default:
-		return nil, errors.New("unsupported type for replicant toneburst selector option")
-	}
-
-	switch clientOrServer {
-	case true:
-		untypedClientConfig, ok := args["clientConfig"]
-		if !ok {
-			return nil, errors.New("replicant transport missing toneburst argument")
-		}
-
-		switch untypedClientConfig.(type) {
-		case map[string]interface{}:
-			otcs := untypedClientConfig.(map[string]interface{})
-
-			var parseErr error
-			clientConfig, parseErr = parseClientConfig(otcs)
-			if parseErr != nil {
-				return nil, errors.New("could not parse config")
-			}
-		}
-	case false:
-		untypedServerConfig, ok2 := args["serverConfig"]
-		if !ok2 {
-			return nil, errors.New("replicant transport Silver Polish missing untypedServerConfig")
-		}
-		switch untypedServerConfig.(type) {
-		case map[string]interface{}:
-			otcs := untypedServerConfig.(map[string]interface{})
-
-			var parseErr error
-			serverConfig, parseErr = parseServerConfig(otcs)
-			if parseErr != nil {
-				return nil, errors.New("could not parse config")
-			}
-		}
-	}
-
-	silverConfig := polish.SilverPolishConfig{
-		clientOrServer,
-		clientConfig,
-		serverConfig,
-	}
-
-	return &silverConfig, nil
-}
 func parseClientConfig(args map[string]interface{}) (*polish.SilverPolishClientConfig, error) {
 	var serverPublicKey []byte
 	var chunkSize int
 
 	untypedServerPublicKey, ok := args["serverPublicKey"]
 	if !ok {
-		return nil, errors.New("replicant transport missing serverPublicKey")
+		return nil, errors.New("replicant transport clientConfig  missing serverPublicKey")
 	}
 
 	switch untypedServerPublicKey.(type) {
 	case string:
 		sequenceString, icError := interconv.ParseString(untypedServerPublicKey)
 		if icError != nil {
-			log.Errorf("could not parse sequence string")
+			log.Errorf("could not parse clientConfig serverPublicKey string")
 		}
 		var byteErr error
 		serverPublicKey, byteErr = hex.DecodeString(sequenceString)
 		if byteErr != nil {
-			log.Errorf("could not parse sequence string bytes")
+			log.Errorf("could not parse clientConfig serverPublicKey string bytes")
 		}
 	default:
-		return nil, errors.New("unsupported type for replicant toneburst option")
+		return nil, errors.New("unsupported type for replicant clientConfig serverPublicKey option")
 	}
 
 	untypedChunkSize, ok := args["chunkSize"]
 	if !ok {
-		return nil, errors.New("replicant transport missing chunkSize argument")
+		return nil, errors.New("replicant transport missing clientConfig chunkSize argument")
 	}
 
 	switch untypedChunkSize.(type) {
@@ -553,91 +353,21 @@ func parseClientConfig(args map[string]interface{}) (*polish.SilverPolishClientC
 		var icError error
 		chunkSize, icError = interconv.ParseInt(untypedChunkSize)
 		if icError != nil {
-			log.Errorf("could not parse chunkSize")
+			log.Errorf("could not parse clientConfig chunkSize")
 		}
 	default:
-		return nil, errors.New("unsupported type for replicant Silver Polish option")
+		return nil, errors.New("unsupported type for clientConfig chunkSize option")
 	}
 
 	silverPolishClientConfig := polish.SilverPolishClientConfig{
-		serverPublicKey,
-		chunkSize,
+		ServerPublicKey: serverPublicKey,
+		ChunkSize:       chunkSize,
 	}
 
 	return &silverPolishClientConfig, nil
 }
 
-func parseServerConfig(args map[string]interface{}) (*polish.SilverPolishServerConfig, error) {
-	var serverPublicKey []byte
-	var serverPrivateKey []byte
-	var chunkSize int
-
-	untypedServerPublicKey, ok := args["serverPublicKey"]
-	if !ok {
-		return nil, errors.New("replicant transport missing serverPublicKey")
-	}
-
-	switch untypedServerPublicKey.(type) {
-	case string:
-		sequenceString, icError := interconv.ParseString(untypedServerPublicKey)
-		if icError != nil {
-			log.Errorf("could not parse serverPublicKey string")
-		}
-		var byteErr error
-		serverPublicKey, byteErr = hex.DecodeString(sequenceString)
-		if byteErr != nil {
-			log.Errorf("could not parse serverPublicKey string bytes")
-		}
-	default:
-		return nil, errors.New("unsupported type for replicant toneburst option")
-	}
-
-	untypedServerPrivateKey, ok := args["serverPublicKey"]
-	if !ok {
-		return nil, errors.New("replicant transport missing serverPublicKey")
-	}
-
-	switch untypedServerPrivateKey.(type) {
-	case string:
-		serverPrivateKeyString, icError := interconv.ParseString(untypedServerPrivateKey)
-		if icError != nil {
-			log.Errorf("could not parse serverPrivateKey string")
-		}
-		var byteErr error
-		serverPrivateKey, byteErr = hex.DecodeString(serverPrivateKeyString)
-		if byteErr != nil {
-			log.Errorf("could not parse serverPrivateKey string bytes")
-		}
-	default:
-		return nil, errors.New("unsupported type for replicant toneburst option")
-	}
-
-	untypedChunkSize, ok := args["chunkSize"]
-	if !ok {
-		return nil, errors.New("replicant transport missing chunkSize argument")
-	}
-
-	switch untypedChunkSize.(type) {
-	case float64:
-		var icError error
-		chunkSize, icError = interconv.ParseInt(untypedChunkSize)
-		if icError != nil {
-			log.Errorf("could not parse chunkSize")
-		}
-	default:
-		return nil, errors.New("unsupported type for replicant Silver Polish option")
-	}
-
-	silverPolishServerConfig := polish.SilverPolishServerConfig{
-		serverPublicKey,
-		serverPrivateKey,
-		chunkSize,
-	}
-
-	return &silverPolishServerConfig, nil
-}
-
-func ParseArgsMeeklite(args map[string]interface{}, target string) (*meeklite.Transport, error) {
+func ParseArgsMeeklite(args map[string]interface{}, target string, dialer proxy.Dialer) (*meeklite.Transport, error) {
 
 	var url *gourl.URL
 	var front string
@@ -657,7 +387,7 @@ func ParseArgsMeeklite(args map[string]interface{}, target string) (*meeklite.Tr
 		var parseErr error
 		url, parseErr = gourl.Parse(urlString)
 		if parseErr != nil {
-			return nil, errors.New("could not parse URL")
+			return nil, errors.New("could not parse meeklite URL")
 		}
 
 	default:
@@ -684,6 +414,7 @@ func ParseArgsMeeklite(args map[string]interface{}, target string) (*meeklite.Tr
 		Url:     url,
 		Front:   front,
 		Address: target,
+		Dialer:  dialer,
 	}
 
 	return &transport, nil
@@ -838,7 +569,7 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 
 	switch name {
 	case "shadow":
-		shadowTransport, parseErr := ParseArgsShadow(config, address)
+		shadowTransport, parseErr := ParseArgsShadow(config, address, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse shadow Args")
 		}
@@ -850,19 +581,19 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 		}
 		return obfs4Transport, nil
 	case "meeklite":
-		meekliteTransport, parseErr := ParseArgsMeeklite(config, address)
+		meekliteTransport, parseErr := ParseArgsMeeklite(config, address, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse meeklite Args")
 		}
 		return meekliteTransport, nil
 	case "Dust":
-		DustTransport, parseErr := ParseArgsDust(config, address)
+		DustTransport, parseErr := ParseArgsDust(config, address, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse dust Args")
 		}
 		return DustTransport, nil
-	case "replicant":
-		replicantTransport, parseErr := ParseArgsReplicant(config, address)
+	case "Replicant":
+		replicantTransport, parseErr := ParseArgsReplicantClient(config, address, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse replicant Args")
 		}

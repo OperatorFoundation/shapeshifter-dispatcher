@@ -36,10 +36,9 @@ import (
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/termmon"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
-	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
@@ -49,7 +48,6 @@ import (
 	golog "log"
 	"net"
 	"net/url"
-	"strconv"
 	//"github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer"
 	//"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 )
@@ -65,7 +63,7 @@ func NewConnState() ConnState {
 
 type ConnTracker map[string]ConnState
 
-func ClientSetup(termMon *termmon.TermMonitor, socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) bool {
+func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) bool {
 	// Launch each of the client listeners.
 	for _, name := range names {
 		udpAddr, err := net.ResolveUDPAddr("udp", socksAddr)
@@ -80,7 +78,7 @@ func ClientSetup(termMon *termmon.TermMonitor, socksAddr string, target string, 
 			continue
 		}
 
-		go clientHandler(target, termMon, name, options, ln, ptClientProxy)
+		go clientHandler(target, name, options, ln, ptClientProxy)
 
 		log.Infof("%s - registered listener", name)
 	}
@@ -88,12 +86,10 @@ func ClientSetup(termMon *termmon.TermMonitor, socksAddr string, target string, 
 	return true
 }
 
-func clientHandler(target string, termMon *termmon.TermMonitor, name string, options string, conn *net.UDPConn, proxyURI *url.URL) {
+func clientHandler(target string, name string, options string, conn *net.UDPConn, proxyURI *url.URL) {
 	var length16 uint16
 
 	defer conn.Close()
-	termMon.OnHandlerStart()
-	defer termMon.OnHandlerFinish()
 
 	fmt.Println("@@@ handling...")
 
@@ -153,7 +149,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 
 			fmt.Println("Opening connection to ", target)
 
-			openConnection(&tracker, addr.String(), target, termMon, name, options, proxyURI)
+			openConnection(&tracker, addr.String(), target, name, options, proxyURI)
 
 			// Drop the packet.
 			fmt.Println("recv: Open")
@@ -161,7 +157,7 @@ func clientHandler(target string, termMon *termmon.TermMonitor, name string, opt
 	}
 }
 
-func openConnection(tracker *ConnTracker, addr string, target string, termMon *termmon.TermMonitor, name string, options string, proxyURI *url.URL) {
+func openConnection(tracker *ConnTracker, addr string, target string, name string, options string, proxyURI *url.URL) {
 	fmt.Println("Making dialer...")
 
 	newConn := NewConnState()
@@ -195,7 +191,12 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 		return
 	}
 	// Deal with arguments.
-	transport, _ := pt_extras.ArgsToDialer(target, name, args, dialer)
+	transport, argsToDialerErr := pt_extras.ArgsToDialer(target, name, args, dialer)
+	if argsToDialerErr != nil {
+		log.Errorf("Error creating a transport with the provided options: %s", options)
+		log.Errorf("Error: %s", argsToDialerErr)
+		return
+	}
 	fmt.Println("Dialing ", target)
 	remote, _ := transport.Dial()
 	// if err != nil {
@@ -211,7 +212,7 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 	(*tracker)[addr] = ConnState{remote, false}
 }
 
-func ServerSetup(termMon *termmon.TermMonitor, ptServerInfo pt.ServerInfo, options string) (launched bool, listeners []net.Listener) {
+func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (launched bool, listeners []net.Listener) {
 	fmt.Println("ServerSetup")
 
 	// Launch each of the server listeners.
@@ -221,7 +222,7 @@ func ServerSetup(termMon *termmon.TermMonitor, ptServerInfo pt.ServerInfo, optio
 
 		var listen func(address string) net.Listener
 
-		args, argsErr := pt.ParsePT2ClientParameters(options)
+		args, argsErr := options2.ParseServerOptions(options)
 		if argsErr != nil {
 			log.Errorf("Error parsing transport options: %s", options)
 			return
@@ -233,67 +234,97 @@ func ServerSetup(termMon *termmon.TermMonitor, ptServerInfo pt.ServerInfo, optio
 			transport := obfs2.NewObfs2Transport()
 			listen = transport.Listen
 		case "obfs4":
-			var dialer proxy.Dialer
-			if cert, ok := args["cert"]; ok {
-				if iatModeStr, ok2 := args["iat-mode"]; ok2 {
-					iatMode, err := strconv.Atoi(iatModeStr[0])
-					if err != nil {
-						transport := obfs4.NewObfs4Client(cert[0], iatMode, dialer)
-						listen = transport.Listen
-					} else {
-						log.Errorf("obfs4 transport bad iat-mode value: %s", iatModeStr)
-						return
-					}
-				} else {
-					log.Errorf("obfs4 transport missing cert argument: %s", args)
-					return
-				}
-			} else {
-				log.Errorf("obfs4 transport missing cert argument: %s", args)
-				return
-			}
-		case "Replicant":
-			config, ok := args.Get("config")
-			fmt.Println(config)
-			if !ok {
+			transport, err := obfs4.NewObfs4Server(stateDir)
+			if err != nil {
+				log.Errorf("Can't start obfs4 transport: %v", err)
 				return false, nil
 			}
-
-			transport := replicant.New(replicant.Config{})
 			listen = transport.Listen
-		case "Dust":
-			idPath, ok := args.Get("idPath")
-			if !ok {
+		case "Replicant":
+			shargs, aok := args["Replicant"]
+			if !aok {
 				return false, nil
 			}
 
+			config, err := transports.ParseArgsReplicantServer(shargs)
+			if err != nil {
+				return false, nil
+			}
+
+			config.Listen(bindaddr.Addr.String())
+
+		case "Dust":
+			shargs, aok := args["Dust"]
+			if !aok {
+				return false, nil
+			}
+
+			untypedIdPath, ok := shargs["Url"]
+			if !ok {
+				return false, nil
+			}
+			idPath, err := options2.CoerceToString(untypedIdPath)
+			if err != nil {
+				log.Errorf("could not coerce Dust Url to string")
+				return false, nil
+			}
 			transport := Dust.NewDustServer(idPath)
 			listen = transport.Listen
 		case "meeklite":
-			Url, ok := args.Get("Url")
+			args, aok := args["meeklite"]
+			if !aok {
+				return false, nil
+			}
+
+			untypedUrl, ok := args["Url"]
 			if !ok {
 				return false, nil
 			}
 
-			Front, ok2 := args.Get("Front")
-			if !ok2 {
+			Url, err := options2.CoerceToString(untypedUrl)
+			if err != nil {
+				log.Errorf("could not coerce meeklite Url to string")
+			}
+
+			untypedFront, ok := args["front"]
+			if !ok {
 				return false, nil
 			}
 
-			transport := meeklite.NewMeekTransportWithFront(Url, Front)
+			front, err2 := options2.CoerceToString(untypedFront)
+			if err2 != nil {
+				log.Errorf("could not coerce meeklite front to string")
+			}
+			var dialer proxy.Dialer
+			transport := meeklite.NewMeekTransportWithFront(Url, front, dialer)
 			listen = transport.Listen
 		case "shadow":
-			password, ok := args.Get("password")
+			args, aok := args["shadow"]
+			if !aok {
+				return false, nil
+			}
+
+			untypedPassword, ok := args["password"]
 			if !ok {
 				return false, nil
 			}
 
-			cipherName, ok2 := args.Get("cipherName")
-			if !ok2 {
+			Password, err := options2.CoerceToString(untypedPassword)
+			if err != nil {
+				log.Errorf("could not coerce shadow password to string")
+			}
+
+			untypedCertString, ok := args["certString"]
+			if !ok {
 				return false, nil
 			}
 
-			transport := shadow.NewShadowServer(password, cipherName)
+			certString, err2 := options2.CoerceToString(untypedCertString)
+			if err2 != nil {
+				log.Errorf("could not coerce shadow certString to string")
+			}
+
+			transport := shadow.NewShadowServer(Password, certString)
 			listen = transport.Listen
 		default:
 			log.Errorf("Unknown transport: %s", name)
@@ -304,7 +335,7 @@ func ServerSetup(termMon *termmon.TermMonitor, ptServerInfo pt.ServerInfo, optio
 
 		transportLn := f(bindaddr.Addr.String())
 
-		go serverAcceptLoop(termMon, name, transportLn, &ptServerInfo)
+		go serverAcceptLoop(name, transportLn, &ptServerInfo)
 
 		log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
 
@@ -356,7 +387,7 @@ func ServerSetup(termMon *termmon.TermMonitor, ptServerInfo pt.ServerInfo, optio
 //	return int(port), err
 //}
 
-func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln net.Listener, info *pt.ServerInfo) {
+func serverAcceptLoop(name string, ln net.Listener, info *pt.ServerInfo) {
 	for {
 		conn, err := ln.Accept()
 		fmt.Println("accepted")
@@ -368,15 +399,12 @@ func serverAcceptLoop(termMon *termmon.TermMonitor, name string, ln net.Listener
 			}
 			continue
 		}
-		go serverHandler(termMon, name, conn, info)
+		go serverHandler(name, conn, info)
 	}
 }
 
-func serverHandler(termMon *termmon.TermMonitor, name string, remote net.Conn, info *pt.ServerInfo) {
+func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 	var length16 uint16
-
-	termMon.OnHandlerStart()
-	defer termMon.OnHandlerFinish()
 
 	addrStr := log.ElideAddr(remote.RemoteAddr().String())
 	fmt.Println("### handling", name)

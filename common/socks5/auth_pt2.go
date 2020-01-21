@@ -35,24 +35,24 @@ import (
 
 func (req *Request) authPT2() (err error) {
 	// The client sends a PT 2.0 authentication request.
-	//  uint32_t len
-	//  uint8_t data[len]
+	//  uint32_t u
+	//  uint8_t data[u]
 
 	// Read the authentication data.
-	var len uint32
-	if len, err = req.readUint32(); err != nil {
+	var u uint32
+	if u, err = req.readUint32(); err != nil {
 		return
 	}
-	if len == 0 {
+	if u == 0 {
 		err = fmt.Errorf("PT 2.0 authentication data with 0 length")
 		return
 	}
 	var data []byte
-	if data, err = req.readBytes(int(len)); err != nil {
+	if data, err = req.readBytes(int(u)); err != nil {
 		return
 	}
 
-	var result string = string(data)
+	var result = string(data)
 
 	// Parse the authentication data according to the PT 2.0 specification
 	if req.Args, err = pt.ParsePT2ClientParameters(result); err != nil {

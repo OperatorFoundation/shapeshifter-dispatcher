@@ -33,6 +33,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
 	"golang.org/x/net/proxy"
 	"net"
 	"net/url"
@@ -169,18 +170,12 @@ func resolveAddrStr(addrStr string) (*net.TCPAddr, error) {
 	return &net.TCPAddr{IP: ip, Port: int(port), Zone: ""}, nil
 }
 
-// Feature #15435 adds a new env var for determining if Tor keeps stdin
-// open for use in termination detection.
-func PtShouldExitOnStdinClose() bool {
-	return os.Getenv("TOR_PT_EXIT_ON_STDIN_CLOSE") == "1"
-}
-
+// target is the server address string
 func ArgsToDialer(target string, name string, args map[string]interface{}, dialer proxy.Dialer) (Optimizer.Transport, error) {
 	switch name {
-	//case "obfs2":
-	//	transport := obfs2.NewObfs2Transport()
-	//	dialer = transport.Dial
-	//	return dialer, nil
+	case "obfs2":
+		transport := obfs2.New(target, dialer)
+		return transport, nil
 	case "obfs4":
 		//refactor starts here
 		transport, err := transports.ParseArgsObfs4(args, target, dialer)
@@ -191,7 +186,7 @@ func ArgsToDialer(target string, name string, args map[string]interface{}, diale
 			return transport, nil
 		}
 	case "shadow":
-		transport, err := transports.ParseArgsShadow(args, target)
+		transport, err := transports.ParseArgsShadow(args, target, dialer)
 		if err != nil {
 			log.Errorf("Could not parse options %s", err.Error())
 			return nil, err
@@ -207,15 +202,15 @@ func ArgsToDialer(target string, name string, args map[string]interface{}, diale
 			return transport, nil
 		}
 	case "Dust":
-		transport, err := transports.ParseArgsDust(args, target)
+		transport, err := transports.ParseArgsDust(args, target, dialer)
 		if err != nil {
 			log.Errorf("Could not parse options %s", err.Error())
 			return nil, err
 		} else {
 			return transport, nil
 		}
-	case "Meeklite":
-		transport, err := transports.ParseArgsMeeklite(args, target)
+	case "meeklite":
+		transport, err := transports.ParseArgsMeeklite(args, target, dialer)
 		if err != nil {
 			log.Errorf("Could not parse options %s", err.Error())
 			return nil, err
@@ -223,7 +218,7 @@ func ArgsToDialer(target string, name string, args map[string]interface{}, diale
 			return transport, nil
 		}
 	case "Replicant":
-		transport, err := transports.ParseArgsReplicant(args, target)
+		transport, err := transports.ParseArgsReplicantClient(args, target, dialer)
 		if err != nil {
 			log.Errorf("Could not parse options %s", err.Error())
 			return nil, err
