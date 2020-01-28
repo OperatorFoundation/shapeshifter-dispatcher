@@ -108,16 +108,16 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 	//	}
 	//}
 
-	args, argsErr := options2.ParseOptions(options)
-	if argsErr != nil {
-		log.Errorf("Error parsing transport options: %s", options)
-		return
-	}
+	//args, argsErr := options2.ParseOptions(options)
+	//if argsErr != nil {
+	//	log.Errorf("Error parsing transport options: %s", options)
+	//	return
+	//}
 
 	var dialer proxy.Dialer
 
 	// Deal with arguments.
-	transport, argsToDialerErr := pt_extras.ArgsToDialer(socksReq.Target, name, args, dialer)
+	transport, argsToDialerErr := pt_extras.ArgsToDialer(socksReq.Target, name, options, dialer)
 	if argsToDialerErr != nil {
 		log.Errorf("Error creating a transport with the provided options: %s", options)
 		log.Errorf("Error: %s", argsToDialerErr)
@@ -189,8 +189,9 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 			if !aok {
 				return false, nil
 			}
-
-			config, err := transports.ParseArgsReplicantServer(shargs)
+			//FIXME: This may not be the best way to establish shargs as a string
+			shargsString, err:= options2.CoerceToString(shargs)
+			config, err := transports.ParseArgsReplicantServer(shargsString)
 			if err != nil {
 				return false, nil
 			}

@@ -188,8 +188,9 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 					log.Errorf("Unable to parse Replicant arguments.")
 					return false, nil
 				}
-
-				config, err := transports.ParseArgsReplicantServer(shargs)
+				//FIXME: This may not be the best way to establish shargs as a string
+				shargsString, err:= options2.CoerceToString(shargs)
+				config, err := transports.ParseArgsReplicantServer(shargsString)
 				if err != nil {
 					println("Received a Replicant config error: ", err.Error())
 					log.Errorf(err.Error())

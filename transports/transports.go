@@ -30,21 +30,16 @@
 package transports
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"errors"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer"
 	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/polish"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 	"github.com/mufti1/interconv/package"
 	"golang.org/x/net/proxy"
-	gourl "net/url"
-	"strconv"
 )
 
 // Transports returns the list of registered transport protocols.
@@ -52,94 +47,18 @@ func Transports() []string {
 	return []string{"obfs2", "shadow", "Dust", "meeklite", "Replicant", "obfs4", "Optimizer"}
 }
 
-func ParseArgsObfs4(args map[string]interface{}, target string, dialer proxy.Dialer) (*obfs4.Transport, error) {
-	var cert string
-	var iatMode int
+func ParseArgsObfs4(args string, target string, dialer proxy.Dialer) (*obfs4.Transport, error) {
+	var config obfs4.Config
 
-	untypedCert, ok := args["cert"]
-	if !ok {
-		return nil, errors.New("obfs4 transport missing cert argument")
-	}
-
-	switch untypedCert.(type) {
-	case string:
-		var icerr error
-		cert, icerr = interconv.ParseString(untypedCert)
-		if icerr != nil {
-			return nil, icerr
-		}
-	default:
-		return nil, errors.New("unsupported type for obfs4 cert option")
-	}
-
-	untypedIatMode, ok2 := args["iat-mode"]
-	if !ok2 {
-		return nil, errors.New("obfs4 transport missing iat-mode argument")
-	}
-
-	switch untypedCert.(type) {
-	case string:
-		iatModeStr, icerr := interconv.ParseString(untypedIatMode)
-		if icerr != nil {
-			return nil, icerr
-		}
-		iatModeInt, scerr := strconv.Atoi(iatModeStr)
-		if scerr != nil {
-			return nil, errors.New("obfs4 transport bad iat-mode value")
-		}
-		switch iatModeInt {
-		case 0:
-			iatMode = iatModeInt
-		case 1:
-			iatMode = iatModeInt
-		default:
-			return nil, errors.New("unsupported value for obfs4 iat-mode option")
-		}
-	case float64:
-		iatModeFloat, icerr := interconv.ParseFloat64(untypedIatMode)
-		if icerr != nil {
-			return nil, icerr
-		}
-		iatModeInt := int(iatModeFloat)
-		switch iatModeInt {
-		case 0:
-			iatMode = iatModeInt
-		case 1:
-			iatMode = iatModeInt
-		default:
-			return nil, errors.New("unsupported value for obfs4 iat-mode option")
-		}
-	case int:
-		iatModeInt, icerr := interconv.ParseInt(untypedIatMode)
-		if icerr != nil {
-			return nil, icerr
-		}
-		switch iatModeInt {
-		case 0:
-			iatMode = iatModeInt
-		case 1:
-			iatMode = iatModeInt
-		default:
-			return nil, errors.New("unsupported value for obfs4 iat-mode option")
-		}
-	case bool:
-		iatModeBool, icerr := interconv.ParseBoolean(untypedCert)
-		if icerr != nil {
-			return nil, icerr
-		}
-		switch iatModeBool {
-		case true:
-			iatMode = 1
-		case false:
-			iatMode = 0
-		}
-	default:
-		return nil, errors.New("unsupported type for obfs4 iat-mode option")
+	bytes := []byte(args)
+	jsonError := json.Unmarshal(bytes, &config)
+	if jsonError != nil {
+		return nil, errors.New("obfs4 options json decoding error")
 	}
 
 	transport := obfs4.Transport{
-		CertString: cert,
-		IatMode:    iatMode,
+		CertString: config.CertString,
+		IatMode:    config.IatMode,
 		Address:    target,
 		Dialer:     dialer,
 	}
@@ -166,27 +85,17 @@ func ParseArgsShadow(args string, target string, dialer proxy.Dialer) (*shadow.T
 	return &transport, nil
 }
 
-func ParseArgsDust(args map[string]interface{}, target string, dialer proxy.Dialer) (*Dust.Transport, error) {
-	var serverPublic string
+func ParseArgsDust(args string, target string, dialer proxy.Dialer) (*Dust.Transport, error) {
+	var config Dust.Config
 
-	untypedServerPublic, ok := args["serverPublic"]
-	if !ok {
-		return nil, errors.New("dust transport missing serverpublic argument")
-	}
-
-	switch untypedServerPublic.(type) {
-	case string:
-		var icerr error
-		serverPublic, icerr = interconv.ParseString(untypedServerPublic)
-		if icerr != nil {
-			return nil, icerr
-		}
-	default:
-		return nil, errors.New("unsupported type for dust serverpublic option")
+	bytes := []byte(args)
+	jsonError := json.Unmarshal(bytes, &config)
+	if jsonError != nil {
+		return nil, errors.New("dust options json decoding error")
 	}
 
 	transport := Dust.Transport{
-		ServerPublic: serverPublic,
+		ServerPublic: config.ServerPublic,
 		Address:      target,
 		Dialer:       dialer,
 	}
@@ -250,87 +159,42 @@ func ParseArgsReplicantClient(args string, target string, dialer proxy.Dialer) (
 }
 
 //  target string, dialer proxy.Dialer
-func ParseArgsReplicantServer(args map[string]interface{}) (*replicant.ServerConfig, error) {
+func ParseArgsReplicantServer(args string) (*replicant.ServerConfig, error) {
+	var config *replicant.ServerConfig
 
-	if args == nil {
-		defaultConfig := CreateDefaultReplicantServer()
-		configPointer := &defaultConfig
-		return configPointer, nil
+	type replicantJsonConfig struct {
+		Config string
 	}
-
-	untypedConfig, ok := args["config"]
-	if untypedConfig == nil {
-		defaultConfig := CreateDefaultReplicantServer()
-		configPointer := &defaultConfig
-		return configPointer, nil
+	var ReplicantConfig replicantJsonConfig
+	if args =="" {
+		transport := CreateDefaultReplicantServer()
+		return &transport, nil
 	}
-	if !ok {
-		return nil, errors.New("replicant transport missing config argument")
+	argsBytes := []byte(args)
+	unmarshalError:= json.Unmarshal(argsBytes, &ReplicantConfig)
+	if unmarshalError != nil {
+		return nil, errors.New("could not unmarshal Replicant args")
 	}
-
-	switch untypedConfig.(type) {
-	case string:
-		configString := untypedConfig.(string)
-
-		var config *replicant.ServerConfig
-		var parseErr error
-		config, parseErr = replicant.DecodeServerConfig(configString)
-		if parseErr != nil {
-			return nil, errors.New("could not parse config")
-		}
-
-		return config, nil
-	default:
-		return nil, errors.New("unsupported type for replicant config option")
+	var parseErr error
+	config, parseErr = replicant.DecodeServerConfig(ReplicantConfig.Config)
+	if parseErr != nil {
+		return nil, errors.New("could not parse config")
 	}
+	return config, nil
 }
 
-func ParseArgsMeeklite(args map[string]interface{}, target string, dialer proxy.Dialer) (*meeklite.Transport, error) {
+func ParseArgsMeeklite(args string, target string, dialer proxy.Dialer) (*meeklite.Transport, error) {
+	var config meeklite.Config
 
-	var url *gourl.URL
-	var front string
-
-	untypedUrl, ok := args["url"]
-	if !ok {
-		return nil, errors.New("meeklite transport missing url argument")
-	}
-
-	switch untypedUrl.(type) {
-	case string:
-
-		urlString, icerr := interconv.ParseString(untypedUrl)
-		if icerr != nil {
-			return nil, icerr
-		}
-		var parseErr error
-		url, parseErr = gourl.Parse(urlString)
-		if parseErr != nil {
-			return nil, errors.New("could not parse meeklite URL")
-		}
-
-	default:
-		return nil, errors.New("unsupported type for meeklite url option")
-	}
-
-	untypedFront, ok2 := args["front"]
-	if !ok2 {
-		return nil, errors.New("meeklite transport missing front argument")
-	}
-
-	switch untypedFront.(type) {
-	case string:
-		var icerr error
-		front, icerr = interconv.ParseString(untypedFront)
-		if icerr != nil {
-			return nil, icerr
-		}
-	default:
-		return nil, errors.New("unsupported type for meeklite front option")
+	bytes := []byte(args)
+	jsonError := json.Unmarshal(bytes, &config)
+	if jsonError != nil {
+		return nil, errors.New("meeklite options json decoding error")
 	}
 
 	transport := meeklite.Transport{
-		Url:     url,
-		Front:   front,
+		Url:     config.Url,
+		Front:   config.Front,
 		Address: target,
 		Dialer:  dialer,
 	}
@@ -475,19 +339,19 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 		}
 		return shadowTransport, nil
 	case "obfs4":
-		obfs4Transport, parseErr := ParseArgsObfs4(config, address, dialer)
+		obfs4Transport, parseErr := ParseArgsObfs4(jsonConfigString, address, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse obfs4 Args")
 		}
 		return obfs4Transport, nil
 	case "meeklite":
-		meekliteTransport, parseErr := ParseArgsMeeklite(config, address, dialer)
+		meekliteTransport, parseErr := ParseArgsMeeklite(jsonConfigString, address, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse meeklite Args")
 		}
 		return meekliteTransport, nil
 	case "Dust":
-		DustTransport, parseErr := ParseArgsDust(config, address, dialer)
+		DustTransport, parseErr := ParseArgsDust(jsonConfigString, address, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse dust Args")
 		}
@@ -499,7 +363,7 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 		}
 		return replicantTransport, nil
 	case "Optimizer":
-		optimizerTransport, parseErr := ParseArgsOptimizer(config, dialer)
+		optimizerTransport, parseErr := ParseArgsOptimizer(jsonConfigString, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse Optimizer Args")
 		}
