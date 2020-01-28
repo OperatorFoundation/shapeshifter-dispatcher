@@ -171,7 +171,7 @@ func resolveAddrStr(addrStr string) (*net.TCPAddr, error) {
 }
 
 // target is the server address string
-func ArgsToDialer(target string, name string, args map[string]interface{}, dialer proxy.Dialer) (Optimizer.Transport, error) {
+func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) (Optimizer.Transport, error) {
 	switch name {
 	case "obfs2":
 		transport := obfs2.New(target, dialer)
@@ -186,6 +186,7 @@ func ArgsToDialer(target string, name string, args map[string]interface{}, diale
 			return transport, nil
 		}
 	case "shadow":
+
 		transport, err := transports.ParseArgsShadow(args, target, dialer)
 		if err != nil {
 			log.Errorf("Could not parse options %s", err.Error())

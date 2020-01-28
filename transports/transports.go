@@ -31,6 +31,7 @@ package transports
 
 import (
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
@@ -146,45 +147,18 @@ func ParseArgsObfs4(args map[string]interface{}, target string, dialer proxy.Dia
 	return &transport, nil
 }
 
-func ParseArgsShadow(args map[string]interface{}, target string, dialer proxy.Dialer) (*shadow.Transport, error) {
-	var password string
-	var cipherName string
+func ParseArgsShadow(args string, target string, dialer proxy.Dialer) (*shadow.Transport, error) {
+	var config shadow.Config
 
-	untypedPassword, ok := args["password"]
-	if !ok {
-		return nil, errors.New("shadow transport missing password argument")
-	}
-
-	switch untypedPassword.(type) {
-	case string:
-		var icerr error
-		password, icerr = interconv.ParseString(untypedPassword)
-		if icerr != nil {
-			return nil, icerr
-		}
-	default:
-		return nil, errors.New("unsupported type for shadow password option")
-	}
-
-	untypedCipherName, ok2 := args["cipherName"]
-	if !ok2 {
-		return nil, errors.New("shadow transport missing cipherName argument")
-	}
-
-	switch untypedCipherName.(type) {
-	case string:
-		var icerr error
-		cipherName, icerr = interconv.ParseString(untypedCipherName)
-		if icerr != nil {
-			return nil, icerr
-		}
-	default:
-		return nil, errors.New("unsupported type for shadow cipherName option")
+	bytes := []byte(args)
+	jsonError := json.Unmarshal(bytes, &config)
+	if jsonError != nil {
+		return nil, errors.New("shadow options json decoding error")
 	}
 
 	transport := shadow.Transport{
-		Password:   password,
-		CipherName: cipherName,
+		Password:   config.Password,
+		CipherName: config.CipherName,
 		Address:    target,
 		Dialer:     dialer,
 	}
@@ -244,34 +218,26 @@ func CreateDefaultReplicantServer() (replicant.ServerConfig) {
 	return config
 }
 
-func ParseArgsReplicantClient(args map[string]interface{}, target string, dialer proxy.Dialer) (*replicant.Transport, error) {
+func ParseArgsReplicantClient(args string, target string, dialer proxy.Dialer) (*replicant.Transport, error) {
 	var config *replicant.ClientConfig
 
-	if args == nil{
+	type replicantJsonConfig struct {
+		Config string
+	}
+	var ReplicantConfig replicantJsonConfig
+	if args =="" {
 		transport := CreateDefaultReplicantClient(target, dialer)
 		return transport, nil
 	}
-
-	untypedConfig, ok := args["config"]
-	if untypedConfig == nil {
-		transport := CreateDefaultReplicantClient(target, dialer)
-		return transport, nil
+	argsBytes := []byte(args)
+	unmarshalError:= json.Unmarshal(argsBytes, &ReplicantConfig)
+	if unmarshalError != nil {
+		return nil, errors.New("could not unmarshal Replicant args")
 	}
-	if !ok {
-		return nil, errors.New("replicant transport missing config argument")
-	}
-
-	switch untypedConfig.(type) {
-	case string:
-		configString := untypedConfig.(string)
-
-		var parseErr error
-		config, parseErr = replicant.DecodeClientConfig(configString)
-		if parseErr != nil {
-			return nil, errors.New("could not parse config")
-		}
-	default:
-		return nil, errors.New("unsupported type for replicant config option")
+	var parseErr error
+	config, parseErr = replicant.DecodeClientConfig(ReplicantConfig.Config)
+	if parseErr != nil {
+		return nil, errors.New("could not parse config")
 	}
 
 	transport := replicant.Transport{
@@ -286,7 +252,7 @@ func ParseArgsReplicantClient(args map[string]interface{}, target string, dialer
 //  target string, dialer proxy.Dialer
 func ParseArgsReplicantServer(args map[string]interface{}) (*replicant.ServerConfig, error) {
 
-	if args == nil{
+	if args == nil {
 		defaultConfig := CreateDefaultReplicantServer()
 		configPointer := &defaultConfig
 		return configPointer, nil
@@ -317,54 +283,6 @@ func ParseArgsReplicantServer(args map[string]interface{}) (*replicant.ServerCon
 	default:
 		return nil, errors.New("unsupported type for replicant config option")
 	}
-}
-
-func parseClientConfig(args map[string]interface{}) (*polish.SilverPolishClientConfig, error) {
-	var serverPublicKey []byte
-	var chunkSize int
-
-	untypedServerPublicKey, ok := args["serverPublicKey"]
-	if !ok {
-		return nil, errors.New("replicant transport clientConfig  missing serverPublicKey")
-	}
-
-	switch untypedServerPublicKey.(type) {
-	case string:
-		sequenceString, icError := interconv.ParseString(untypedServerPublicKey)
-		if icError != nil {
-			log.Errorf("could not parse clientConfig serverPublicKey string")
-		}
-		var byteErr error
-		serverPublicKey, byteErr = hex.DecodeString(sequenceString)
-		if byteErr != nil {
-			log.Errorf("could not parse clientConfig serverPublicKey string bytes")
-		}
-	default:
-		return nil, errors.New("unsupported type for replicant clientConfig serverPublicKey option")
-	}
-
-	untypedChunkSize, ok := args["chunkSize"]
-	if !ok {
-		return nil, errors.New("replicant transport missing clientConfig chunkSize argument")
-	}
-
-	switch untypedChunkSize.(type) {
-	case float64:
-		var icError error
-		chunkSize, icError = interconv.ParseInt(untypedChunkSize)
-		if icError != nil {
-			log.Errorf("could not parse clientConfig chunkSize")
-		}
-	default:
-		return nil, errors.New("unsupported type for clientConfig chunkSize option")
-	}
-
-	silverPolishClientConfig := polish.SilverPolishClientConfig{
-		ServerPublicKey: serverPublicKey,
-		ChunkSize:       chunkSize,
-	}
-
-	return &silverPolishClientConfig, nil
 }
 
 func ParseArgsMeeklite(args map[string]interface{}, target string, dialer proxy.Dialer) (*meeklite.Transport, error) {
@@ -420,27 +338,9 @@ func ParseArgsMeeklite(args map[string]interface{}, target string, dialer proxy.
 	return &transport, nil
 }
 
-func ParseArgsOptimizer(args map[string]interface{}, dialer proxy.Dialer) (*Optimizer.Client, error) {
+func ParseArgsOptimizer(args string, dialer proxy.Dialer) (*Optimizer.Client, error) {
 	var transports []Optimizer.Transport
 	var strategy Optimizer.Strategy
-
-	untypedTransports, ok := args["transports"]
-	if !ok {
-		return nil, errors.New("optimizer transport missing transports argument")
-	}
-
-	switch untypedTransports.(type) {
-	case []interface{}:
-		otcs := untypedTransports.([]interface{})
-
-		var parseErr error
-		transports, parseErr = parseTransports(otcs, dialer)
-		if parseErr != nil {
-			return nil, errors.New("could not parse transports")
-		}
-	default:
-		return nil, errors.New("unsupported type for Optimizer transports option")
-	}
 
 	untypedStrategy, ok2 := args["strategy"]
 	if !ok2 {
@@ -460,6 +360,24 @@ func ParseArgsOptimizer(args map[string]interface{}, dialer proxy.Dialer) (*Opti
 		}
 	default:
 		return nil, errors.New("unsupported type for optimizer strategy option")
+	}
+
+	untypedTransports, ok := args["transports"]
+	if !ok {
+		return nil, errors.New("optimizer transport missing transports argument")
+	}
+
+	switch untypedTransports.(type) {
+	case []interface{}:
+		otcs := untypedTransports.([]interface{})
+
+		var parseErr error
+		transports, parseErr = parseTransports(otcs, dialer)
+		if parseErr != nil {
+			return nil, errors.New("could not parse transports")
+		}
+	default:
+		return nil, errors.New("unsupported type for Optimizer transports option")
 	}
 
 	transport := Optimizer.Client{
@@ -516,41 +434,18 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 	var name string
 	var config map[string]interface{}
 
-	//start by parsing the address
-	untypedAddress, ok := otc["address"]
-	if !ok {
-		return nil, errors.New("missing address in transport parser")
+	type PartialOptimizerConfig struct {
+		Address string
+		Name    string
 	}
-
-	switch untypedAddress.(type) {
-
-	case string:
-		var icerr error
-		address, icerr = interconv.ParseString(untypedAddress)
-		if icerr != nil {
-			return nil, icerr
-		}
-
-	default:
-		return nil, errors.New("unsupported type for optimizer address option")
+	jsonString, MarshalErr := json.Marshal(otc)
+	if MarshalErr != nil {
+		return nil, errors.New("error marshalling optimizer otc")
 	}
-	//now to parse the name
-	untypedName, ok2 := otc["name"]
-	if !ok2 {
-		return nil, errors.New("missing name in transport parser")
-	}
-
-	switch untypedName.(type) {
-
-	case string:
-		var icerr error
-		name, icerr = interconv.ParseString(untypedName)
-		if icerr != nil {
-			return nil, icerr
-		}
-
-	default:
-		return nil, errors.New("unsupported type for optimizer name option")
+	var PartialConfig PartialOptimizerConfig
+	unmarshalError := json.Unmarshal(jsonString, &PartialConfig)
+	if unmarshalError != nil {
+		return nil, errors.New("error unmarshalling optimizer otc")
 	}
 	//on to parsing the config
 	untypedConfig, ok3 := otc["config"]
@@ -567,9 +462,14 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 		return nil, errors.New("unsupported type for optimizer config option")
 	}
 
+	jsonConfigBytes, configMarshalError:= json.Marshal(config)
+	if configMarshalError != nil {
+		return nil, errors.New("could not marshal Optimizer config")
+	}
+	jsonConfigString:= string(jsonConfigBytes)
 	switch name {
 	case "shadow":
-		shadowTransport, parseErr := ParseArgsShadow(config, address, dialer)
+		shadowTransport, parseErr := ParseArgsShadow(jsonConfigString, address, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse shadow Args")
 		}
@@ -593,7 +493,7 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 		}
 		return DustTransport, nil
 	case "Replicant":
-		replicantTransport, parseErr := ParseArgsReplicantClient(config, address, dialer)
+		replicantTransport, parseErr := ParseArgsReplicantClient(jsonConfigString, address, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse replicant Args")
 		}

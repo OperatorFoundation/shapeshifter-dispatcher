@@ -101,17 +101,17 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 		}
 	}
 	//this is where the refactoring begins
-	args, argsErr := options2.ParseOptions(options)
-	if argsErr != nil {
-		log.Errorf("Error parsing transport options: %s", options)
-		log.Errorf("Error: %s", argsErr)
-		println("-> Error parsing transport options: %s", options)
-		println("-> Error: %s", argsErr)
-		return
-	}
+	//args, argsErr := options2.ParseOptions(options)
+	//if argsErr != nil {
+	//	log.Errorf("Error parsing transport options: %s", options)
+	//	log.Errorf("Error: %s", argsErr)
+	//	println("-> Error parsing transport options: %s", options)
+	//	println("-> Error: %s", argsErr)
+	//	return
+	//}
 
 	// Deal with arguments.
-	transport, argsToDialerErr := pt_extras.ArgsToDialer(target, name, args, dialer)
+	transport, argsToDialerErr := pt_extras.ArgsToDialer(target, name, options, dialer)
 	if argsToDialerErr != nil {
 		log.Errorf("Error creating a transport with the provided options: ", options)
 		log.Errorf("Error: ", argsToDialerErr)
