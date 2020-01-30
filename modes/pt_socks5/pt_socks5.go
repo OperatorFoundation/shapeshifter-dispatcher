@@ -50,7 +50,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
 )
 
-func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, options string) (launched bool, listeners []net.Listener) {
+func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, options string) (launched bool) {
 	// Launch each of the client listeners.
 	for _, name := range names {
 		ln, err := net.Listen("tcp", socksAddr)
@@ -64,7 +64,6 @@ func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, optio
 
 		log.Infof("%s - registered listener: %s", name, ln.Addr())
 
-		listeners = append(listeners, ln)
 		launched = true
 	}
 	pt.CmethodsDone()
@@ -159,7 +158,7 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 	return
 }
 
-func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (launched bool, listeners []net.Listener) {
+func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (launched bool) {
 	for _, bindaddr := range ptServerInfo.Bindaddrs {
 		name := bindaddr.MethodName
 
@@ -187,13 +186,13 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 		case "replicant":
 			shargs, aok := args["Replicant"]
 			if !aok {
-				return false, nil
+				return false
 			}
 			//FIXME: This may not be the best way to establish shargs as a string
 			shargsString, err:= options2.CoerceToString(shargs)
 			config, err := transports.ParseArgsReplicantServer(shargsString)
 			if err != nil {
-				return false, nil
+				return false
 			}
 
 			//FIXME: Correct address for listen
@@ -204,29 +203,29 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 		case "Dust":
 			shargs, aok := args["Dust"]
 			if !aok {
-				return false, nil
+				return false
 			}
 
 			untypedIdPath, ok := shargs["Url"]
 			if !ok {
-				return false, nil
+				return false
 			}
 			idPath, err := options2.CoerceToString(untypedIdPath)
 			if err != nil {
 				log.Errorf("could not coerce Dust Url to string")
-				return false, nil
+				return false
 			}
 			transport := Dust.NewDustServer(idPath)
 			listen = transport.Listen
 		case "meeklite":
 			args, aok := args["meeklite"]
 			if !aok {
-				return false, nil
+				return false
 			}
 
 			untypedUrl, ok := args["Url"]
 			if !ok {
-				return false, nil
+				return false
 			}
 
 			Url, err := options2.CoerceToString(untypedUrl)
@@ -236,7 +235,7 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 
 			untypedFront, ok := args["front"]
 			if !ok {
-				return false, nil
+				return false
 			}
 
 			front, err2 := options2.CoerceToString(untypedFront)
@@ -249,12 +248,12 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 		case "shadow":
 			args, aok := args["shadow"]
 			if !aok {
-				return false, nil
+				return false
 			}
 
 			untypedPassword, ok := args["password"]
 			if !ok {
-				return false, nil
+				return false
 			}
 
 			Password, err := options2.CoerceToString(untypedPassword)
@@ -264,7 +263,7 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 
 			untypedCertString, ok := args["certString"]
 			if !ok {
-				return false, nil
+				return false
 			}
 
 			certString, err2 := options2.CoerceToString(untypedCertString)
@@ -279,21 +278,21 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 			return
 		}
 
-		f := listen
-
-		transportLn := f(bindaddr.Addr.String())
-
-		go serverAcceptLoop(name, transportLn, &ptServerInfo)
-
 		// if args := f.Args(); args != nil {
 		// 	pt.SmethodArgs(name, ln.Addr(), *args)
 		// } else {
 		// 	pt.SmethodArgs(name, ln.Addr(), nil)
 		// }
 
-		log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
+		go func() {
+			for {
+				transportLn := listen(bindaddr.Addr.String())
+				log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
+				serverAcceptLoop(name, transportLn, &ptServerInfo)
+				transportLn.Close()
+			}
+		}()
 
-		listeners = append(listeners, transportLn)
 		launched = true
 	}
 	pt.SmethodsDone()
