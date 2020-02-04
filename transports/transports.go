@@ -32,13 +32,13 @@ package transports
 import (
 	"encoding/json"
 	"errors"
+	options "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer"
 	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
-	"github.com/mufti1/interconv/package"
 	"golang.org/x/net/proxy"
 )
 
@@ -202,28 +202,33 @@ func ParseArgsMeeklite(args string, target string, dialer proxy.Dialer) (*meekli
 	return &transport, nil
 }
 
-func ParseArgsOptimizer(args string, dialer proxy.Dialer) (*Optimizer.Client, error) {
+func ParseArgsOptimizer(jsonConfig string, dialer proxy.Dialer) (*Optimizer.Client, error) {
 	var transports []Optimizer.Transport
 	var strategy Optimizer.Strategy
+	args, parseErr := options.ParseOptions(jsonConfig)
+	if parseErr != nil {
+		return nil, errors.New("could not marshal optimizer config")
+	}
+	//jsonBytes := []byte(jsonConfig)
+	//unmarshalErr := json.Unmarshal(jsonBytes, &args)
+	//if unmarshalErr != nil {
+	//	return nil, errors.New("could not unmarshal optimizer config")
+	//}
 
 	untypedStrategy, ok2 := args["strategy"]
 	if !ok2 {
 		return nil, errors.New("optimizer transport missing strategy argument")
 	}
 
-	switch untypedStrategy.(type) {
-	case string:
-		strategyString, icerr := interconv.ParseString(untypedStrategy)
-		if icerr != nil {
-			return nil, icerr
-		}
-		var parseErr error
-		strategy, parseErr = parseStrategy(strategyString, transports)
-		if parseErr != nil {
-			return nil, errors.New("could not parse strategy")
-		}
-	default:
-		return nil, errors.New("unsupported type for optimizer strategy option")
+	//FIXME if possible, replace CoerceToString with json parsing
+	strategyString, icerr := options.CoerceToString(untypedStrategy)
+	if icerr != nil {
+		return nil, icerr
+	}
+
+	strategy, parseErr = parseStrategy(strategyString, transports)
+	if parseErr != nil {
+		return nil, errors.New("could not parse strategy")
 	}
 
 	untypedTransports, ok := args["transports"]
