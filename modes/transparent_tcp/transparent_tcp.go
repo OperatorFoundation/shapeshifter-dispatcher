@@ -211,12 +211,13 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 			if !ok {
 				return false, nil
 			}
-			idPath, err := options2.CoerceToString(untypedIdPath)
+			idPathByte, err:= json.Marshal(untypedIdPath)
+			idPathString := string(idPathByte)
 			if err != nil {
 				log.Errorf("could not coerce Dust Url to string")
 				return false, nil
 			}
-			transport := Dust.NewDustServer(idPath)
+			transport := Dust.NewDustServer(idPathString)
 			listen = transport.Listen
 		case "meeklite":
 			args, aok := args["meeklite"]
@@ -229,7 +230,8 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 				return false, nil
 			}
 
-			Url, err := options2.CoerceToString(untypedUrl)
+			urlByte, err:= json.Marshal(untypedUrl)
+			urlString := string(urlByte)
 			if err != nil {
 				log.Errorf("could not coerce meeklite Url to string")
 			}
@@ -239,12 +241,13 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 				return false, nil
 			}
 
-			front, err2 := options2.CoerceToString(untypedFront)
+			frontByte, err2:= json.Marshal(untypedFront)
+			frontString := string(frontByte)
 			if err2 != nil {
 				log.Errorf("could not coerce meeklite front to string")
 			}
 			var dialer proxy.Dialer
-			transport := meeklite.NewMeekTransportWithFront(Url, front, dialer)
+			transport := meeklite.NewMeekTransportWithFront(urlString, frontString, dialer)
 			listen = transport.Listen
 		case "shadow":
 			args, aok := args["shadow"]
@@ -257,22 +260,24 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 				return false, nil
 			}
 
-			Password, err := options2.CoerceToString(untypedPassword)
+			passwordByte, err:= json.Marshal(untypedPassword)
+			passwordString := string(passwordByte)
 			if err != nil {
 				log.Errorf("could not coerce shadow password to string")
 			}
 
-			untypedCipherNameString, ok := args["cipherName"]
+			untypedCertString, ok := args["certString"]
 			if !ok {
 				return false, nil
 			}
 
-			cipherNameString, err2 := options2.CoerceToString(untypedCipherNameString)
+			certByte, err2:= json.Marshal(untypedCertString)
+			certString := string(certByte)
 			if err2 != nil {
 				log.Errorf("could not coerce shadow certString to string")
 			}
 
-			transport := shadow.NewShadowServer(Password, cipherNameString)
+			transport := shadow.NewShadowServer(passwordString, certString)
 			listen = transport.Listen
 		default:
 			log.Errorf("Unknown transport: %s", name)
