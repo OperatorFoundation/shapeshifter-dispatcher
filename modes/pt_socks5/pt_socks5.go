@@ -30,6 +30,7 @@
 package pt_socks5
 
 import (
+	"encoding/json"
 	"fmt"
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
@@ -189,8 +190,9 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 			if !aok {
 				return false, nil
 			}
-			//FIXME: This may not be the best way to establish shargs as a string
-			shargsString, err:= options2.CoerceToString(shargs)
+			
+			shargsBytes, err:= json.Marshal(shargs)
+			shargsString := string(shargsBytes)
 			config, err := transports.ParseArgsReplicantServer(shargsString)
 			if err != nil {
 				return false, nil

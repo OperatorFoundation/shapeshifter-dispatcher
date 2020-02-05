@@ -30,6 +30,7 @@
 package transparent_tcp
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
@@ -188,8 +189,9 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 					log.Errorf("Unable to parse Replicant arguments.")
 					return false, nil
 				}
-				//FIXME: This may not be the best way to establish shargs as a string
-				shargsString, err:= options2.CoerceToString(shargs)
+				//FIXME put the below code into the other cases
+				shargsBytes, err:= json.Marshal(shargs)
+				shargsString := string(shargsBytes)
 				config, err := transports.ParseArgsReplicantServer(shargsString)
 				if err != nil {
 					println("Received a Replicant config error: ", err.Error())

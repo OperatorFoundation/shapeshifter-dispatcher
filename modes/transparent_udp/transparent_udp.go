@@ -32,6 +32,7 @@ package transparent_udp
 import (
 	"bytes"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
@@ -245,8 +246,9 @@ func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (l
 			if !aok {
 				return false, nil
 			}
-			//FIXME: This may not be the best way to establish shargs as a string
-			shargsString, err:= options2.CoerceToString(shargs)
+
+			shargsBytes, err:= json.Marshal(shargs)
+			shargsString := string(shargsBytes)
 			config, err := transports.ParseArgsReplicantServer(shargsString)
 			if err != nil {
 				return false, nil
