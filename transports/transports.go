@@ -56,9 +56,14 @@ func ParseArgsObfs4(args string, target string, dialer proxy.Dialer) (*obfs4.Tra
 		return nil, errors.New("obfs4 options json decoding error")
 	}
 
+	iatMode := 0
+	if config.IatMode == "1" {
+		iatMode = 1
+	}
+
 	transport := obfs4.Transport{
 		CertString: config.CertString,
-		IatMode:    config.IatMode,
+		IatMode:    iatMode,
 		Address:    target,
 		Dialer:     dialer,
 	}
