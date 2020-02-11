@@ -119,7 +119,7 @@ func main() {
 	target := flag.String("target", "", "Specify transport server destination address")
 	flag.Parse()
 
-	if *version != ""{
+	if *version != "" {
 		ptversion = version
 	}
 
@@ -200,7 +200,7 @@ func main() {
 					// launched = transparent_udp.ServerSetup(termMon, *bindAddr, *target)
 
 					ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
-					launched, _ = transparent_udp.ServerSetup(ptServerInfo, stateDir, *options)
+					launched = transparent_udp.ServerSetup(ptServerInfo, stateDir, *options)
 				}
 			}
 		} else {
@@ -215,7 +215,7 @@ func main() {
 						log.Errorf("must specify -version and -transports")
 						return
 					}
-					launched, _ = transparent_tcp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options)
+					launched = transparent_tcp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options)
 				}
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
@@ -223,7 +223,7 @@ func main() {
 					log.Errorf("%s - transparent mode requires a bindaddr", execName)
 				} else {
 					ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
-					launched, _ = transparent_tcp.ServerSetup(ptServerInfo, stateDir, *options)
+					launched = transparent_tcp.ServerSetup(ptServerInfo, stateDir, *options)
 				}
 			}
 		}
@@ -248,7 +248,7 @@ func main() {
 					log.Errorf("%s - STUN mode requires a bindaddr", execName)
 				} else {
 					ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
-					launched, _ = stun_udp.ServerSetup(ptServerInfo, stateDir, *options)
+					launched = stun_udp.ServerSetup(ptServerInfo, stateDir, *options)
 				}
 			}
 		} else {
@@ -261,11 +261,11 @@ func main() {
 					log.Errorf("must specify -version and -transports")
 					return
 				}
-				launched, _ = pt_socks5.ClientSetup(*socksAddr, ptClientProxy, names, *options)
+				launched = pt_socks5.ClientSetup(*socksAddr, ptClientProxy, names, *options)
 			} else {
 				log.Infof("%s - initializing server transport listeners", execName)
 				ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
-				launched, _ = pt_socks5.ServerSetup(ptServerInfo, stateDir, *options)
+				launched = pt_socks5.ServerSetup(ptServerInfo, stateDir, *options)
 			}
 		}
 	}
@@ -282,7 +282,7 @@ func main() {
 		_, _ = io.Copy(ioutil.Discard, os.Stdin)
 		os.Exit(-1)
 	} else {
-		select{}
+		select {}
 	}
 }
 

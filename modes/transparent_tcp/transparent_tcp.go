@@ -51,7 +51,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 )
 
-func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) (launched bool, listeners []net.Listener) {
+func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) (launched bool) {
 	// Launch each of the client listeners.
 	for _, name := range names {
 		ln, err := net.Listen("tcp", socksAddr)
@@ -61,10 +61,7 @@ func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names 
 		}
 
 		go clientAcceptLoop(target, name, options, ln, ptClientProxy)
-
 		log.Infof("%s - registered listener: %s", name, ln.Addr())
-
-		listeners = append(listeners, ln)
 		launched = true
 	}
 
@@ -149,7 +146,7 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 	}
 }
 
-func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (launched bool, listeners []net.Listener) {
+func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (launched bool) {
 	// Launch each of the server listeners.
 	for _, bindaddr := range ptServerInfo.Bindaddrs {
 		name := bindaddr.MethodName
@@ -171,7 +168,7 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 			transport, err := obfs4.NewObfs4Server(statedir)
 			if err != nil {
 				log.Errorf("Can't start obfs4 transport: %v", err)
-				return false, nil
+				return false
 			}
 			listen = transport.Listen
 		case "Replicant":
@@ -186,7 +183,7 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 				if !aok {
 					println("error parsing Replicant arguments: ", shargs)
 					log.Errorf("Unable to parse Replicant arguments.")
-					return false, nil
+					return false
 				}
 				//FIXME: This may not be the best way to establish shargs as a string
 				shargsString, err:= options2.CoerceToString(shargs)
@@ -194,7 +191,7 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 				if err != nil {
 					println("Received a Replicant config error: ", err.Error())
 					log.Errorf(err.Error())
-					return false, nil
+					return false
 				}
 
 				listen = config.Listen
@@ -202,29 +199,29 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 		case "Dust":
 			shargs, aok := args["Dust"]
 			if !aok {
-				return false, nil
+				return false
 			}
 
 			untypedIdPath, ok := shargs["Url"]
 			if !ok {
-				return false, nil
+				return false
 			}
 			idPath, err := options2.CoerceToString(untypedIdPath)
 			if err != nil {
 				log.Errorf("could not coerce Dust Url to string")
-				return false, nil
+				return false
 			}
 			transport := Dust.NewDustServer(idPath)
 			listen = transport.Listen
 		case "meeklite":
 			args, aok := args["meeklite"]
 			if !aok {
-				return false, nil
+				return false
 			}
 
 			untypedUrl, ok := args["Url"]
 			if !ok {
-				return false, nil
+				return false
 			}
 
 			Url, err := options2.CoerceToString(untypedUrl)
@@ -234,7 +231,7 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 
 			untypedFront, ok := args["front"]
 			if !ok {
-				return false, nil
+				return false
 			}
 
 			front, err2 := options2.CoerceToString(untypedFront)
@@ -247,12 +244,12 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 		case "shadow":
 			args, aok := args["shadow"]
 			if !aok {
-				return false, nil
+				return false
 			}
 
 			untypedPassword, ok := args["password"]
 			if !ok {
-				return false, nil
+				return false
 			}
 
 			Password, err := options2.CoerceToString(untypedPassword)
@@ -262,7 +259,7 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 
 			untypedCipherNameString, ok := args["cipherName"]
 			if !ok {
-				return false, nil
+				return false
 			}
 
 			cipherNameString, err2 := options2.CoerceToString(untypedCipherNameString)
@@ -274,16 +271,18 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 			listen = transport.Listen
 		default:
 			log.Errorf("Unknown transport: %s", name)
-			return false, nil
+			return false
 		}
 
-		transportLn := listen(bindaddr.Addr.String())
+		go func() {
+			for {
+				transportLn := listen(bindaddr.Addr.String())
+				log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
+				serverAcceptLoop(name, transportLn, &ptServerInfo)
+				transportLn.Close()
+			}
+		}()
 
-		go serverAcceptLoop(name, transportLn, &ptServerInfo)
-
-		log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
-
-		listeners = append(listeners, transportLn)
 		launched = true
 	}
 

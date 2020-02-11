@@ -194,7 +194,7 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 	(*tracker)[addr] = ConnState{remote, false}
 }
 
-func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (launched bool, listeners []net.Listener) {
+func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (launched bool) {
 	fmt.Println("ServerSetup")
 
 	// Launch each of the server listeners.
@@ -225,24 +225,24 @@ func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (l
 		case "Replicant":
 			shargs, aok := args["Replicant"]
 			if !aok {
-				return false, nil
+				return false
 			}
 			//FIXME: This may not be the best way to establish shargs as a string
 			shargsString, err:= options2.CoerceToString(shargs)
 			config, err := transports.ParseArgsReplicantServer(shargsString)
 			if err != nil {
-				return false, nil
+				return false
 			}
 			config.Listen(bindaddr.Addr.String())
 		case "meeklite":
 			args, aok := args["meeklite"]
 			if !aok {
-				return false, nil
+				return false
 			}
 
 			untypedUrl, ok := args["Url"]
 			if !ok {
-				return false, nil
+				return false
 			}
 
 			Url, err := options2.CoerceToString(untypedUrl)
@@ -252,7 +252,7 @@ func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (l
 
 			untypedFront, ok := args["front"]
 			if !ok {
-				return false, nil
+				return false
 			}
 
 			front, err2 := options2.CoerceToString(untypedFront)
@@ -265,29 +265,29 @@ func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (l
 		case "Dust":
 			shargs, aok := args["Dust"]
 			if !aok {
-				return false, nil
+				return false
 			}
 
 			untypedIdPath, ok := shargs["Url"]
 			if !ok {
-				return false, nil
+				return false
 			}
 			idPath, err := options2.CoerceToString(untypedIdPath)
 			if err != nil {
 				log.Errorf("could not coerce Dust Url to string")
-				return false, nil
+				return false
 			}
 			transport := Dust.NewDustServer(idPath)
 			listen = transport.Listen
 		case "shadow":
 			args, aok := args["shadow"]
 			if !aok {
-				return false, nil
+				return false
 			}
 
 			untypedPassword, ok := args["password"]
 			if !ok {
-				return false, nil
+				return false
 			}
 
 			Password, err := options2.CoerceToString(untypedPassword)
@@ -297,7 +297,7 @@ func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (l
 
 			untypedCertString, ok := args["certString"]
 			if !ok {
-				return false, nil
+				return false
 			}
 
 			certString, err2 := options2.CoerceToString(untypedCertString)
@@ -313,13 +313,15 @@ func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (l
 			return
 		}
 
-		transportLn := listen(bindaddr.Addr.String())
+		go func() {
+			for {
+				transportLn := listen(bindaddr.Addr.String())
+				log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
+				serverAcceptLoop(name, transportLn, &ptServerInfo)
+				transportLn.Close()
+			}
+		}()
 
-		go serverAcceptLoop(name, transportLn, &ptServerInfo)
-
-		log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
-
-		listeners = append(listeners, transportLn)
 		launched = true
 	}
 
