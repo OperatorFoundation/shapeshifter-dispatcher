@@ -30,6 +30,7 @@
 package pt_socks5
 
 import (
+	"encoding/json"
 	"fmt"
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
@@ -188,8 +189,9 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 			if !aok {
 				return false
 			}
-			//FIXME: This may not be the best way to establish shargs as a string
-			shargsString, err:= options2.CoerceToString(shargs)
+
+			shargsBytes, err:= json.Marshal(shargs)
+			shargsString := string(shargsBytes)
 			config, err := transports.ParseArgsReplicantServer(shargsString)
 			if err != nil {
 				return false
@@ -210,12 +212,13 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 			if !ok {
 				return false
 			}
-			idPath, err := options2.CoerceToString(untypedIdPath)
+			idPathByte, err:= json.Marshal(untypedIdPath)
+			idPathString := string(idPathByte)
 			if err != nil {
 				log.Errorf("could not coerce Dust Url to string")
 				return false
 			}
-			transport := Dust.NewDustServer(idPath)
+			transport := Dust.NewDustServer(idPathString)
 			listen = transport.Listen
 		case "meeklite":
 			args, aok := args["meeklite"]
@@ -228,7 +231,8 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 				return false
 			}
 
-			Url, err := options2.CoerceToString(untypedUrl)
+			UrlByte, err:= json.Marshal(untypedUrl)
+			UrlString := string(UrlByte)
 			if err != nil {
 				log.Errorf("could not coerce meeklite Url to string")
 			}
@@ -238,12 +242,13 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 				return false
 			}
 
-			front, err2 := options2.CoerceToString(untypedFront)
+			FrontByte, err2:= json.Marshal(untypedFront)
+			FrontString := string(FrontByte)
 			if err2 != nil {
 				log.Errorf("could not coerce meeklite front to string")
 			}
 			var dialer proxy.Dialer
-			transport := meeklite.NewMeekTransportWithFront(Url, front, dialer)
+			transport := meeklite.NewMeekTransportWithFront(UrlString, FrontString, dialer)
 			listen = transport.Listen
 		case "shadow":
 			args, aok := args["shadow"]
@@ -256,7 +261,8 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 				return false
 			}
 
-			Password, err := options2.CoerceToString(untypedPassword)
+			passwordByte, err:= json.Marshal(untypedPassword)
+			passwordString := string(passwordByte)
 			if err != nil {
 				log.Errorf("could not coerce shadow password to string")
 			}
@@ -266,12 +272,13 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 				return false
 			}
 
-			certString, err2 := options2.CoerceToString(untypedCertString)
+			certByte, err2:= json.Marshal(untypedCertString)
+			certString := string(certByte)
 			if err2 != nil {
 				log.Errorf("could not coerce shadow certString to string")
 			}
 
-			transport := shadow.NewShadowServer(Password, certString)
+			transport := shadow.NewShadowServer(passwordString, certString)
 			listen = transport.Listen
 		default:
 			log.Errorf("Unknown transport: %s", name)
