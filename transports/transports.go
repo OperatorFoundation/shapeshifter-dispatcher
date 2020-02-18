@@ -84,10 +84,21 @@ func ParseArgsShadow(args string, target string, dialer proxy.Dialer) (*shadow.T
 		Password:   config.Password,
 		CipherName: config.CipherName,
 		Address:    target,
-		Dialer:     dialer,
 	}
 
 	return &transport, nil
+}
+
+func ParseArgsShadowServer(args string) (*shadow.Config, error) {
+	var config shadow.Config
+
+	bytes := []byte(args)
+	jsonError := json.Unmarshal(bytes, &config)
+	if jsonError != nil {
+		return nil, errors.New("shadow server options json decoding error")
+	}
+
+	return &config, nil
 }
 
 func ParseArgsDust(args string, target string, dialer proxy.Dialer) (*Dust.Transport, error) {

@@ -49,7 +49,6 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow"
 )
 
 func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) (launched bool) {
@@ -252,30 +251,16 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 				return false
 			}
 
-			untypedPassword, ok := args["password"]
-			if !ok {
-				return false
-			}
-
-			passwordByte, err:= json.Marshal(untypedPassword)
-			passwordString := string(passwordByte)
+			argsBytes, err:= json.Marshal(args)
+			argsString := string(argsBytes)
+			config, err := transports.ParseArgsShadowServer(argsString)
 			if err != nil {
-				log.Errorf("could not coerce shadow password to string")
-			}
-
-			untypedCertString, ok := args["certString"]
-			if !ok {
+				println("Received a Replicant config error: ", err.Error())
+				log.Errorf(err.Error())
 				return false
 			}
 
-			certByte, err2:= json.Marshal(untypedCertString)
-			certString := string(certByte)
-			if err2 != nil {
-				log.Errorf("could not coerce shadow certString to string")
-			}
-
-			transport := shadow.NewShadowServer(passwordString, certString)
-			listen = transport.Listen
+			listen = config.Listen
 		default:
 			log.Errorf("Unknown transport: %s", name)
 			return false
@@ -286,7 +271,10 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 				transportLn := listen(bindaddr.Addr.String())
 				log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
 				serverAcceptLoop(name, transportLn, &ptServerInfo)
-				transportLn.Close()
+				transportLnErr := transportLn.Close()
+				if transportLnErr != nil {
+					log.Errorf("Listener close error: %s", transportLnErr.Error())
+				}
 			}
 		}()
 
