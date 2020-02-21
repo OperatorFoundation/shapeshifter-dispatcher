@@ -43,7 +43,12 @@ import (
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
+
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2"
 	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2"
 )
 
 func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) (launched bool) {

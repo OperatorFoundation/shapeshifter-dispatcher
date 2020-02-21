@@ -313,7 +313,7 @@ func getClientNames(ptversion *string, transportsList *string, proxy *string) (c
 	var err error
 
 	if ptversion == nil || transportsList == nil {
-		log.Infof("Falling back to environment variables for ptversion/transports")
+		log.Infof("Falling back to environment variables for ptversion/transports.")
 		ptClientInfo, err = pt.ClientSetup(transports.Transports())
 		if err != nil {
 			return nil, nil, err

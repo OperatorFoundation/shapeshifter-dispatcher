@@ -31,7 +31,6 @@ import (
 	"errors"
 	"fmt"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
 	"golang.org/x/net/proxy"
