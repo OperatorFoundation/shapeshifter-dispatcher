@@ -43,6 +43,7 @@ import (
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/pt_socks5"

@@ -34,6 +34,7 @@ import (
 	"fmt"
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	common "github.com/willscott/goturn/common"
 	"golang.org/x/net/proxy"
 	"io"

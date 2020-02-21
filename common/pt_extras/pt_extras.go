@@ -39,6 +39,7 @@ import (
 	"os"
 	"strconv"
 
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
 )
 
