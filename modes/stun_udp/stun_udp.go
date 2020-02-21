@@ -35,8 +35,6 @@ import (
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
 	common "github.com/willscott/goturn/common"
 	"golang.org/x/net/proxy"
 	"io"
@@ -48,8 +46,6 @@ import (
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
 )
 
 type ConnState struct {

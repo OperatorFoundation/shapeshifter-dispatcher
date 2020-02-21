@@ -35,11 +35,6 @@ import (
 	"fmt"
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust"
-	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2"
 	"golang.org/x/net/proxy"
 	"io"
 	"net"
@@ -48,7 +43,7 @@ import (
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4"
+	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2"
 )
 
 func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) (launched bool) {
