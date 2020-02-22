@@ -25,36 +25,51 @@ SOFTWARE.
 package modes
 
 import (
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
+	"errors"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	pt "github.com/OperatorFoundation/shapeshifter-ipc"
+	"io"
 	"net"
 	"net/url"
+	"sync"
+
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 )
 
-func ClientSetupUDP(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string, clientHandler ClientHandlerUDP) bool {
+func ClientSetupTCP(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string, clientHandler ClientHandlerTCP) (launched bool) {
 	// Launch each of the client listeners.
 	for _, name := range names {
-		udpAddr, err := net.ResolveUDPAddr("udp", socksAddr)
-		if err != nil {
-			log.Errorf("Error resolving address %s", socksAddr)
-		}
-
-		ln, err := net.ListenUDP("udp", udpAddr)
+		ln, err := net.Listen("tcp", socksAddr)
 		if err != nil {
 			log.Errorf("failed to listen %s %s", name, err.Error())
 			continue
 		}
 
-		log.Infof("%s - registered listener", name)
-
-		go clientHandler(target, name, options, ln, ptClientProxy)
+		go clientAcceptLoop(target, name, options, ln, ptClientProxy, clientHandler)
+		log.Infof("%s - registered listener: %s", name, ln.Addr())
+		launched = true
 	}
 
-	return true
+	return
 }
 
-func ServerSetupUDP(ptServerInfo pt.ServerInfo, stateDir string, options string, serverHandler ServerHandler) (launched bool) {
+func clientAcceptLoop(target string, name string, options string, ln net.Listener, proxyURI *url.URL, clientHandler ClientHandlerTCP) {
+	for {
+		conn, err := ln.Accept()
+		if err != nil {
+			if e, ok := err.(net.Error); ok && !e.Temporary() {
+				log.Errorf("Fatal listener error: %s", err.Error())
+				return
+			}
+			log.Warnf("Failed to accept connection: %s", err.Error())
+			continue
+		}
+
+		go clientHandler(target, name, options, conn, proxyURI)
+	}
+}
+
+func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string, serverHandler ServerHandler) (launched bool) {
 	// Launch each of the server listeners.
 	for _, bindaddr := range ptServerInfo.Bindaddrs {
 		name := bindaddr.MethodName
@@ -64,7 +79,6 @@ func ServerSetupUDP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 		if parseError != nil {
 			return false
 		}
-
 
 		go func() {
 			for {
@@ -82,4 +96,45 @@ func ServerSetupUDP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 	}
 
 	return
+}
+
+func CopyLoop(a net.Conn, b net.Conn) error {
+	println("--> Entering copy loop.")
+	// Note: b is always the pt connection.  a is the SOCKS/ORPort connection.
+	errChan := make(chan error, 2)
+
+	var wg sync.WaitGroup
+	wg.Add(2)
+
+	if b == nil {
+		println("--> Copy loop has a nil connection (b).")
+		return errors.New("copy loop has a nil connection (b)")
+	}
+
+	if a == nil {
+		println("--> Copy loop has a nil connection (a).")
+		return errors.New("copy loop has a nil connection (a)")
+	}
+
+	go func() {
+		defer wg.Done()
+		_, err := io.Copy(b, a)
+		errChan <- err
+	}()
+	go func() {
+		defer wg.Done()
+		_, err := io.Copy(a, b)
+		errChan <- err
+	}()
+
+	// Wait for both upstream and downstream to close.  Since one side
+	// terminating closes the other, the second error in the channel will be
+	// something like EINVAL (though io.Copy() will swallow EOF), so only the
+	// first error is returned.
+	wg.Wait()
+	if len(errChan) > 0 {
+		return <-errChan
+	}
+
+	return nil
 }

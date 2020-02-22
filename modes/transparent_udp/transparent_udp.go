@@ -49,21 +49,13 @@ func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names 
 func clientHandler(target string, name string, options string, conn *net.UDPConn, proxyURI *url.URL) {
 	var length16 uint16
 
-	defer conn.Close()
-
-	fmt.Println("@@@ handling...")
-
 	tracker := make(modes.ConnTracker)
-
-	fmt.Println("Transport is", name)
 
 	buf := make([]byte, 1024)
 
 	// Receive UDP packets and forward them over transport connections forever
 	for {
 		n, addr, err := conn.ReadFromUDP(buf)
-		fmt.Println("Received ", string(buf[0:n]), " from ", addr)
-
 		if err != nil {
 			fmt.Println("Error: ", err)
 		}
@@ -76,20 +68,15 @@ func clientHandler(target string, name string, options string, conn *net.UDPConn
 			if state.Waiting {
 				// The connection attempt is in progress.
 				// Drop the packet.
-				fmt.Println("recv: waiting")
 			} else {
 				// There is an open transport connection.
 				// Send the packet through the transport.
-				fmt.Println("recv: write")
 				length16 = uint16(n)
 				lengthBuf := new(bytes.Buffer)
 				err = binary.Write(lengthBuf, binary.LittleEndian, length16)
 				if err != nil {
 					fmt.Println("binary.Write failed:", err)
 				} else {
-					fmt.Println("writing...")
-					fmt.Println(length16)
-					fmt.Println(lengthBuf.Bytes())
 					_, writErr := state.Conn.Write(lengthBuf.Bytes())
 					if writErr != nil {
 						continue
@@ -107,12 +94,9 @@ func clientHandler(target string, name string, options string, conn *net.UDPConn
 			// There is not an open transport connection and a connection attempt is not in progress.
 			// Open a transport connection.
 
-			fmt.Println("Opening connection to ", target)
-
 			modes.OpenConnection(&tracker, addr.String(), target, name, options, proxyURI)
 
 			// Drop the packet.
-			fmt.Println("recv: Open")
 		}
 	}
 }
@@ -145,8 +129,6 @@ func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 
 	fmt.Println("pumping")
 
-	defer dest.Close()
-
 	lengthBuffer := make([]byte, 2)
 
 	for {
@@ -163,6 +145,7 @@ func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 		err = binary.Read(bytes.NewReader(lengthBuffer), binary.LittleEndian, &length16)
 		if err != nil {
 			fmt.Println("deserialization error")
+			_ = dest.Close()
 			return
 		}
 
@@ -177,4 +160,6 @@ func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 
 		_, _ = dest.Write(readBuffer)
 	}
+
+	_ = dest.Close()
 }

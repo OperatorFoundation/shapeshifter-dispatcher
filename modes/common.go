@@ -41,7 +41,9 @@ type ConnState struct {
 
 type ConnTracker map[string]ConnState
 
-type ClientHandler func(target string, name string, options string, conn *net.UDPConn, proxyURI *url.URL)
+type ClientHandlerTCP func(target string, name string, options string, conn net.Conn, proxyURI *url.URL)
+
+type ClientHandlerUDP func(target string, name string, options string, conn *net.UDPConn, proxyURI *url.URL)
 type ServerHandler func(name string, remote net.Conn, info *pt.ServerInfo)
 
 func NewConnState() ConnState {
@@ -94,4 +96,21 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 	fmt.Println("Success")
 
 	(*tracker)[addr] = ConnState{remote, false}
+}
+
+func ServerAcceptLoop(name string, ln net.Listener, info *pt.ServerInfo, serverHandler ServerHandler) {
+	for {
+		conn, err := ln.Accept()
+		fmt.Println("accepted")
+		if err != nil {
+			if e, ok := err.(net.Error); ok && !e.Temporary() {
+				log.Errorf("ServerAcceptLoop failed")
+				_ = ln.Close()
+				return
+			}
+			continue
+		}
+
+		go serverHandler(name, conn, info)
+	}
 }

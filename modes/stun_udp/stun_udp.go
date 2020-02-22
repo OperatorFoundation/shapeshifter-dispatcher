@@ -131,8 +131,6 @@ func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 
 	fmt.Println("pumping")
 
-	defer dest.Close()
-
 	headerBuffer := make([]byte, 20)
 
 	for {
@@ -166,5 +164,6 @@ func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 		_, _ = dest.Write(writeBuffer)
 	}
 
+	_ = dest.Close()
 	_ = remote.Close()
 }
