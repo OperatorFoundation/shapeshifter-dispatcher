@@ -166,7 +166,6 @@ func main() {
 		_, err := os.Stat(*optionsFile)
 		if err != nil {
 			log.Errorf("optionsFile does not exist with error %s %s", *optionsFile, err.Error())
-			log.Errorf("optionsFile does not exist %s", *optionsFile, err.Error())
 		} else {
 			contents, readErr := ioutil.ReadFile(*optionsFile)
 			if readErr != nil {
