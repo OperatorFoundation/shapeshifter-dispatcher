@@ -30,58 +30,20 @@
 package transparent_tcp
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes"
 	"golang.org/x/net/proxy"
-	"io"
 	"net"
 	"net/url"
-	"sync"
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
 
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2"
-	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2"
 )
 
 func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) (launched bool) {
-	// Launch each of the client listeners.
-	for _, name := range names {
-		ln, err := net.Listen("tcp", socksAddr)
-		if err != nil {
-			log.Errorf("failed to listen %s %s", name, err.Error())
-			continue
-		}
-
-		go clientAcceptLoop(target, name, options, ln, ptClientProxy)
-		log.Infof("%s - registered listener: %s", name, ln.Addr())
-		launched = true
-	}
-
-	return
-}
-
-func clientAcceptLoop(target string, name string, options string, ln net.Listener, proxyURI *url.URL) {
-	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			if e, ok := err.(net.Error); ok && !e.Temporary() {
-				log.Errorf("Fatal listener error: %s", err.Error())
-				return
-			}
-			log.Warnf("Failed to accept connection: %s", err.Error())
-			continue
-		}
-		go clientHandler(target, name, options, conn, proxyURI)
-	}
+	return modes.ClientSetupTCP(socksAddr, target, ptClientProxy, names, options, clientHandler)
 }
 
 func clientHandler(target string, name string, options string, conn net.Conn, proxyURI *url.URL) {
@@ -98,15 +60,6 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 			return
 		}
 	}
-	//this is where the refactoring begins
-	//args, argsErr := options2.ParseOptions(options)
-	//if argsErr != nil {
-	//	log.Errorf("Error parsing transport options: %s", options)
-	//	log.Errorf("Error: %s", argsErr)
-	//	println("-> Error parsing transport options: %s", options)
-	//	println("-> Error: %s", argsErr)
-	//	return
-	//}
 
 	// Deal with arguments.
 	transport, argsToDialerErr := pt_extras.ArgsToDialer(target, name, options, dialer)
@@ -138,7 +91,7 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 		log.Errorf("%s - closed connection. Transport server connection is nil", name)
 	}
 
-	if err := copyLoop(conn, remote); err != nil {
+	if err := modes.CopyLoop(conn, remote); err != nil {
 		log.Warnf("%s(%s) - closed connection: %s", name, target, log.ElideError(err))
 		println("%s(%s) - closed connection: %s", name, target, log.ElideError(err))
 	} else {
@@ -148,181 +101,7 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 }
 
 func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (launched bool) {
-	// Launch each of the server listeners.
-	for _, bindaddr := range ptServerInfo.Bindaddrs {
-		name := bindaddr.MethodName
-
-		var listen func(address string) net.Listener
-
-		args, argsErr := options2.ParseServerOptions(options)
-		if argsErr != nil {
-			log.Errorf("Error parsing transport options: %s", options)
-			return
-		}
-
-		// Deal with arguments.
-		switch name {
-		case "obfs2":
-			transport := obfs2.NewObfs2Transport()
-			listen = transport.Listen
-		case "obfs4":
-			transport, err := obfs4.NewObfs4Server(statedir)
-			if err != nil {
-				log.Errorf("Can't start obfs4 transport: %v", err)
-				return false
-			}
-			listen = transport.Listen
-		case "Replicant":
-			shargs, aok := args["Replicant"]
-			if shargs == nil {
-				config := replicant.ServerConfig{
-					Toneburst: nil,
-					Polish:    nil,
-				}
-				listen = config.Listen
-			} else {
-				if !aok {
-					println("error parsing Replicant arguments: ", shargs)
-					log.Errorf("Unable to parse Replicant arguments.")
-					return false
-				}
-				//FIXME put the below code into the other cases
-				shargsBytes, err:= json.Marshal(shargs)
-				shargsString := string(shargsBytes)
-				config, err := transports.ParseArgsReplicantServer(shargsString)
-				if err != nil {
-					println("Received a Replicant config error: ", err.Error())
-					log.Errorf(err.Error())
-					return false
-				}
-
-				listen = config.Listen
-			}
-		case "Dust":
-			shargs, aok := args["Dust"]
-			if !aok {
-				return false
-			}
-
-			untypedIdPath, ok := shargs["Url"]
-			if !ok {
-				return false
-			}
-			idPathByte, err:= json.Marshal(untypedIdPath)
-			idPathString := string(idPathByte)
-			if err != nil {
-				log.Errorf("could not coerce Dust Url to string")
-				return false
-			}
-			transport := Dust.NewDustServer(idPathString)
-			listen = transport.Listen
-		case "meeklite":
-			args, aok := args["meeklite"]
-			if !aok {
-				return false
-			}
-
-			untypedUrl, ok := args["Url"]
-			if !ok {
-				return false
-			}
-
-			urlByte, err:= json.Marshal(untypedUrl)
-			urlString := string(urlByte)
-			if err != nil {
-				log.Errorf("could not coerce meeklite Url to string")
-			}
-
-			untypedFront, ok := args["front"]
-			if !ok {
-				return false
-			}
-
-			frontByte, err2:= json.Marshal(untypedFront)
-			frontString := string(frontByte)
-			if err2 != nil {
-				log.Errorf("could not coerce meeklite front to string")
-			}
-			var dialer proxy.Dialer
-			transport := meeklite.NewMeekTransportWithFront(urlString, frontString, dialer)
-			listen = transport.Listen
-		case "shadow":
-			args, aok := args["shadow"]
-			if !aok {
-				return false
-			}
-
-			argsBytes, err:= json.Marshal(args)
-			argsString := string(argsBytes)
-			config, err := transports.ParseArgsShadowServer(argsString)
-			if err != nil {
-				println("Received a Replicant config error: ", err.Error())
-				log.Errorf(err.Error())
-				return false
-			}
-
-			listen = config.Listen
-		default:
-			log.Errorf("Unknown transport: %s", name)
-			return false
-		}
-
-		go func() {
-			for {
-				transportLn := listen(bindaddr.Addr.String())
-				log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
-				serverAcceptLoop(name, transportLn, &ptServerInfo)
-				transportLnErr := transportLn.Close()
-				if transportLnErr != nil {
-					log.Errorf("Listener close error: %s", transportLnErr.Error())
-				}
-			}
-		}()
-
-		launched = true
-	}
-
-	return
-}
-
-//func getServerBindaddrs(serverBindaddr string) ([]pt.Bindaddr, error) {
-//	var result []pt.Bindaddr
-//
-//	for _, spec := range strings.Split(serverBindaddr, ",") {
-//		var bindaddr pt.Bindaddr
-//
-//		parts := strings.SplitN(spec, "-", 2)
-//		if len(parts) != 2 {
-//			log.Errorf("TOR_PT_SERVER_BINDADDR: doesn't contain \"-\" %q", spec)
-//			return nil, nil
-//		}
-//		bindaddr.MethodName = parts[0]
-//		addr, err := pt.ResolveAddr(parts[1])
-//		if err != nil {
-//			log.Errorf("TOR_PT_SERVER_BINDADDR: %q %q", spec, err.Error())
-//			return nil, nil
-//		}
-//		bindaddr.Addr = addr
-//		//		bindaddr.Options = optionsMap[bindaddr.MethodName]
-//		result = append(result, bindaddr)
-//	}
-//
-//	return result, nil
-//}
-
-func serverAcceptLoop(name string, ln net.Listener, info *pt.ServerInfo) {
-	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			if e, ok := err.(net.Error); ok && !e.Temporary() {
-				log.Errorf("Fatal listener error: %s", err.Error())
-				return
-			}
-			log.Warnf("Failed to accept connection: %s", err.Error())
-			continue
-		}
-		go serverHandler(name, conn, info)
-	}
+	return modes.ServerSetupTCP(ptServerInfo, statedir, options, serverHandler)
 }
 
 func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
@@ -333,50 +112,10 @@ func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 		return
 	}
 
-	if err = copyLoop(orConn, remote); err != nil {
+	if err = modes.CopyLoop(orConn, remote); err != nil {
 		log.Warnf("%s - closed connection: %s", name, log.ElideError(err))
 	} else {
 		log.Infof("%s - closed connection", name)
 	}
 }
 
-func copyLoop(a net.Conn, b net.Conn) error {
-	println("--> Entering copy loop.")
-	// Note: b is always the pt connection.  a is the SOCKS/ORPort connection.
-	errChan := make(chan error, 2)
-
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-	if b == nil {
-		println("--> Copy loop has a nil connection (b).")
-		return errors.New("copy loop has a nil connection (b)")
-	}
-
-	if a == nil {
-		println("--> Copy loop has a nil connection (a).")
-		return errors.New("copy loop has a nil connection (a)")
-	}
-
-	go func() {
-		defer wg.Done()
-		_, err := io.Copy(b, a)
-		errChan <- err
-	}()
-	go func() {
-		defer wg.Done()
-		_, err := io.Copy(a, b)
-		errChan <- err
-	}()
-
-	// Wait for both upstream and downstream to close.  Since one side
-	// terminating closes the other, the second error in the channel will be
-	// something like EINVAL (though io.Copy() will swallow EOF), so only the
-	// first error is returned.
-	wg.Wait()
-	if len(errChan) > 0 {
-		return <-errChan
-	}
-
-	return nil
-}

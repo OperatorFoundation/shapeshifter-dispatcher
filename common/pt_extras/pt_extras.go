@@ -30,16 +30,12 @@ package pt_extras
 import (
 	"errors"
 	"fmt"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2"
 	"golang.org/x/net/proxy"
 	"net"
 	"net/url"
 	"os"
 	"strconv"
 
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
 )
 
@@ -170,65 +166,3 @@ func resolveAddrStr(addrStr string) (*net.TCPAddr, error) {
 	return &net.TCPAddr{IP: ip, Port: int(port), Zone: ""}, nil
 }
 
-// target is the server address string
-func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) (Optimizer.Transport, error) {
-	switch name {
-	case "obfs2":
-		transport := obfs2.New(target, dialer)
-		return transport, nil
-	case "obfs4":
-		//refactor starts here
-		transport, err := transports.ParseArgsObfs4(args, target, dialer)
-		if err != nil {
-			log.Errorf("Could not parse options %s", err.Error())
-			return nil, err
-		} else {
-			return transport, nil
-		}
-	case "shadow":
-
-		transport, err := transports.ParseArgsShadow(args, target, dialer)
-		if err != nil {
-			log.Errorf("Could not parse options %s", err.Error())
-			return nil, err
-		} else {
-			return transport, nil
-		}
-	case "Optimizer":
-		transport, err := transports.ParseArgsOptimizer(args, dialer)
-		if err != nil {
-			log.Errorf("Could not parse options %s", err.Error())
-			return nil, err
-		} else {
-			return transport, nil
-		}
-	case "Dust":
-		transport, err := transports.ParseArgsDust(args, target, dialer)
-		if err != nil {
-			log.Errorf("Could not parse options %s", err.Error())
-			return nil, err
-		} else {
-			return transport, nil
-		}
-	case "meeklite":
-		transport, err := transports.ParseArgsMeeklite(args, target, dialer)
-		if err != nil {
-			log.Errorf("Could not parse options %s", err.Error())
-			return nil, err
-		} else {
-			return transport, nil
-		}
-	case "Replicant":
-		transport, err := transports.ParseArgsReplicantClient(args, target, dialer)
-		if err != nil {
-			log.Errorf("Could not parse options %s", err.Error())
-			return nil, err
-		} else {
-			return transport, nil
-		}
-
-	default:
-		log.Errorf("Unknown transport: %s", name)
-		return nil, errors.New("unknown transport")
-	}
-}

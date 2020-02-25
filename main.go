@@ -30,7 +30,6 @@
 package main
 
 import (
-	"errors"
 	"flag"
 	"fmt"
 	"io"
@@ -66,6 +65,13 @@ func getVersion() string {
 	return fmt.Sprintf("dispatcher-%s", dispatcherVersion)
 }
 
+const (
+	socks5 = iota
+	transparentTCP
+	transparentUDP
+	stunUDP
+)
+
 func main() {
 	// Handle the command line arguments.
 	_, execName := path.Split(os.Args[0])
@@ -78,7 +84,8 @@ func main() {
 		flag.PrintDefaults()
 	}
 
-	// PT 2.0 specification, 3.3.1.1. Common Configuration Parameters
+	// Parsing flags starts here, but variables are not set to actual values until flag.Parse() is called.
+	// PT 2.1 specification, 3.3.1.1. Common Configuration Parameters
 	var version = flag.String("version", "", "Specify the Pluggable Transport protocol version to use")
 	var ptversion = flag.String("ptversion", "", "Specify the Pluggable Transport protocol version to use")
 
@@ -88,10 +95,10 @@ func main() {
 	// NOTE: -transports is parsed as a common command line flag that overrides either TOR_PT_SERVER_TRANSPORTS or TOR_PT_CLIENT_TRANSPORTS
 	transportsList := flag.String("transports", "", "Specify transports to enable")
 
-	// PT 2.0 specification, 3.3.1.2. Pluggable PT Client Configuration Parameters
+	// PT 2.1 specification, 3.3.1.2. Pluggable PT Client Configuration Parameters
 	proxy := flag.String("proxy", "", "Specify an HTTP or SOCKS4a proxy that the PT needs to use to reach the Internet")
 
-	// PT 2.0 specification, 3.3.1.3. Pluggable PT Server Environment Variables
+	// PT 2.1 specification, 3.3.1.3. Pluggable PT Server Environment Variables
 	options := flag.String("options", "", "Specify the transport options for the server")
 	if *options != "" {
 		println("--> -options flag found: ", *options)
@@ -114,10 +121,12 @@ func main() {
 	// Additional command line flags added to shapeshifter-dispatcher
 	clientMode := flag.Bool("client", false, "Enable client mode")
 	serverMode := flag.Bool("server", false, "Enable server mode")
-	transparent := flag.Bool("transparent", false, "Enable transparent proxy mode. The default is protocol-aware proxy mode (SOCKS5 for TCP, STUN for UDP)")
+	transparent := flag.Bool("transparent", false, "Enable transparent proxy mode. The default is protocol-aware proxy mode (socks5 for TCP, STUN for UDP)")
 	udp := flag.Bool("udp", false, "Enable UDP proxy mode. The default is TCP proxy mode.")
 	target := flag.String("target", "", "Specify transport server destination address")
-	flag.Parse()
+	flag.Parse() // Flag variables are set to actual values here.
+
+	// Start validation of command line arguments
 
 	if *version != "" {
 		ptversion = version
@@ -157,7 +166,6 @@ func main() {
 		_, err := os.Stat(*optionsFile)
 		if err != nil {
 			log.Errorf("optionsFile does not exist with error %s %s", *optionsFile, err.Error())
-			log.Errorf("optionsFile does not exist %s", *optionsFile, err.Error())
 		} else {
 			contents, readErr := ioutil.ReadFile(*optionsFile)
 			if readErr != nil {
@@ -167,106 +175,125 @@ func main() {
 			}
 		}
 	}
-	//in socks5 mode, target is not needed
-	if !*udp && !*transparent && *target != "" {
-		log.Errorf("--target option cannot be used in SOCKS5 mode")
-		return
+
+	mode := determineMode(*transparent, *udp)
+
+	if isClient {
+		switch mode {
+		case socks5:
+			if *target != "" {
+				log.Errorf("--target option cannot be used in socks5 mode")
+				return
+			}
+		case transparentTCP:
+			if *target == "" {
+				log.Errorf("%s - transparent mode requires a target", execName)
+				return
+			}
+		case transparentUDP:
+			if *target == "" {
+				log.Errorf("%s - transparent mode requires a target", execName)
+				return
+			}
+		case stunUDP:
+			if *target == "" {
+				log.Errorf("%s - STUN mode requires a target", execName)
+				return
+			}
+		default:
+			log.Errorf("unsupported mode %d", mode)
+			return
+		}
+	} else {
+		switch mode {
+		case socks5:
+			if *bindAddr != "" {
+				log.Errorf("--bindaddr option cannot be used in socks5 mode")
+				return
+			}
+		case transparentTCP:
+			if *bindAddr == "" {
+				log.Errorf("%s - transparent mode requires a bindaddr", execName)
+				return
+			}
+		case transparentUDP:
+			if *bindAddr == "" {
+				log.Errorf("%s - transparent mode requires a bindaddr", execName)
+				return
+			}
+		case stunUDP:
+			if *bindAddr == "" {
+				log.Errorf("%s - STUN mode requires a bindaddr", execName)
+				return
+			}
+		default:
+			log.Errorf("unsupported mode %d", mode)
+			return
+		}
 	}
+
+	// Finished validation of command line arguments
 
 	log.Noticef("%s - launched", getVersion())
 
-	if *transparent {
-		// Do the transparent proxy configuration.
-		log.Infof("%s - initializing transparent proxy", execName)
-		if *udp {
-			log.Infof("%s - initializing UDP transparent proxy", execName)
-			if isClient {
-				log.Infof("%s - initializing client transport listeners", execName)
-				if *target == "" {
-					log.Errorf("%s - transparent mode requires a target", execName)
-				} else {
-					ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
-					if nameErr != nil {
-						log.Errorf("must specify -version and -transports")
-						return
-					}
-					launched = transparent_udp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options)
-				}
-			} else {
-				log.Infof("%s - initializing server transport listeners", execName)
-				if *bindAddr == "" {
-					log.Errorf("%s - transparent mode requires a bindaddr", execName)
-				} else {
-					// launched = transparent_udp.ServerSetup(termMon, *bindAddr, *target)
+	if isClient {
+		log.Infof("%s - initializing client transport listeners", execName)
 
-					ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
-					launched = transparent_udp.ServerSetup(ptServerInfo, stateDir, *options)
-				}
+		switch mode {
+		case socks5:
+			log.Infof("%s - initializing client transport listeners", execName)
+			ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
+			if nameErr != nil {
+				log.Errorf("must specify -version and -transports")
+				return
 			}
-		} else {
-			log.Infof("%s - initializing TCP transparent proxy", execName)
-			if isClient {
-				log.Infof("%s - initializing client transport listeners", execName)
-				if *target == "" {
-					log.Errorf("%s - transparent mode requires a target", execName)
-				} else {
-					ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
-					if nameErr != nil {
-						log.Errorf("must specify -version and -transports")
-						return
-					}
-					launched = transparent_tcp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options)
-				}
-			} else {
-				log.Infof("%s - initializing server transport listeners", execName)
-				if *bindAddr == "" {
-					log.Errorf("%s - transparent mode requires a bindaddr", execName)
-				} else {
-					ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
-					launched = transparent_tcp.ServerSetup(ptServerInfo, stateDir, *options)
-				}
+			launched = pt_socks5.ClientSetup(*socksAddr, ptClientProxy, names, *options)
+		case transparentTCP:
+			ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
+			if nameErr != nil {
+				log.Errorf("must specify -version and -transports")
+				return
 			}
+			launched = transparent_tcp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options)
+		case transparentUDP:
+			ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
+			if nameErr != nil {
+				log.Errorf("must specify -version and -transports")
+				return
+			}
+			launched = transparent_udp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options)
+		case stunUDP:
+			ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
+			if nameErr != nil {
+				log.Errorf("must specify -version and -transports")
+				return
+			}
+			launched = stun_udp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options)
+		default:
+			log.Errorf("unsupported mode %d", mode)
 		}
 	} else {
-		if *udp {
-			log.Infof("%s - initializing STUN UDP proxy", execName)
-			if isClient {
-				log.Infof("%s - initializing client transport listeners", execName)
-				if *target == "" {
-					log.Errorf("%s - STUN mode requires a target", execName)
-				} else {
-					ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
-					if nameErr != nil {
-						log.Errorf("must specify -version and -transports")
-						return
-					}
-					launched = stun_udp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options)
-				}
-			} else {
-				log.Infof("%s - initializing server transport listeners", execName)
-				if *bindAddr == "" {
-					log.Errorf("%s - STUN mode requires a bindaddr", execName)
-				} else {
-					ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
-					launched = stun_udp.ServerSetup(ptServerInfo, stateDir, *options)
-				}
-			}
-		} else {
-			// Do the managed pluggable transport protocol configuration.
-			log.Infof("%s - initializing PT 2.0 proxy", execName)
-			if isClient {
-				log.Infof("%s - initializing client transport listeners", execName)
-				ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
-				if nameErr != nil {
-					log.Errorf("must specify -version and -transports")
-					return
-				}
-				launched = pt_socks5.ClientSetup(*socksAddr, ptClientProxy, names, *options)
-			} else {
-				log.Infof("%s - initializing server transport listeners", execName)
-				ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
-				launched = pt_socks5.ServerSetup(ptServerInfo, stateDir, *options)
-			}
+		log.Infof("initializing server transport listeners")
+
+		switch mode {
+		case socks5:
+			log.Infof("%s - initializing server transport listeners", execName)
+			ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
+			launched = pt_socks5.ServerSetup(ptServerInfo, stateDir, *options)
+		case transparentTCP:
+			log.Infof("%s - initializing server transport listeners", execName)
+			ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
+			launched = transparent_tcp.ServerSetup(ptServerInfo, stateDir, *options)
+		case transparentUDP:
+			// launched = transparent_udp.ServerSetup(termMon, *bindAddr, *target)
+
+			ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
+			launched = transparent_udp.ServerSetup(ptServerInfo, stateDir, *options)
+		case stunUDP:
+			ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
+			launched = stun_udp.ServerSetup(ptServerInfo, stateDir, *options)
+		default:
+			log.Errorf("unsupported mode %d", mode)
 		}
 	}
 
@@ -278,7 +305,7 @@ func main() {
 
 	log.Infof("%s - accepting connections", execName)
 
-	if *exitOnStdinClose || PtShouldExitOnStdinClose() {
+	if *exitOnStdinClose || ptShouldExitOnStdinClose() {
 		_, _ = io.Copy(ioutil.Discard, os.Stdin)
 		os.Exit(-1)
 	} else {
@@ -286,7 +313,25 @@ func main() {
 	}
 }
 
-func PtShouldExitOnStdinClose() bool {
+func determineMode(isTransparent bool, isUDP bool) int {
+	if isTransparent && isUDP {
+		log.Infof("initializing transparent proxy")
+		log.Infof("initializing UDP transparent proxy")
+		return transparentUDP
+	} else if isTransparent {
+		log.Infof("initializing transparent proxy")
+		log.Infof("initializing TCP transparent proxy")
+		return transparentTCP
+	} else if isUDP {
+		log.Infof("initializing STUN UDP proxy")
+		return stunUDP
+	} else {
+		log.Infof("initializing PT 2.1 socks5 proxy")
+		return socks5
+	}
+}
+
+func ptShouldExitOnStdinClose() bool {
 	return os.Getenv("TOR_PT_EXIT_ON_STDIN_CLOSE") == "1"
 }
 
@@ -304,9 +349,9 @@ func makeStateDir(statePath string) (string, error) {
 	if statePath != "" {
 		err := os.MkdirAll(statePath, 0700)
 		return statePath, err
-	} else {
-		return pt.MakeStateDir()
 	}
+
+	return pt.MakeStateDir()
 }
 
 func getClientNames(ptversion *string, transportsList *string, proxy *string) (clientProxy *url.URL, names []string, retErr error) {
@@ -396,7 +441,7 @@ func getServerBindaddrs(bindaddrList *string, options *string, transports *strin
 			optionsMap, err = pt.ParseServerTransportOptions(serverTransportOptions)
 			if err != nil {
 				log.Errorf("Error parsing options map %q %q", serverTransportOptions, err)
-				return nil, errors.New(fmt.Sprintf("TOR_PT_SERVER_TRANSPORT_OPTIONS: %q: %s", serverTransportOptions, err.Error()))
+				return nil, fmt.Errorf("TOR_PT_SERVER_TRANSPORT_OPTIONS: %q: %s", serverTransportOptions, err.Error())
 			}
 		}
 	} else {
@@ -405,7 +450,7 @@ func getServerBindaddrs(bindaddrList *string, options *string, transports *strin
 			optionsMap, err = pt.ParsePT2ServerParameters(serverTransportOptions)
 			if err != nil {
 				log.Errorf("Error parsing options map %q %q", serverTransportOptions, err)
-				return nil, errors.New(fmt.Sprintf("TOR_PT_SERVER_TRANSPORT_OPTIONS: %q: %s", serverTransportOptions, err.Error()))
+				return nil, fmt.Errorf("TOR_PT_SERVER_TRANSPORT_OPTIONS: %q: %s", serverTransportOptions, err.Error())
 			}
 		}
 	}
@@ -424,12 +469,12 @@ func getServerBindaddrs(bindaddrList *string, options *string, transports *strin
 
 		parts := strings.SplitN(spec, "-", 2)
 		if len(parts) != 2 {
-			return nil, errors.New(fmt.Sprintf("TOR_PT_SERVER_BINDADDR: %q: doesn't contain \"-\"", spec))
+			return nil, fmt.Errorf("TOR_PT_SERVER_BINDADDR: %q: doesn't contain \"-\"", spec)
 		}
 		bindaddr.MethodName = parts[0]
 		addr, err := pt.ResolveAddr(parts[1])
 		if err != nil {
-			return nil, errors.New(fmt.Sprintf("TOR_PT_SERVER_BINDADDR: %q: %s", spec, err.Error()))
+			return nil, fmt.Errorf("TOR_PT_SERVER_BINDADDR: %q: %s", spec, err.Error())
 		}
 		bindaddr.Addr = addr
 		bindaddr.Options = optionsMap[bindaddr.MethodName]

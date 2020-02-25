@@ -32,77 +32,30 @@ package transparent_udp
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/json"
 	"fmt"
-	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes"
 	"github.com/OperatorFoundation/shapeshifter-ipc"
-	"golang.org/x/net/proxy"
 	"io"
 	golog "log"
 	"net"
 	"net/url"
-
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2"
 )
 
-type ConnState struct {
-	Conn    net.Conn
-	Waiting bool
-}
-
-func NewConnState() ConnState {
-	return ConnState{nil, true}
-}
-
-type ConnTracker map[string]ConnState
-
 func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) bool {
-	// Launch each of the client listeners.
-	for _, name := range names {
-		udpAddr, err := net.ResolveUDPAddr("udp", socksAddr)
-		if err != nil {
-			fmt.Println("Error resolving address", socksAddr)
-		}
-
-		fmt.Println("@@@ Listening ", name, socksAddr)
-		ln, err := net.ListenUDP("udp", udpAddr)
-		if err != nil {
-			log.Errorf("failed to listen %s %s", name, err.Error())
-			continue
-		}
-
-		go clientHandler(target, name, options, ln, ptClientProxy)
-
-		log.Infof("%s - registered listener", name)
-	}
-
-	return true
+	return modes.ClientSetupUDP(socksAddr, target, ptClientProxy, names, options, clientHandler)
 }
 
 func clientHandler(target string, name string, options string, conn *net.UDPConn, proxyURI *url.URL) {
 	var length16 uint16
 
-	defer conn.Close()
-
-	fmt.Println("@@@ handling...")
-
-	tracker := make(ConnTracker)
-
-	fmt.Println("Transport is", name)
+	tracker := make(modes.ConnTracker)
 
 	buf := make([]byte, 1024)
 
 	// Receive UDP packets and forward them over transport connections forever
 	for {
 		n, addr, err := conn.ReadFromUDP(buf)
-		fmt.Println("Received ", string(buf[0:n]), " from ", addr)
-
 		if err != nil {
 			fmt.Println("Error: ", err)
 		}
@@ -115,20 +68,15 @@ func clientHandler(target string, name string, options string, conn *net.UDPConn
 			if state.Waiting {
 				// The connection attempt is in progress.
 				// Drop the packet.
-				fmt.Println("recv: waiting")
 			} else {
 				// There is an open transport connection.
 				// Send the packet through the transport.
-				fmt.Println("recv: write")
 				length16 = uint16(n)
 				lengthBuf := new(bytes.Buffer)
 				err = binary.Write(lengthBuf, binary.LittleEndian, length16)
 				if err != nil {
 					fmt.Println("binary.Write failed:", err)
 				} else {
-					fmt.Println("writing...")
-					fmt.Println(length16)
-					fmt.Println(lengthBuf.Bytes())
 					_, writErr := state.Conn.Write(lengthBuf.Bytes())
 					if writErr != nil {
 						continue
@@ -146,253 +94,15 @@ func clientHandler(target string, name string, options string, conn *net.UDPConn
 			// There is not an open transport connection and a connection attempt is not in progress.
 			// Open a transport connection.
 
-			fmt.Println("Opening connection to ", target)
-
-			openConnection(&tracker, addr.String(), target, name, options, proxyURI)
+			modes.OpenConnection(&tracker, addr.String(), target, name, options, proxyURI)
 
 			// Drop the packet.
-			fmt.Println("recv: Open")
 		}
 	}
-}
-
-func openConnection(tracker *ConnTracker, addr string, target string, name string, options string, proxyURI *url.URL) {
-	fmt.Println("Making dialer...")
-
-	newConn := NewConnState()
-	(*tracker)[addr] = newConn
-
-	go dialConn(tracker, addr, target, name, options, proxyURI)
-}
-
-func dialConn(tracker *ConnTracker, addr string, target string, name string, options string, proxyURI *url.URL) {
-	// Obtain the proxy dialer if any, and create the outgoing TCP connection.
-	var dialer proxy.Dialer
-	dialer = proxy.Direct
-	if proxyURI != nil {
-		var err error
-		dialer, err = proxy.FromURL(proxyURI, proxy.Direct)
-		if err != nil {
-			// This should basically never happen, since config protocol
-			// verifies this.
-			fmt.Println("failed to obtain dialer", proxyURI, proxy.Direct)
-			log.Errorf("(%s) - failed to obtain proxy dialer: %s", target, log.ElideError(err))
-			return
-		}
-
-	}
-
-	fmt.Println("Dialing....")
-
-	//args, argsErr := options2.ParseOptions(options)
-	//if argsErr != nil {
-	//	log.Errorf("Error parsing transport options: %s", options)
-	//	return
-	//}
-	// Deal with arguments.
-	transport, argsToDialerErr := pt_extras.ArgsToDialer(target, name, options, dialer)
-	if argsToDialerErr != nil {
-		log.Errorf("Error creating a transport with the provided options: %s", options)
-		log.Errorf("Error: %s", argsToDialerErr)
-		return
-	}
-	fmt.Println("Dialing ", target)
-	remote, _ := transport.Dial()
-	// if err != nil {
-	// 	fmt.Println("outgoing connection failed", err)
-	// 	log.Errorf("(%s) - outgoing connection failed: %s", target, log.ElideError(err))
-	// 	fmt.Println("Failed")
-	// 	delete(*tracker, addr)
-	// 	return
-	// }
-
-	fmt.Println("Success")
-
-	(*tracker)[addr] = ConnState{remote, false}
 }
 
 func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (launched bool) {
-	fmt.Println("ServerSetup")
-
-	// Launch each of the server listeners.
-	for _, bindaddr := range ptServerInfo.Bindaddrs {
-		name := bindaddr.MethodName
-		fmt.Println("bindaddr", bindaddr)
-
-		var listen func(address string) net.Listener
-
-		args, argsErr := options2.ParseServerOptions(options)
-		if argsErr != nil {
-			log.Errorf("Error parsing transport options: %s", options)
-			return
-		}
-
-		// Deal with arguments.
-		switch name {
-		case "obfs2":
-			transport := obfs2.NewObfs2Transport()
-			listen = transport.Listen
-		case "obfs4":
-			transport, err := obfs4.NewObfs4Server(stateDir)
-			if err != nil {
-				log.Errorf("Can't start obfs4 transport: %v", err)
-				return false
-			}
-			listen = transport.Listen
-		case "Replicant":
-			shargs, aok := args["Replicant"]
-			if !aok {
-				return false
-			}
-
-			shargsBytes, err:= json.Marshal(shargs)
-			shargsString := string(shargsBytes)
-			config, err := transports.ParseArgsReplicantServer(shargsString)
-			if err != nil {
-				return false
-			}
-
-			config.Listen(bindaddr.Addr.String())
-
-		case "Dust":
-			shargs, aok := args["Dust"]
-			if !aok {
-				return false
-			}
-
-			untypedIdPath, ok := shargs["Url"]
-			if !ok {
-				return false
-			}
-			IdPathByte, err:= json.Marshal(untypedIdPath)
-			IdPathString := string(IdPathByte)
-			if err != nil {
-				log.Errorf("could not coerce Dust Url to string")
-				return false
-			}
-			transport := Dust.NewDustServer(IdPathString)
-			listen = transport.Listen
-		case "meeklite":
-			args, aok := args["meeklite"]
-			if !aok {
-				return false
-			}
-
-			untypedUrl, ok := args["Url"]
-			if !ok {
-				return false
-			}
-
-			UrlByte, err:= json.Marshal(untypedUrl)
-			UrlString := string(UrlByte)
-			if err != nil {
-				log.Errorf("could not coerce meeklite Url to string")
-			}
-
-			untypedFront, ok := args["front"]
-			if !ok {
-				return false
-			}
-
-			FrontByte, err2:= json.Marshal(untypedFront)
-			FrontString := string(FrontByte)
-			if err2 != nil {
-				log.Errorf("could not coerce meeklite front to string")
-			}
-			var dialer proxy.Dialer
-			transport := meeklite.NewMeekTransportWithFront(UrlString, FrontString, dialer)
-			listen = transport.Listen
-		case "shadow":
-			args, aok := args["shadow"]
-			if !aok {
-				return false
-			}
-
-			argsBytes, err:= json.Marshal(args)
-			argsString := string(argsBytes)
-			config, err := transports.ParseArgsShadowServer(argsString)
-			if err != nil {
-				println("Received a Replicant config error: ", err.Error())
-				log.Errorf(err.Error())
-				return false
-			}
-
-			listen = config.Listen
-		default:
-			log.Errorf("Unknown transport: %s", name)
-			return
-		}
-
-		go func() {
-			for {
-				transportLn := listen(bindaddr.Addr.String())
-				log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
-				serverAcceptLoop(name, transportLn, &ptServerInfo)
-				transportLn.Close()
-			}
-		}()
-
-		launched = true
-	}
-
-	return
-}
-
-// Resolve an address string into a net.TCPAddr. We are a bit more strict than
-// net.ResolveTCPAddr; we don't allow an empty host or port, and the host part
-// must be a literal IP address.
-//func resolveAddr(addrStr string) (*net.TCPAddr, error) {
-//	ipStr, portStr, err := net.SplitHostPort(addrStr)
-//	if err != nil {
-//		// Before the fixing of bug #7011, tor doesn't put brackets around IPv6
-//		// addresses. Split after the last colon, assuming it is a port
-//		// separator, and try adding the brackets.
-//		parts := strings.Split(addrStr, ":")
-//		if len(parts) <= 2 {
-//			return nil, err
-//		}
-//		addrStr := "[" + strings.Join(parts[:len(parts)-1], ":") + "]:" + parts[len(parts)-1]
-//		ipStr, portStr, err = net.SplitHostPort(addrStr)
-//	}
-//	if err != nil {
-//		return nil, err
-//	}
-//	if ipStr == "" {
-//		return nil, net.InvalidAddrError(fmt.Sprintf("address string %q lacks a host part", addrStr))
-//	}
-//	if portStr == "" {
-//		return nil, net.InvalidAddrError(fmt.Sprintf("address string %q lacks a port part", addrStr))
-//	}
-//	ip := net.ParseIP(ipStr)
-//	if ip == nil {
-//		return nil, net.InvalidAddrError(fmt.Sprintf("not an IP string: %q", ipStr))
-//	}
-//	port, err := parsePort(portStr)
-//	if err != nil {
-//		return nil, err
-//	}
-//	return &net.TCPAddr{IP: ip, Port: port}, nil
-//}
-//
-//func parsePort(portStr string) (int, error) {
-//	port, err := strconv.ParseUint(portStr, 10, 16)
-//	return int(port), err
-//}
-
-func serverAcceptLoop(name string, ln net.Listener, info *pt.ServerInfo) {
-	for {
-		conn, err := ln.Accept()
-		fmt.Println("accepted")
-		if err != nil {
-			if e, ok := err.(net.Error); ok && !e.Temporary() {
-				log.Errorf("serverAcceptLoop failed")
-				_ = ln.Close()
-				return
-			}
-			continue
-		}
-		go serverHandler(name, conn, info)
-	}
+	return modes.ServerSetupUDP(ptServerInfo, stateDir, options, serverHandler)
 }
 
 func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
@@ -419,8 +129,6 @@ func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 
 	fmt.Println("pumping")
 
-	defer dest.Close()
-
 	lengthBuffer := make([]byte, 2)
 
 	for {
@@ -437,6 +145,7 @@ func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 		err = binary.Read(bytes.NewReader(lengthBuffer), binary.LittleEndian, &length16)
 		if err != nil {
 			fmt.Println("deserialization error")
+			_ = dest.Close()
 			return
 		}
 
@@ -451,4 +160,6 @@ func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 
 		_, _ = dest.Write(readBuffer)
 	}
+
+	_ = dest.Close()
 }
