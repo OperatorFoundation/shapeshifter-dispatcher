@@ -16,3 +16,6 @@ state/dispatcher.log
 .idea/inspectionProfiles/Project_Default.xml
 TransportState/dispatcher.log
 *.log
+shapeshifter-dispatcher
+go.mod
+go.sum
