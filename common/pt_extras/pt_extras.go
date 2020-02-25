@@ -30,7 +30,6 @@ package pt_extras
 import (
 	"errors"
 	"fmt"
-	"golang.org/x/net/proxy"
 	"net"
 	"net/url"
 	"os"
