@@ -228,7 +228,7 @@ server to the application server, which in the case of this demo is a netcat
 server. You can also type bytes into the netcat server and they will appear
 on the telnet client, once again being routed over the transport.
 
-##### Environment Variables
+### Using Environment Variables
 
 Using command line flags is convenient for testing. However, when launching the
 dispatcher automatically from inside of an application, another option is to
@@ -238,6 +238,78 @@ flags can also be set using environment variables instead.
 The full set of environment variables is specified in the Pluggable Transport
 2.1 specification.
 <https://www.pluggabletransports.info/spec/#build>
+
+### Running in SOCKS5 Mode
+
+SOCKS5 mode is an older mode inherited from the PT1.0 specification and updated in PT2.0. Despite the name,
+SOCKS5 mode does not provide a SOCKS proxy for use with SOCKS clients such as Firefox. Rather it uses the
+SOCKS5 protocol as a way to communicate between a host application and Shapeshifter Dispatcher. The host application
+must be aware of the special semantics used by this mode. While it is possible to configure Shapeshifter Dispatcher
+to provide a traditional SOCKS proxy for use with SOCKS clients such as Firefox, that is not covered here.
+
+SOCKS5 mode is not recommended for most users, use Transparent TCP mode instead.
+
+Here are example command lines to run the dispatcher in SOCKS5 mode with the Replicant transport:
+
+##### Server
+
+    ./shapeshifter-dispatcher -server -state state -orport 127.0.0.1:3333 -transports Replicant -bindaddr Replicant-127.0.0.1:2222 -logLevel DEBUG -enableLogging -optionsFile ReplicantServerConfig1.json
+
+This runs the server in the default mode, which is SOCKS5 mode. The directory "state" is used
+to hold transport state. The destination that the server will proxy to is
+127.0.0.1, port 3333. For this demo to work, something needs to be running on
+this host and port. You can use netcat to run a simple server with "nc -l 3333".
+The obfs4 transport is enabled and bound to the address 127.0.0.1 and the port
+2222. Logging is enabled and set to DEBUG level.
+To access the Log for debugging purposes, look at state/dispatcher.log
+
+To use Replicant, a config file is needed. A sample config file, ReplicantServerConfig1.json, is provided purely for educational purposes and should not be used in actual production.
+
+##### Client
+
+    ./shapeshifter-dispatcher -client -state state -target 127.0.0.1:2222  -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ReplicantClientConfig1.json -logLevel DEBUG -enableLogging 
+
+This runs the client in the default mode, which is SOCKS5 mode. The directory "state" is
+used to hold transport state. The address of the server is specified as
+127.0.0.1, port 2222. This is the same address as was specified on the server
+command line above. For this demo to work, the dispatcher server needs to be
+running on this host and port. The Replicant transport is enabled and bound to the
+address 127.0.0.1 and the port 1443.
+
+To use Replicant, a config file is needed. A sample config file, ReplicantClientConfig1.json, is provided purely for educational purposes and should not be used in actual production.
+
+Once the client is running, you can connect to the client address, which in this
+case is 127.0.0.1, port 1443. You will need to use a SOCKS5 client. Normally, this would be a host application
+that you would write. For very basic testing, you can install a tool such as tsocks.
+
+For instance, on macOS, install tsocks:
+
+    brew tap Anakros/homebrew-tsocks
+    brew install --HEAD tsocks
+    nano /usr/local/etc/tsocks.conf        
+    
+In your tsocks configuration file, add the following lines to tell it where to find the dispatcher client:
+
+    server = 127.0.0.1
+    server_port = 1443
+    server_type = 5
+
+Now you can use telnet to connect to the server and tsocks to route the traffic through SOCKS:
+
+    tsocks telnet 127.0.0.1 2222
+    
+Any bytes sent over this connection will be forwarded through the transport
+server to the application server, which in the case of this demo is a netcat
+server. You can also type bytes into the netcat server and they will appear
+on the telnet client, once again being routed over the transport.
+
+Please note that this is not an open SOCKS proxy that allows you to connect to any address on the Internet. You
+can only connect to the application server associated with the transport server. The SOCKS protocol is only
+used as a method of communication between a host application and the transport client. While we use tsocks as
+the host application for this explanation, normally the host application would be a custom application provided by
+you.
+
+SOCKS5 mode is not recommended for most users, use Transparent TCP mode instead.
 
 ### Credits
 
