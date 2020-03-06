@@ -182,7 +182,7 @@ func main() {
 		switch mode {
 		case socks5:
 			if *target != "" {
-				log.Errorf("--target option cannot be used in socks5 mode")
+				log.Errorf("-target option cannot be used in socks5 mode")
 				return
 			}
 		case transparentTCP:
@@ -208,7 +208,7 @@ func main() {
 		switch mode {
 		case socks5:
 			if *bindAddr != "" {
-				log.Errorf("--bindaddr option cannot be used in socks5 mode")
+				log.Errorf("-bindaddr option cannot be used in socks5 mode")
 				return
 			}
 		case transparentTCP:
@@ -389,6 +389,7 @@ func getServerInfo(bindaddrList *string, options *string, transportList *string,
 
 	bindaddrs, err = getServerBindaddrs(bindaddrList, options, transportList)
 	if err != nil {
+		log.Errorf(err.Error())
 		log.Errorf("Error parsing bindaddrs %q %q %q", *bindaddrList, *options, *transportList)
 		return ptServerInfo
 	}
@@ -456,7 +457,7 @@ func getServerBindaddrs(bindaddrList *string, options *string, transports *strin
 	}
 
 	// Get the list of all requested bindaddrs.
-	if bindaddrList == nil {
+	if *bindaddrList == "" {
 		serverBindaddr, err = pt.GetenvRequired("TOR_PT_SERVER_BINDADDR")
 		if err != nil {
 			return nil, err
