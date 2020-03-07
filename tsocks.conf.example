@@ -1,0 +1,4 @@
+local = 127.0.0.1/255.255.255.255
+server = 127.0.0.1
+server_port = 1443
+server_type = 5
