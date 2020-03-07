@@ -261,13 +261,20 @@ Here are example command lines to run the dispatcher in SOCKS5 mode with the Rep
 
 ##### Server
 
+Specifically for this example using tsocks as the SOCKS client, the transport server and the transport client need to be
+running on different IP addresses. This is because the tsocks configuration file has a concept of "local" addresses and
+the SOCKS provider must be on a local address, while the destination must be on a non-local address. Whether or not
+an address is local is determined by the IP address, so we need two separate IP addresses. In this example, we will use
+the universal localhost address 127.0.0.1 for the client and your LAN IP address for the server. For example purposes,
+we will assume that your LAN IP address is 10.0.1.3, but you will need to use your real LAN IP address.
+
 For this example to work, you need an application server running. You can use netcat to run a simple server on port 3333:
  
     nc -l 3333
     
 For compatibility reasons, SOCKS5 mode uses an environment variable to specify the application server address instead of -bindaddr:
 
-    export TOR_PT_SERVER_BINDADDR=127.0.0.1:2222
+    export TOR_PT_SERVER_BINDADDR=Replicant-10.0.1.3:2222
 
 Now launch the transport server, telling it where to find the application server:
 
@@ -275,13 +282,15 @@ Now launch the transport server, telling it where to find the application server
 
 This runs the server in the default mode, which is SOCKS5 mode. The directory "state" is used
 to hold transport state. The destination that the server will proxy to is 127.0.0.1, port 3333.
-The Replicant transport is enabled and bound to the address 127.0.0.1 and the port
+The Replicant transport server is enabled and bound to the address 10.0.1.3 and the port
 2222. Logging is enabled and set to DEBUG level. To access the Log for debugging purposes,
 look at state/dispatcher.log
 
 To use Replicant, a config file is needed. A sample config file, ReplicantServerConfig1.json, is provided purely for educational purposes and should not be used in actual production.
 
 ##### Client
+
+Launch the client:
 
     ./shapeshifter-dispatcher -client -state state -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ReplicantClientConfig1.json -logLevel DEBUG -enableLogging 
 
@@ -292,9 +301,8 @@ mode. This happens below, in the tsocks step.
 
 To use Replicant, a config file is needed. A sample config file, ReplicantClientConfig1.json, is provided purely for educational purposes and should not be used in actual production.
 
-Once the client is running, you can connect to the client address, which in this
-case is 127.0.0.1, port 1443. You will need to use a SOCKS5 client. Normally, this would be a host application
-that you would write. For basic testing, you can install a tool such as tsocks.
+Once the client is running, you can connect to the transport client. You will need to use a SOCKS5 client to do this.
+Normally, this would be a host application that you would write. For basic testing, you can install a tool such as tsocks.
 
 For instance, on macOS, install tsocks:
 
@@ -304,6 +312,7 @@ For instance, on macOS, install tsocks:
     
 In your tsocks configuration file, add the following lines to tell it where to find the dispatcher client:
 
+    local = 127.0.0.1/255.255.255.255
     server = 127.0.0.1
     server_port = 1443
     server_type = 5
@@ -313,7 +322,7 @@ address or port, tsocks will connect you directly to the transport server and th
 
 Now you can use telnet to connect to the server and tsocks to route the traffic through SOCKS:
 
-    tsocks telnet 127.0.0.1 2222
+    tsocks telnet 10.0.1.3 2222
 
 It is important to note that the address and port you telnet to is the address of the transport server. This
 information is passed through the SOCKS5 protocol to the client by tsocks and it is how the client learns where
