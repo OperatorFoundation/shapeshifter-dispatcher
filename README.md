@@ -136,13 +136,17 @@ Here are example command lines to run the dispatcher with the Replicant transpor
 
 ##### Server
 
+For this example to work, you need an application server running. You can use netcat to run a simple server on port 3333:
+ 
+    nc -l 3333
+
+Now launch the transport server, telling it where to find the application server:
+
     ./shapeshifter-dispatcher -transparent -server -state state -orport 127.0.0.1:3333 -transports Replicant -bindaddr Replicant-127.0.0.1:2222 -logLevel DEBUG -enableLogging -optionsFile ReplicantServerConfig1.json
 
 This runs the server in transparent TCP proxy mode. The directory "state" is used
 to hold transport state. The destination that the server will proxy to is
-127.0.0.1, port 3333. For this demo to work, something needs to be running on
-this host and port. You can use netcat to run a simple server with "nc -l 3333".
-The obfs4 transport is enabled and bound to the address 127.0.0.1 and the port
+127.0.0.1, port 3333. The obfs4 transport is enabled and bound to the address 127.0.0.1 and the port
 2222. Logging is enabled and set to DEBUG level.
 To access the Log for debugging purposes, look at state/dispatcher.log
 
@@ -177,15 +181,19 @@ Here are example command lines to run the dispatcher with the obfs4 transport:
 
 ##### Server
 
+For this example to work, you need an application server running. You can use netcat to run a simple server on port 3333:
+ 
+    nc -l 3333
+
+Now launch the transport server, telling it where to find the application server:
+
     ./shapeshifter-dispatcher -transparent -server -state state -orport 127.0.0.1:3333 -transports obfs4 -bindaddr obfs4-127.0.0.1:2222 -logLevel DEBUG -enableLogging
 
 This runs the server in transparent TCP proxy mode. The directory "state" is used
 to hold transport state. The destination that the server will proxy to is
-127.0.0.1, port 3333. For this demo to work, something needs to be running on
-this host and port. You can use netcat to run a simple server with "nc -l 3333".
-The obfs4 transport is enabled and bound to the address 127.0.0.1 and the port
-2222. Logging is enabled and set to DEBUG level.
-To access the Log for debugging purposes, look at state/dispatcher.log
+127.0.0.1, port 3333. The obfs4 transport is enabled and bound to the address 127.0.0.1 and the port
+2222. Logging is enabled and set to DEBUG level. To access the Log for debugging purposes,
+look at state/dispatcher.log
 
 When the server is run for the first time, it will generate a new public key
 and it will write it to a file in the state directory in a file called
@@ -253,34 +261,40 @@ Here are example command lines to run the dispatcher in SOCKS5 mode with the Rep
 
 ##### Server
 
-    ./shapeshifter-dispatcher -server -state state -orport 127.0.0.1:3333 -transports Replicant -bindaddr Replicant-127.0.0.1:2222 -logLevel DEBUG -enableLogging -optionsFile ReplicantServerConfig1.json
+For this example to work, you need an application server running. You can use netcat to run a simple server on port 3333:
+ 
+    nc -l 3333
+    
+For compatibility reasons, SOCKS5 mode uses an environment variable to specify the application server address instead of -bindaddr:
+
+    export TOR_PT_SERVER_BINDADDR=127.0.0.1:2222
+
+Now launch the transport server, telling it where to find the application server:
+
+    ./shapeshifter-dispatcher -server -state state -orport 127.0.0.1:3333 -transports Replicant -logLevel DEBUG -enableLogging -optionsFile ReplicantServerConfig1.json
 
 This runs the server in the default mode, which is SOCKS5 mode. The directory "state" is used
-to hold transport state. The destination that the server will proxy to is
-127.0.0.1, port 3333. For this demo to work, something needs to be running on
-this host and port. You can use netcat to run a simple server with "nc -l 3333".
-The obfs4 transport is enabled and bound to the address 127.0.0.1 and the port
-2222. Logging is enabled and set to DEBUG level.
-To access the Log for debugging purposes, look at state/dispatcher.log
+to hold transport state. The destination that the server will proxy to is 127.0.0.1, port 3333.
+The Replicant transport is enabled and bound to the address 127.0.0.1 and the port
+2222. Logging is enabled and set to DEBUG level. To access the Log for debugging purposes,
+look at state/dispatcher.log
 
 To use Replicant, a config file is needed. A sample config file, ReplicantServerConfig1.json, is provided purely for educational purposes and should not be used in actual production.
 
 ##### Client
 
-    ./shapeshifter-dispatcher -client -state state -target 127.0.0.1:2222  -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ReplicantClientConfig1.json -logLevel DEBUG -enableLogging 
+    ./shapeshifter-dispatcher -client -state state -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ReplicantClientConfig1.json -logLevel DEBUG -enableLogging 
 
 This runs the client in the default mode, which is SOCKS5 mode. The directory "state" is
-used to hold transport state. The address of the server is specified as
-127.0.0.1, port 2222. This is the same address as was specified on the server
-command line above. For this demo to work, the dispatcher server needs to be
-running on this host and port. The Replicant transport is enabled and bound to the
-address 127.0.0.1 and the port 1443.
+used to hold transport state. The Replicant transport is enabled and bound to the
+address 127.0.0.1 and the port 1443. Please note that you do not specify the server address with -target in SOCKS5
+mode. This happens below, in the tsocks step.
 
 To use Replicant, a config file is needed. A sample config file, ReplicantClientConfig1.json, is provided purely for educational purposes and should not be used in actual production.
 
 Once the client is running, you can connect to the client address, which in this
 case is 127.0.0.1, port 1443. You will need to use a SOCKS5 client. Normally, this would be a host application
-that you would write. For very basic testing, you can install a tool such as tsocks.
+that you would write. For basic testing, you can install a tool such as tsocks.
 
 For instance, on macOS, install tsocks:
 
@@ -293,14 +307,21 @@ In your tsocks configuration file, add the following lines to tell it where to f
     server = 127.0.0.1
     server_port = 1443
     server_type = 5
+    
+It is important to check to make sure that your tsocks configuration is correct. If you have the wrong server
+address or port, tsocks will connect you directly to the transport server and this will give confusing results.
 
 Now you can use telnet to connect to the server and tsocks to route the traffic through SOCKS:
 
     tsocks telnet 127.0.0.1 2222
-    
-Any bytes sent over this connection will be forwarded through the transport
-server to the application server, which in the case of this demo is a netcat
-server. You can also type bytes into the netcat server and they will appear
+
+It is important to note that the address and port you telnet to is the address of the transport server. This
+information is passed through the SOCKS5 protocol to the client by tsocks and it is how the client learns where
+the server is located.
+
+At this point, you should have a normal connection through the transport to the application server. Any bytes sent
+over this connection will be forwarded through the transport server to the application server, which in the case of
+this demo is a netcat server. You can also type bytes into the netcat server and they will appear
 on the telnet client, once again being routed over the transport.
 
 Please note that this is not an open SOCKS proxy that allows you to connect to any address on the Internet. You
