@@ -30,7 +30,6 @@
 package pt_socks5
 
 import (
-	"fmt"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5"
@@ -88,7 +87,7 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 	}
 	addrStr := log.ElideAddr(socksReq.Target)
 
-	var dialer proxy.Dialer
+	var dialer proxy.Dialer = proxy.Direct
 
 	// Deal with arguments.
 	transport, argsToDialerErr := pt_extras.ArgsToDialer(socksReq.Target, name, options, dialer)
@@ -110,7 +109,7 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 		}
 	}
 
-	fmt.Println("Got dialer", dialer, proxyURI, proxy.Direct)
+//	fmt.Println("Got dialer", dialer, proxyURI, proxy.Direct)
 
 	remote, err2 := transport.Dial()
 	if err2 != nil {
