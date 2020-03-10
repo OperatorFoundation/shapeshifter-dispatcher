@@ -77,18 +77,22 @@ func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 		// Deal with arguments.
 		listen, parseError := pt_extras.ArgsToListener(name, stateDir, options)
 		if parseError != nil {
+			log.Errorf("Received error while trying to parse server options %s", parseError)
+			log.Errorf("Unable to parse server options %s", options)
+			return false
+		}
+		transportLn := listen(bindaddr.Addr.String())
+		if transportLn == nil {
+			log.Errorf("Unable to listen on the the provided address %s", bindaddr.Addr.String())
 			return false
 		}
 
 		go func() {
-			for {
-				transportLn := listen(bindaddr.Addr.String())
-				log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
-				ServerAcceptLoop(name, transportLn, &ptServerInfo, serverHandler)
-				transportLnErr := transportLn.Close()
-				if transportLnErr != nil {
-					log.Errorf("Listener close error: %s", transportLnErr.Error())
-				}
+			log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
+			ServerAcceptLoop(name, transportLn, &ptServerInfo, serverHandler)
+			transportLnErr := transportLn.Close()
+			if transportLnErr != nil {
+				log.Errorf("Listener close error: %s", transportLnErr.Error())
 			}
 		}()
 
