@@ -33,10 +33,12 @@ import (
 	"encoding/json"
 	"errors"
 	options "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2"
 	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2"
 	"golang.org/x/net/proxy"
@@ -165,6 +167,11 @@ func ParseArgsReplicantClient(args string, target string, dialer proxy.Dialer) (
 		return nil, errors.New("could not parse config")
 	}
 
+	configJSON, jsonMarshallError := json.Marshal(config)
+	if jsonMarshallError == nil {
+		log.Debugf("REPLICANT CONFIG\n", string(configJSON))
+	}
+
 	transport := replicant.Transport{
 		Config:  *config,
 		Address: target,
@@ -182,7 +189,7 @@ func ParseArgsReplicantServer(args string) (*replicant.ServerConfig, error) {
 		Config string
 	}
 	var ReplicantConfig replicantJsonConfig
-	if args =="" {
+	if args == "" {
 		transport := CreateDefaultReplicantServer()
 		return &transport, nil
 	}
@@ -196,6 +203,7 @@ func ParseArgsReplicantServer(args string) (*replicant.ServerConfig, error) {
 	if parseErr != nil {
 		return nil, errors.New("could not parse config")
 	}
+
 	return config, nil
 }
 
@@ -214,6 +222,28 @@ func ParseArgsMeeklite(args string, target string, dialer proxy.Dialer) (*meekli
 		Address: target,
 		Dialer:  dialer,
 	}
+
+	return &transport, nil
+}
+
+func ParseArgsMeekliteServer(args string) (*meeklite.Transport, error) {
+	var config meekserver.Config
+
+	bytes := []byte(args)
+	jsonError := json.Unmarshal(bytes, &config)
+	if jsonError != nil {
+		return nil, errors.New("meeklite options json decoding error")
+	}
+
+	meekServer := meekserver.NewMeekTransportServer(false, config)
+	transport := meeklite.NewMeekTransport("")
+
+	//	Transport{
+	//	Url:     config.Url,
+	//	Front:   config.Front,
+	//	Address: config.AcmeAddress,
+	//	Dialer:  dialer,
+	//}
 
 	return &transport, nil
 }

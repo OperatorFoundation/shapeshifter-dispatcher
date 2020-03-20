@@ -29,7 +29,7 @@ import (
 	"errors"
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2"
 	"golang.org/x/net/proxy"
 	"net"
 
@@ -134,28 +134,34 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 			return nil, errors.New(("Could not parse Replicant options"))
 		}
 
+		configJSONString, jsonMarshallError := json.Marshal(config)
+		if jsonMarshallError == nil {
+			log.Debugf("REPLICANT CONFIG\n", string(configJSONString))
+		}
+
 		return config.Listen, nil
 	// FIXME - meeklite parsing is incorrect
-	//case "meeklite":
-	//	args, aok := args["meeklite"]
-	//	if !aok {
-	//		return nil, errors.New("could not find meeklite options")
-	//	}
-	//
-	//	urlByte, err:= json.Marshal(args)
-	//	urlString := string(urlByte)
-	//	if err != nil {
-	//		log.Errorf("could not coerce meeklite Url to string")
-	//	}
-	//
-	//	frontByte, err2:= json.Marshal(untypedFront)
-	//	frontString := string(frontByte)
-	//	if err2 != nil {
-	//		log.Errorf("could not coerce meeklite front to string")
-	//	}
-	//	var dialer proxy.Dialer
-	//	transport := meeklite.NewMeekTransportWithFront(urlString, frontString, dialer)
-	//	listen = transport.Listen
+	case "meeklite":
+		args, aok := args["meeklite"]
+		if !aok {
+			return nil, errors.New("could not find meeklite options")
+		}
+
+		urlByte, err:= json.Marshal(args)
+		urlString := string(urlByte)
+		if err != nil {
+			log.Errorf("could not coerce meeklite Url to string")
+		}
+
+		frontByte, err2:= json.Marshal(untypedFront)
+		frontString := string(frontByte)
+		if err2 != nil {
+			log.Errorf("could not coerce meeklite front to string")
+		}
+		var dialer proxy.Dialer
+		meekserver.NewMeekTransportServer()
+		transport := meeklite.NewMeekTransportWithFront(urlString, frontString, dialer)
+		listen = transport.Listen
 	// FIXME - Dust parsing is incorrect
 	//case "Dust":
 	//	shargs, aok := args["Dust"]

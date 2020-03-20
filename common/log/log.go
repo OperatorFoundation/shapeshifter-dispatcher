@@ -134,6 +134,14 @@ func Infof(format string, a ...interface{}) {
 	}
 }
 
+// Debugf logs the given format string/arguments at the DEBUG log level.
+func Debugf(format string, a ...interface{}) {
+	if enableLogging && logLevel >= LevelDebug {
+		msg := fmt.Sprintf(format, a...)
+		log.Print("[DEBUG]: " + msg)
+	}
+}
+
 // ElideError transforms the string representation of the provided error
 // based on the unsafeLogging setting.  Callers that wish to log errors
 // returned from Go's net package should use ElideError to sanitize the
