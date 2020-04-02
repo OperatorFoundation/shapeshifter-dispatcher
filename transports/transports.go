@@ -226,7 +226,7 @@ func ParseArgsMeeklite(args string, target string, dialer proxy.Dialer) (*meekli
 	return &transport, nil
 }
 
-func ParseArgsMeekliteServer(args string) (*meeklite.Transport, error) {
+func ParseArgsMeekliteServer(args string) (*meekserver.Config, error) {
 	var config meekserver.Config
 
 	bytes := []byte(args)
@@ -235,17 +235,7 @@ func ParseArgsMeekliteServer(args string) (*meeklite.Transport, error) {
 		return nil, errors.New("meeklite options json decoding error")
 	}
 
-	meekServer := meekserver.NewMeekTransportServer(false, config)
-	transport := meeklite.NewMeekTransport("")
-
-	//	Transport{
-	//	Url:     config.Url,
-	//	Front:   config.Front,
-	//	Address: config.AcmeAddress,
-	//	Dialer:  dialer,
-	//}
-
-	return &transport, nil
+	return &config, nil
 }
 
 func ParseArgsOptimizer(jsonConfig string, dialer proxy.Dialer) (*Optimizer.Client, error) {

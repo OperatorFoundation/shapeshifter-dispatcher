@@ -29,6 +29,7 @@ import (
 	"errors"
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2"
 	"golang.org/x/net/proxy"
 	"net"
@@ -104,7 +105,7 @@ func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) 
 func ArgsToListener(name string, stateDir string, options string) (func(address string) net.Listener, error) {
 	var listen func(address string) net.Listener
 
-	var config meekserver.Config
+	//var config meekserver.Config
 
 	args, argsErr := options2.ParseServerOptions(options)
 	if argsErr != nil {
@@ -136,33 +137,29 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 			return nil, errors.New(("Could not parse Replicant options"))
 		}
 
-		configJSONString, jsonMarshallError := json.Marshal(config)
-		if jsonMarshallError == nil {
-			log.Debugf("REPLICANT CONFIG\n", string(configJSONString))
-		}
+		//configJSONString, jsonMarshallError := json.Marshal(config)
+		//if jsonMarshallError == nil {
+		//	log.Debugf("REPLICANT CONFIG\n", string(configJSONString))
+		//}
 
 		return config.Listen, nil
 	// FIXME - meeklite parsing is incorrect
-	case "meeklite":
-		args, aok := args["meeklite"]
+	case "meekserver":
+		shargs, aok := args["meekserver"]
 		if !aok {
 			return nil, errors.New("could not find meeklite options")
 		}
 
-		urlByte, err:= json.Marshal(args)
-		urlString := string(urlByte)
+		shargsByte, err:= json.Marshal(shargs)
 		if err != nil {
 			log.Errorf("could not coerce meeklite Url to string")
 		}
-
-		frontByte, err2:= json.Marshal(untypedFront)
-		frontString := string(frontByte)
-		if err2 != nil {
-			log.Errorf("could not coerce meeklite front to string")
+		shargsString := string(shargsByte)
+		config, err := transports.ParseArgsMeekliteServer(shargsString)
+		if err != nil {
+			return nil, errors.New(("Could not parse Replicant options"))
 		}
-		var dialer proxy.Dialer
-		meekserver.NewMeekTransportServer()
-		transport := meeklite.NewMeekTransportWithFront(urlString, frontString, dialer)
+		transport := meekserver.NewMeekTransportServer(true, config.AcmeEmail, config.AcmeHostname, stateDir)
 		listen = transport.Listen
 	// FIXME - Dust parsing is incorrect
 	//case "Dust":
