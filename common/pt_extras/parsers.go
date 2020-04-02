@@ -30,6 +30,7 @@ import (
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2"
 	"golang.org/x/net/proxy"
 	"net"
 
@@ -103,6 +104,8 @@ func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) 
 
 func ArgsToListener(name string, stateDir string, options string) (func(address string) net.Listener, error) {
 	var listen func(address string) net.Listener
+
+	var config meekserver.Config
 
 	args, argsErr := options2.ParseServerOptions(options)
 	if argsErr != nil {
