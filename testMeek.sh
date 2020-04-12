@@ -8,7 +8,7 @@ go get -u github.com/OperatorFoundation/shapeshifter-dispatcher
 nc -l 3333 &
 
 # Run the transport server
-./shapeshifter-dispatcher -transparent -server -state state -orport 127.0.0.1:3333 -transports meeklite -bindaddr meeklite-127.0.0.1:2222 -optionsFile meek.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -transparent -server -state state -orport 127.0.0.1:3333 -transports meekserver -bindaddr meekserver-127.0.0.1:2222 -optionsFile meek.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 

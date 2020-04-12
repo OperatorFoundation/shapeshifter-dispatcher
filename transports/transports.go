@@ -39,6 +39,7 @@ import (
 	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2"
 	"golang.org/x/net/proxy"
@@ -251,22 +252,6 @@ func ParseArgsOptimizer(jsonConfig string, dialer proxy.Dialer) (*Optimizer.Clie
 	//	return nil, errors.New("could not unmarshal optimizer config")
 	//}
 
-	untypedStrategy, ok2 := args["strategy"]
-	if !ok2 {
-		return nil, errors.New("optimizer transport missing strategy argument")
-	}
-
-	//FIXME if possible, replace CoerceToString with json parsing
-	strategyString, icerr := options.CoerceToString(untypedStrategy)
-	if icerr != nil {
-		return nil, icerr
-	}
-
-	strategy, parseErr = parseStrategy(strategyString, transports)
-	if parseErr != nil {
-		return nil, errors.New("could not parse strategy")
-	}
-
 	untypedTransports, ok := args["transports"]
 	if !ok {
 		return nil, errors.New("optimizer transport missing transports argument")
@@ -284,13 +269,25 @@ func ParseArgsOptimizer(jsonConfig string, dialer proxy.Dialer) (*Optimizer.Clie
 	default:
 		return nil, errors.New("unsupported type for Optimizer transports option")
 	}
-
-	transport := Optimizer.Client{
-		Transports: transports,
-		Strategy:   strategy,
+	untypedStrategy, ok2 := args["strategy"]
+	if !ok2 {
+		return nil, errors.New("optimizer transport missing strategy argument")
 	}
 
-	return &transport, nil
+	//FIXME if possible, replace CoerceToString with json parsing
+	strategyString, icerr := options.CoerceToString(untypedStrategy)
+	if icerr != nil {
+		return nil, icerr
+	}
+
+	strategy, parseErr = parseStrategy(strategyString, transports)
+	if parseErr != nil {
+		return nil, errors.New("could not parse strategy")
+	}
+
+	transport := Optimizer.NewOptimizerClient(transports, strategy)
+
+	return transport, nil
 }
 
 func parseStrategy(strategyString string, transports []Optimizer.Transport) (Optimizer.Strategy, error) {
@@ -335,13 +332,11 @@ func parseTransports(otcs []interface{}, dialer proxy.Dialer) ([]Optimizer.Trans
 }
 
 func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer.Transport, error) {
-	var address string
-	var name string
 	var config map[string]interface{}
 
 	type PartialOptimizerConfig struct {
-		Address string
-		Name    string
+		Address string `json:"address"`
+		Name    string `json:"name"`
 	}
 	jsonString, MarshalErr := json.Marshal(otc)
 	if MarshalErr != nil {
@@ -372,33 +367,36 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 		return nil, errors.New("could not marshal Optimizer config")
 	}
 	jsonConfigString:= string(jsonConfigBytes)
-	switch name {
+	switch PartialConfig.Name {
 	case "shadow":
-		shadowTransport, parseErr := ParseArgsShadow(jsonConfigString, address, dialer)
+		shadowTransport, parseErr := ParseArgsShadow(jsonConfigString, PartialConfig.Address, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse shadow Args")
 		}
 		return shadowTransport, nil
+	case "obfs2":
+		obfs2Transport := obfs2.New(PartialConfig.Address, dialer)
+		return obfs2Transport, nil
 	case "obfs4":
-		obfs4Transport, parseErr := ParseArgsObfs4(jsonConfigString, address, dialer)
+		obfs4Transport, parseErr := ParseArgsObfs4(jsonConfigString, PartialConfig.Address, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse obfs4 Args")
 		}
 		return obfs4Transport, nil
 	case "meeklite":
-		meekliteTransport, parseErr := ParseArgsMeeklite(jsonConfigString, address, dialer)
+		meekliteTransport, parseErr := ParseArgsMeeklite(jsonConfigString, PartialConfig.Address, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse meeklite Args")
 		}
 		return meekliteTransport, nil
 	case "Dust":
-		DustTransport, parseErr := ParseArgsDust(jsonConfigString, address, dialer)
+		DustTransport, parseErr := ParseArgsDust(jsonConfigString, PartialConfig.Address, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse dust Args")
 		}
 		return DustTransport, nil
 	case "Replicant":
-		replicantTransport, parseErr := ParseArgsReplicantClient(jsonConfigString, address, dialer)
+		replicantTransport, parseErr := ParseArgsReplicantClient(jsonConfigString, PartialConfig.Address, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse replicant Args")
 		}

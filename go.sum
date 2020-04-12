@@ -12,6 +12,8 @@ github.com/OperatorFoundation/shapeshifter-ipc v0.0.0-20170814234159-11746ba927e
 github.com/OperatorFoundation/shapeshifter-ipc v0.0.0-20170814234159-11746ba927e0/go.mod h1:kB00Ak8Dgn1uZlZHLc/WsUta58Jc+n/ZhCetcPkh42Q=
 github.com/OperatorFoundation/shapeshifter-transports v0.0.0-20200211223228-5b0aa21018a5 h1:UrCgBKvfj+Rim1jAUkRqQt1neJgLVHtKt0228tEmFKY=
 github.com/OperatorFoundation/shapeshifter-transports v0.0.0-20200211223228-5b0aa21018a5/go.mod h1:u3jvRgYV13oHabVAdXekh3yk9PHfpCKvB8uolQEs4jA=
+github.com/OperatorFoundation/shapeshifter-transports v2.1.11+incompatible h1:Icbjg/r1BC9NlQ4yk0XVhjJ4PtWRwd1uS6IrvPSuje4=
+github.com/OperatorFoundation/shapeshifter-transports v2.1.11+incompatible/go.mod h1:u3jvRgYV13oHabVAdXekh3yk9PHfpCKvB8uolQEs4jA=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2 v2.1.11 h1:WTjk/NG0xpK5w/qsMn6j3YiNMPrgwf4B70ANRIT/Wvo=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2 v2.1.11/go.mod h1:qZRDNZpdNlXjCsBQhCWH3fAAFQJqT2Aw4uMcxP9/YcM=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2.1.11 h1:/wn3pNtChButuKsVaUjFCMS0h0OXviZaD0xyjuCIEIQ=
@@ -83,6 +85,8 @@ golang.org/x/sys v0.0.0-20200331124033-c3d80250170d h1:nc5K6ox/4lTFbMVSL9WRR81ix
 golang.org/x/sys v0.0.0-20200331124033-c3d80250170d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200406155108-e3b113bbe6a4 h1:c1Sgqkh8v6ZxafNGG64r8C8UisIW2TKMJN8P86tKjr0=
 golang.org/x/sys v0.0.0-20200406155108-e3b113bbe6a4/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20200408040146-ea54a3c99b9b h1:h03Ur1RlPrGTjua4koYdpGl8W0eYo8p1uI9w7RPlkdk=
+golang.org/x/sys v0.0.0-20200408040146-ea54a3c99b9b/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.3.0 h1:g61tztE5qeGQ89tm6NTjjM9VPIm088od1l6aSorWRWg=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.2 h1:tW2bmiBqwgJj/UpqtC8EpXEZVYOwU0yG4iWbprSVAcs=

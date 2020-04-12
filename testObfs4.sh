@@ -8,17 +8,17 @@ go get -u github.com/OperatorFoundation/shapeshifter-dispatcher
 nc -l 3333 &
 
 # Run the transport server
-./shapeshifter-dispatcher -transparent -server -state state -orport 127.0.0.1:3333 -transports obfs4 -bindaddr obfs4-127.0.0.1:2222 -optionsFile obfs4.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -transparent -server -state state -orport 127.0.0.1:3333 -transports obfs4 -bindaddr obfs4-127.0.0.1:2222 -logLevel DEBUG -enableLogging &
 
 sleep 1
 
 # Run the transport client
 ./shapeshifter-dispatcher -transparent -client -state state -target 127.0.0.1:2222 -transports obfs4 -proxylistenaddr 127.0.0.1:1443 -optionsFile obfs4.json -logLevel DEBUG -enableLogging &
 
-sleep 1
+sleep 5
 
 # Run a demo application client with netcat
-echo "Test successful!" | nc localhost 1443 &
+echo "Test successful" | nc localhost 1443 &
 
 sleep 1
 
