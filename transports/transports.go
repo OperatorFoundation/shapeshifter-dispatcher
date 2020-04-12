@@ -74,7 +74,7 @@ func ParseArgsObfs4(args string, target string, dialer proxy.Dialer) (*obfs4.Tra
 	return &transport, nil
 }
 
-func ParseArgsShadow(args string, target string, dialer proxy.Dialer) (*shadow.Transport, error) {
+func ParseArgsShadow(args string, target string) (*shadow.Transport, error) {
 	var config shadow.Config
 
 	bytes := []byte(args)
@@ -122,7 +122,7 @@ func ParseArgsDust(args string, target string, dialer proxy.Dialer) (*Dust.Trans
 	return &transport, nil
 }
 
-func CreateDefaultReplicantClient(target string, dialer proxy.Dialer) (*replicant.Transport) {
+func CreateDefaultReplicantClient(target string, dialer proxy.Dialer) *replicant.Transport {
 	config := replicant.ClientConfig{
 		Toneburst: nil,
 		Polish:    nil,
@@ -137,7 +137,7 @@ func CreateDefaultReplicantClient(target string, dialer proxy.Dialer) (*replican
 	return &transport
 }
 
-func CreateDefaultReplicantServer() (replicant.ServerConfig) {
+func CreateDefaultReplicantServer() replicant.ServerConfig {
 	config := replicant.ServerConfig{
 		Toneburst: nil,
 		Polish:    nil,
@@ -369,7 +369,7 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 	jsonConfigString:= string(jsonConfigBytes)
 	switch PartialConfig.Name {
 	case "shadow":
-		shadowTransport, parseErr := ParseArgsShadow(jsonConfigString, PartialConfig.Address, dialer)
+		shadowTransport, parseErr := ParseArgsShadow(jsonConfigString, PartialConfig.Address)
 		if parseErr != nil {
 			return nil, errors.New("could not parse shadow Args")
 		}

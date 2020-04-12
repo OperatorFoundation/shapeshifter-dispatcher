@@ -15,7 +15,7 @@ copies or substantial portions of the Software.
 
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
 AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
@@ -56,7 +56,7 @@ func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) 
 		}
 	case "shadow":
 
-		transport, err := transports.ParseArgsShadow(args, target, dialer)
+		transport, err := transports.ParseArgsShadow(args, target)
 		if err != nil {
 			log.Errorf("Could not parse options %s", err.Error())
 			return nil, err
@@ -110,7 +110,7 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 	args, argsErr := options2.ParseServerOptions(options)
 	if argsErr != nil {
 		log.Errorf("Error parsing transport options: %s", options)
-		return nil, errors.New("Error parsing transport options")
+		return nil, errors.New("error parsing transport options")
 	}
 
 	switch name {
@@ -121,7 +121,7 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 		transport, err := obfs4.NewObfs4Server(stateDir)
 		if err != nil {
 			log.Errorf("Can't start obfs4 transport: %v", err)
-			return nil, errors.New("Can't start obfs4 transport")
+			return nil, errors.New("can't start obfs4 transport")
 		}
 		listen = transport.Listen
 	case "Replicant":
@@ -134,7 +134,7 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 		shargsString := string(shargsBytes)
 		config, err := transports.ParseArgsReplicantServer(shargsString)
 		if err != nil {
-			return nil, errors.New(("Could not parse Replicant options"))
+			return nil, errors.New("could not parse Replicant options")
 		}
 
 		//configJSONString, jsonMarshallError := json.Marshal(config)
@@ -157,7 +157,7 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 		shargsString := string(shargsByte)
 		config, err := transports.ParseArgsMeekliteServer(shargsString)
 		if err != nil {
-			return nil, errors.New(("Could not parse Replicant options"))
+			return nil, errors.New("could not parse Replicant options")
 		}
 		transport := meekserver.NewMeekTransportServer(true, config.AcmeEmail, config.AcmeHostname, stateDir)
 		listen = transport.Listen
@@ -195,7 +195,7 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 
 		listen = config.Listen
 	default:
-		return nil, errors.New("Unknown transport")
+		return nil, errors.New("unknown transport")
 	}
 
 	return listen, nil

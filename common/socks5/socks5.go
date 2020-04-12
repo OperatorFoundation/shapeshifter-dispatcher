@@ -152,7 +152,7 @@ func Handshake(conn net.Conn, needOptions bool) (*Request, error) {
 		return nil, err
 	}
 
-	// Authenticate if neccecary.
+	// Authenticate if necessary.
 	if err = req.authenticate(method); err != nil {
 		return nil, err
 	}

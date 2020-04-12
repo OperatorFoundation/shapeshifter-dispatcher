@@ -73,16 +73,6 @@ func Init(enable bool, logFilePath string) error {
 	return nil
 }
 
-// Enabled returns if logging is enabled.
-func Enabled() bool {
-	return enableLogging
-}
-
-// Level returns the current log level.
-func Level() int {
-	return logLevel
-}
-
 // SetLogLevel sets the log level to the value indicated by the given string
 // (case-insensitive).
 func SetLogLevel(logLevelStr string) error {
@@ -181,7 +171,7 @@ func ElideError(err error) string {
 }
 
 // ElideAddr transforms the string representation of the provided address based
-// on the unsafeLogging setting.  Callers that wish to log IP addreses should
+// on the unsafeLogging setting.  Callers that wish to log IP addresses should
 // use ElideAddr to sanitize the contents first.
 func ElideAddr(addrStr string) string {
 	if unsafeLogging {

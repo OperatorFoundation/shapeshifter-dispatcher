@@ -90,13 +90,16 @@ func TestAuthInvalidVersion(t *testing.T) {
 	req := c.toRequest()
 
 	// VER = 03, NMETHODS = 01, METHODS = [00]
-	c.writeHex("030100")
+	_, hexErr := c.writeHex("030100")
+	if hexErr != nil {
+		t.Error("negotiateAuth(InvalidVersion) could not be decoded")
+	}
 	if _, err := req.negotiateAuth(false); err == nil {
-		t.Error("negotiateAuth(InvalidVersion) succeded")
+		t.Error("negotiateAuth(InvalidVersion) succeeded")
 	}
 }
 
-// TestAuthInvalidNMethods tests auth negotiaton with no methods.
+// TestAuthInvalidNMethods tests auth negotiation with no methods.
 func TestAuthInvalidNMethods(t *testing.T) {
 	c := new(testReadWriter)
 	req := c.toRequest()
@@ -104,7 +107,10 @@ func TestAuthInvalidNMethods(t *testing.T) {
 	var method byte
 
 	// VER = 05, NMETHODS = 00
-	c.writeHex("0500")
+	_, hexErr := c.writeHex("0500")
+	if hexErr != nil {
+		t.Error("negotiateAuth(No Methods) could not be decoded")
+	}
 	if method, err = req.negotiateAuth(false); err != nil {
 		t.Error("negotiateAuth(No Methods) failed:", err)
 	}
@@ -116,7 +122,7 @@ func TestAuthInvalidNMethods(t *testing.T) {
 	}
 }
 
-// TestAuthNoneRequired tests auth negotiaton with NO AUTHENTICATION REQUIRED.
+// TestAuthNoneRequired tests auth negotiation with NO AUTHENTICATION REQUIRED.
 func TestAuthNoneRequired(t *testing.T) {
 	c := new(testReadWriter)
 	req := c.toRequest()
@@ -124,7 +130,10 @@ func TestAuthNoneRequired(t *testing.T) {
 	var method byte
 
 	// VER = 05, NMETHODS = 01, METHODS = [00]
-	c.writeHex("050100")
+	_, hexErr := c.writeHex("050100")
+	if hexErr != nil {
+		t.Error("negotiateAuth(None) could not be decoded")
+	}
 	if method, err = req.negotiateAuth(false); err != nil {
 		t.Error("negotiateAuth(None) failed:", err)
 	}
@@ -144,7 +153,10 @@ func TestAuthUsernamePassword(t *testing.T) {
 	var method byte
 
 	// VER = 05, NMETHODS = 01, METHODS = [02]
-	c.writeHex("050102")
+	_, hexErr := c.writeHex("050102")
+	if hexErr != nil{
+		t.Error("negotiateAuth(UsernamePassword) could not be decoded")
+	}
 	if method, err = req.negotiateAuth(false); err != nil {
 		t.Error("negotiateAuth(UsernamePassword) failed:", err)
 	}
@@ -165,7 +177,10 @@ func TestAuthBoth(t *testing.T) {
 	var method byte
 
 	// VER = 05, NMETHODS = 02, METHODS = [00, 02]
-	c.writeHex("05020002")
+	_, hexErr := c.writeHex("05020002")
+	if hexErr != nil {
+		t.Error("negotiateAuth(Both) could not be decoded")
+	}
 	if method, err = req.negotiateAuth(false); err != nil {
 		t.Error("negotiateAuth(Both) failed:", err)
 	}
@@ -185,7 +200,10 @@ func TestAuthUnsupported(t *testing.T) {
 	var method byte
 
 	// VER = 05, NMETHODS = 01, METHODS = [01] (GSSAPI)
-	c.writeHex("050101")
+	_, hexErr := c.writeHex("050101")
+	if hexErr != nil {
+		t.Error("negotiateAuth(Unknown) could not be decoded")
+	}
 	if method, err = req.negotiateAuth(false); err != nil {
 		t.Error("negotiateAuth(Unknown) failed:", err)
 	}
@@ -206,7 +224,10 @@ func TestAuthUnsupported2(t *testing.T) {
 	var method byte
 
 	// VER = 05, NMETHODS = 03, METHODS = [00,01,02]
-	c.writeHex("0503000102")
+	_, hexErr := c.writeHex("0503000102")
+	if hexErr != nil {
+		t.Error("negotiateAuth(Unknown2) could not be decoded")
+	}
 	if method, err = req.negotiateAuth(false); err != nil {
 		t.Error("negotiateAuth(Unknown2) failed:", err)
 	}
@@ -224,9 +245,12 @@ func TestRFC1929InvalidVersion(t *testing.T) {
 	req := c.toRequest()
 
 	// VER = 03, ULEN = 5, UNAME = "ABCDE", PLEN = 5, PASSWD = "abcde"
-	c.writeHex("03054142434445056162636465")
+	_, hexErr := c.writeHex("03054142434445056162636465")
+	if hexErr != nil {
+		t.Error("authenticate(InvalidVersion) could not be decoded")
+	}
 	if err := req.authenticate(authUsernamePassword); err == nil {
-		t.Error("authenticate(InvalidVersion) succeded")
+		t.Error("authenticate(InvalidVersion) succeeded")
 	}
 	if msg := c.readHex(); msg != "0101" {
 		t.Error("authenticate(InvalidVersion) invalid response:", msg)
@@ -239,9 +263,12 @@ func TestRFC1929InvalidUlen(t *testing.T) {
 	req := c.toRequest()
 
 	// VER = 01, ULEN = 0, UNAME = "", PLEN = 5, PASSWD = "abcde"
-	c.writeHex("0100056162636465")
+	_, hexErr := c.writeHex("0100056162636465")
+	if hexErr != nil {
+		t.Error("authenticate(InvalidUlen) could not be decoded")
+	}
 	if err := req.authenticate(authUsernamePassword); err == nil {
-		t.Error("authenticate(InvalidUlen) succeded")
+		t.Error("authenticate(InvalidUlen) succeeded")
 	}
 	if msg := c.readHex(); msg != "0101" {
 		t.Error("authenticate(InvalidUlen) invalid response:", msg)
@@ -254,9 +281,12 @@ func TestRFC1929InvalidPlen(t *testing.T) {
 	req := c.toRequest()
 
 	// VER = 01, ULEN = 5, UNAME = "ABCDE", PLEN = 0, PASSWD = ""
-	c.writeHex("0105414243444500")
+	_, hexErr := c.writeHex("0105414243444500")
+	if hexErr != nil {
+		t.Error("authenticate(InvalidPlen) could not be decoded")
+	}
 	if err := req.authenticate(authUsernamePassword); err == nil {
-		t.Error("authenticate(InvalidPlen) succeded")
+		t.Error("authenticate(InvalidPlen) succeeded")
 	}
 	if msg := c.readHex(); msg != "0101" {
 		t.Error("authenticate(InvalidPlen) invalid response:", msg)
@@ -269,9 +299,12 @@ func TestRFC1929InvalidPTArgs(t *testing.T) {
 	req := c.toRequest()
 
 	// VER = 01, ULEN = 5, UNAME = "ABCDE", PLEN = 5, PASSWD = "abcde"
-	c.writeHex("01054142434445056162636465")
+	_, hexErr := c.writeHex("01054142434445056162636465")
+	if hexErr != nil {
+		t.Error("authenticate(InvalidArgs) could not be decoded")
+	}
 	if err := req.authenticate(authUsernamePassword); err == nil {
-		t.Error("authenticate(InvalidArgs) succeded")
+		t.Error("authenticate(InvalidArgs) succeeded")
 	}
 	if msg := c.readHex(); msg != "0101" {
 		t.Error("authenticate(InvalidArgs) invalid response:", msg)
@@ -284,7 +317,10 @@ func TestRFC1929Success(t *testing.T) {
 	req := c.toRequest()
 
 	// VER = 01, ULEN = 9, UNAME = "key=value", PLEN = 1, PASSWD = "\0"
-	c.writeHex("01096b65793d76616c75650100")
+	_, hexErr := c.writeHex("01096b65793d76616c75650100")
+	if hexErr != nil {
+		t.Error("authenticate(Success) could not be decoded")
+	}
 	if err := req.authenticate(authUsernamePassword); err != nil {
 		t.Error("authenticate(Success) failed:", err)
 	}
@@ -303,9 +339,12 @@ func TestRequestInvalidHdr(t *testing.T) {
 	req := c.toRequest()
 
 	// VER = 03, CMD = 01, RSV = 00, ATYPE = 01, DST.ADDR = 127.0.0.1, DST.PORT = 9050
-	c.writeHex("030100017f000001235a")
+	_, hexErr := c.writeHex("030100017f000001235a")
+	if hexErr != nil {
+		t.Error("readCommand(InvalidVer) could not be decoded")
+	}
 	if err := req.readCommand(); err == nil {
-		t.Error("readCommand(InvalidVer) succeded")
+		t.Error("readCommand(InvalidVer) succeeded")
 	}
 	if msg := c.readHex(); msg != "05010001000000000000" {
 		t.Error("readCommand(InvalidVer) invalid response:", msg)
@@ -313,9 +352,12 @@ func TestRequestInvalidHdr(t *testing.T) {
 	c.reset(req)
 
 	// VER = 05, CMD = 05, RSV = 00, ATYPE = 01, DST.ADDR = 127.0.0.1, DST.PORT = 9050
-	c.writeHex("050500017f000001235a")
+	_, hexErr2 := c.writeHex("050500017f000001235a")
+	if hexErr2 != nil {
+		t.Error("readCommand(InvalidCmd) could not be decoded")
+	}
 	if err := req.readCommand(); err == nil {
-		t.Error("readCommand(InvalidCmd) succeded")
+		t.Error("readCommand(InvalidCmd) succeeded")
 	}
 	if msg := c.readHex(); msg != "05070001000000000000" {
 		t.Error("readCommand(InvalidCmd) invalid response:", msg)
@@ -323,9 +365,12 @@ func TestRequestInvalidHdr(t *testing.T) {
 	c.reset(req)
 
 	// VER = 05, CMD = 01, RSV = 30, ATYPE = 01, DST.ADDR = 127.0.0.1, DST.PORT = 9050
-	c.writeHex("050130017f000001235a")
+	_, hexErr3 := c.writeHex("050130017f000001235a")
+	if hexErr3 != nil {
+		t.Error("readCommand(InvalidRsv) could not be decoded")
+	}
 	if err := req.readCommand(); err == nil {
-		t.Error("readCommand(InvalidRsv) succeded")
+		t.Error("readCommand(InvalidRsv) succeeded")
 	}
 	if msg := c.readHex(); msg != "05010001000000000000" {
 		t.Error("readCommand(InvalidRsv) invalid response:", msg)
@@ -333,9 +378,12 @@ func TestRequestInvalidHdr(t *testing.T) {
 	c.reset(req)
 
 	// VER = 05, CMD = 01, RSV = 01, ATYPE = 05, DST.ADDR = 127.0.0.1, DST.PORT = 9050
-	c.writeHex("050100057f000001235a")
+	_, hexErr4 := c.writeHex("050100057f000001235a")
+	if hexErr4 != nil {
+		t.Error("readCommand(InvalidAtype) could not be decoded")
+	}
 	if err := req.readCommand(); err == nil {
-		t.Error("readCommand(InvalidAtype) succeded")
+		t.Error("readCommand(InvalidAtype) succeeded")
 	}
 	if msg := c.readHex(); msg != "05080001000000000000" {
 		t.Error("readCommand(InvalidAtype) invalid response:", msg)
@@ -349,7 +397,10 @@ func TestRequestIPv4(t *testing.T) {
 	req := c.toRequest()
 
 	// VER = 05, CMD = 01, RSV = 00, ATYPE = 01, DST.ADDR = 127.0.0.1, DST.PORT = 9050
-	c.writeHex("050100017f000001235a")
+	_, hexErr := c.writeHex("050100017f000001235a")
+	if hexErr != nil {
+		t.Error("readCommand(IPv4) could not be decoded")
+	}
 	if err := req.readCommand(); err != nil {
 		t.Error("readCommand(IPv4) failed:", err)
 	}
@@ -368,7 +419,10 @@ func TestRequestIPv6(t *testing.T) {
 	req := c.toRequest()
 
 	// VER = 05, CMD = 01, RSV = 00, ATYPE = 04, DST.ADDR = 0102:0304:0506:0708:090a:0b0c:0d0e:0f10, DST.PORT = 9050
-	c.writeHex("050100040102030405060708090a0b0c0d0e0f10235a")
+	_, hexErr := c.writeHex("050100040102030405060708090a0b0c0d0e0f10235a")
+	if hexErr != nil {
+		t.Error("readCommand(IPv6) could not be decoded")
+	}
 	if err := req.readCommand(); err != nil {
 		t.Error("readCommand(IPv6) failed:", err)
 	}
@@ -387,7 +441,10 @@ func TestRequestFQDN(t *testing.T) {
 	req := c.toRequest()
 
 	// VER = 05, CMD = 01, RSV = 00, ATYPE = 04, DST.ADDR = example.com, DST.PORT = 9050
-	c.writeHex("050100030b6578616d706c652e636f6d235a")
+	_, hexErr := c.writeHex("050100030b6578616d706c652e636f6d235a")
+	if hexErr != nil {
+		t.Error("readCommand(FQDN) could not be decoded")
+	}
 	if err := req.readCommand(); err != nil {
 		t.Error("readCommand(FQDN) failed:", err)
 	}

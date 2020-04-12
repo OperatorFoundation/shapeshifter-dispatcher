@@ -115,7 +115,7 @@ func PtGetProxy(proxy *string) (*url.URL, error) {
 
 	case "socks5":
 		if spec.User != nil {
-			// UNAME/PASSWD both must be between 1 and 255 bytes long. (RFC1929)
+			// USER/PASSWD both must be between 1 and 255 bytes long. (RFC1929)
 			user := spec.User.Username()
 			passwd, isSet := spec.User.Password()
 			if len(user) < 1 || len(user) > 255 {
@@ -138,7 +138,7 @@ func PtGetProxy(proxy *string) (*url.URL, error) {
 	return spec, nil
 }
 
-// Sigh, pt.resolveAddr() isn't exported.  Include our own getto version that
+// Sigh, pt.resolveAddr() isn't exported.  Include our own ghetto version that
 // doesn't work around #7011, because we don't work with pre-0.2.5.x tor, and
 // all we care about is validation anyway.
 func resolveAddrStr(addrStr string) (*net.TCPAddr, error) {
