@@ -3,3 +3,4 @@ language: go
 script:
         - go build -v
         - go test -v github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5
+        - ./testObfs2.sh
