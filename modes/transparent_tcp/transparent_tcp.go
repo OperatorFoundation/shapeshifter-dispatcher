@@ -64,8 +64,8 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 	// Deal with arguments.
 	transport, argsToDialerErr := pt_extras.ArgsToDialer(target, name, options, dialer)
 	if argsToDialerErr != nil {
-		log.Errorf("Error creating a transport with the provided options: ", options)
-		log.Errorf("Error: ", argsToDialerErr.Error())
+		log.Errorf("Error creating a transport with the provided options: %v", options)
+		log.Errorf("Error: %v", argsToDialerErr.Error())
 		println("-> Error creating a transport with the provided options: ", options)
 		println("-> Error: ", argsToDialerErr.Error())
 		return
@@ -77,7 +77,7 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 		println("--> Unable to dial transport server: ", dialErr.Error())
 		println("-> Name: ", name)
 		println("-> Options: ", options)
-		log.Errorf("--> Unable to dial transport server: ", dialErr.Error())
+		log.Errorf("--> Unable to dial transport server: %v", dialErr.Error())
 		return
 	}
 
