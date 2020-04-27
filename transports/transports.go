@@ -32,7 +32,6 @@ package transports
 import (
 	"encoding/json"
 	"errors"
-	options "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2"
@@ -50,7 +49,7 @@ func Transports() []string {
 	return []string{"obfs2", "shadow", "Dust", "meeklite", "Replicant", "obfs4", "Optimizer"}
 }
 
-func ParseArgsObfs4(args string, target string, dialer proxy.Dialer) (*obfs4.Transport, error) {
+func ParseArgsObfs4(args string, target string, dialer proxy.Dialer) (*obfs4.OptimizerTransport, error) {
 	var config obfs4.Config
 
 	bytes := []byte(args)
@@ -64,7 +63,7 @@ func ParseArgsObfs4(args string, target string, dialer proxy.Dialer) (*obfs4.Tra
 		iatMode = 1
 	}
 
-	transport := obfs4.Transport{
+	transport := obfs4.OptimizerTransport{
 		CertString: config.CertString,
 		IatMode:    iatMode,
 		Address:    target,
@@ -153,12 +152,12 @@ func ParseArgsReplicantClient(args string, target string, dialer proxy.Dialer) (
 		Config string
 	}
 	var ReplicantConfig replicantJsonConfig
-	if args =="" {
+	if args == "" {
 		transport := CreateDefaultReplicantClient(target, dialer)
 		return transport, nil
 	}
 	argsBytes := []byte(args)
-	unmarshalError:= json.Unmarshal(argsBytes, &ReplicantConfig)
+	unmarshalError := json.Unmarshal(argsBytes, &ReplicantConfig)
 	if unmarshalError != nil {
 		return nil, errors.New("could not unmarshal Replicant args")
 	}
@@ -195,7 +194,7 @@ func ParseArgsReplicantServer(args string) (*replicant.ServerConfig, error) {
 		return &transport, nil
 	}
 	argsBytes := []byte(args)
-	unmarshalError:= json.Unmarshal(argsBytes, &ReplicantConfig)
+	unmarshalError := json.Unmarshal(argsBytes, &ReplicantConfig)
 	if unmarshalError != nil {
 		return nil, errors.New("could not unmarshal Replicant args")
 	}
@@ -239,48 +238,32 @@ func ParseArgsMeekliteServer(args string) (*meekserver.Config, error) {
 	return &config, nil
 }
 
+type OptimizerConfig struct {
+	Transports []interface{} `json:"transports"`
+	Strategy   string        `json:"strategy"`
+}
+
+type OptimizerArgs struct {
+	Address string                 `json:"address"`
+	Name    string                 `json:"name"`
+	Config  map[string]interface{} `json:"config"`
+}
+
 func ParseArgsOptimizer(jsonConfig string, dialer proxy.Dialer) (*Optimizer.Client, error) {
+	var config OptimizerConfig
 	var transports []Optimizer.Transport
 	var strategy Optimizer.Strategy
-	args, parseErr := options.ParseOptions(jsonConfig)
+	jsonByte := []byte(jsonConfig)
+	parseErr := json.Unmarshal(jsonByte, &config)
 	if parseErr != nil {
 		return nil, errors.New("could not marshal optimizer config")
 	}
-	//jsonBytes := []byte(jsonConfig)
-	//unmarshalErr := json.Unmarshal(jsonBytes, &args)
-	//if unmarshalErr != nil {
-	//	return nil, errors.New("could not unmarshal optimizer config")
-	//}
-
-	untypedTransports, ok := args["transports"]
-	if !ok {
-		return nil, errors.New("optimizer transport missing transports argument")
+	transports, parseErr = parseTransports(config.Transports, dialer)
+	if parseErr != nil {
+		return nil, errors.New("could not parse transports")
 	}
 
-	switch untypedTransports.(type) {
-	case []interface{}:
-		otcs := untypedTransports.([]interface{})
-
-		var parseErr error
-		transports, parseErr = parseTransports(otcs, dialer)
-		if parseErr != nil {
-			return nil, errors.New("could not parse transports")
-		}
-	default:
-		return nil, errors.New("unsupported type for Optimizer transports option")
-	}
-	untypedStrategy, ok2 := args["strategy"]
-	if !ok2 {
-		return nil, errors.New("optimizer transport missing strategy argument")
-	}
-
-	//FIXME if possible, replace CoerceToString with json parsing
-	strategyString, icerr := options.CoerceToString(untypedStrategy)
-	if icerr != nil {
-		return nil, icerr
-	}
-
-	strategy, parseErr = parseStrategy(strategyString, transports)
+	strategy, parseErr = parseStrategy(config.Strategy, transports)
 	if parseErr != nil {
 		return nil, errors.New("could not parse strategy")
 	}
@@ -362,11 +345,11 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 		return nil, errors.New("unsupported type for optimizer config option")
 	}
 
-	jsonConfigBytes, configMarshalError:= json.Marshal(config)
+	jsonConfigBytes, configMarshalError := json.Marshal(config)
 	if configMarshalError != nil {
 		return nil, errors.New("could not marshal Optimizer config")
 	}
-	jsonConfigString:= string(jsonConfigBytes)
+	jsonConfigString := string(jsonConfigBytes)
 	switch PartialConfig.Name {
 	case "shadow":
 		shadowTransport, parseErr := ParseArgsShadow(jsonConfigString, PartialConfig.Address)
