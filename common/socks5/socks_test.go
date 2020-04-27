@@ -145,51 +145,50 @@ func TestAuthNoneRequired(t *testing.T) {
 	}
 }
 
-// TestAuthUsernamePassword tests auth negotiation with USERNAME/PASSWORD.
-// FIXME: test disabled, is it outdated?
-func _TestAuthUsernamePassword(t *testing.T) {
+// TestAuthJsonParameterBlock tests auth negotiation with jsonParameterBlock.
+func TestAuthJsonParameterBlock(t *testing.T) {
 	c := new(testReadWriter)
 	req := c.toRequest()
 	var err error
 	var method byte
 
-	// VER = 05, NMETHODS = 01, METHODS = [02]
-	_, hexErr := c.writeHex("050102")
+	// VER = 05, NMETHODS = 01, METHODS = [09]
+	//Method 9 is the json parameter block authentication
+	_, hexErr := c.writeHex("050109")
 	if hexErr != nil{
-		t.Error("negotiateAuth(UsernamePassword) could not be decoded")
+		t.Error("negotiateAuth(jsonParameterBlock) could not be decoded")
 	}
 	if method, err = req.negotiateAuth(false); err != nil {
-		t.Error("negotiateAuth(UsernamePassword) failed:", err)
+		t.Error("negotiateAuth(jsonParameterBlock) failed:", err)
 	}
-	if method != authUsernamePassword {
-		t.Error("negotiateAuth(UsernamePassword) unexpected method:", method)
+	if method != authJsonParameterBlock {
+		t.Error("negotiateAuth(jsonParameterBlock) unexpected method:", method)
 	}
-	if msg := c.readHex(); msg != "0502" {
-		t.Error("negotiateAuth(UsernamePassword) invalid response:", msg)
+	if msg := c.readHex(); msg != "0509" {
+		t.Error("negotiateAuth(jsonParameterBlock) invalid response:", msg)
 	}
 }
 
 // TestAuthBoth tests auth negotiation containing both NO AUTHENTICATION
-// REQUIRED and USERNAME/PASSWORD.
-// FIXME: test disabled, is it outdated?
-func _TestAuthBoth(t *testing.T) {
+// REQUIRED and jsonParameterBlock.
+func TestAuthBoth(t *testing.T) {
 	c := new(testReadWriter)
 	req := c.toRequest()
 	var err error
 	var method byte
 
-	// VER = 05, NMETHODS = 02, METHODS = [00, 02]
-	_, hexErr := c.writeHex("05020002")
+	// VER = 05, NMETHODS = 02, METHODS = [00, 09]
+	_, hexErr := c.writeHex("05020009")
 	if hexErr != nil {
 		t.Error("negotiateAuth(Both) could not be decoded")
 	}
-	if method, err = req.negotiateAuth(false); err != nil {
+	if method, err = req.negotiateAuth(true); err != nil {
 		t.Error("negotiateAuth(Both) failed:", err)
 	}
-	if method != authUsernamePassword {
+	if method != authJsonParameterBlock {
 		t.Error("negotiateAuth(Both) unexpected method:", method)
 	}
-	if msg := c.readHex(); msg != "0502" {
+	if msg := c.readHex(); msg != "0509" {
 		t.Error("negotiateAuth(Both) invalid response:", msg)
 	}
 }
@@ -219,128 +218,78 @@ func TestAuthUnsupported(t *testing.T) {
 
 // TestAuthUnsupported2 tests auth negotiation with supported and unsupported
 // methods.
-// FIXME: test disabled, is it outdated?
-func _TestAuthUnsupported2(t *testing.T) {
+func TestAuthUnsupported2(t *testing.T) {
 	c := new(testReadWriter)
 	req := c.toRequest()
 	var err error
 	var method byte
 
-	// VER = 05, NMETHODS = 03, METHODS = [00,01,02]
-	_, hexErr := c.writeHex("0503000102")
+	// VER = 05, NMETHODS = 03, METHODS = [00,01,09]
+	_, hexErr := c.writeHex("0503000109")
 	if hexErr != nil {
 		t.Error("negotiateAuth(Unknown2) could not be decoded")
 	}
-	if method, err = req.negotiateAuth(false); err != nil {
+	if method, err = req.negotiateAuth(true); err != nil {
 		t.Error("negotiateAuth(Unknown2) failed:", err)
 	}
-	if method != authUsernamePassword {
+	if method != authJsonParameterBlock {
 		t.Error("negotiateAuth(Unknown2) picked unexpected method:", method)
 	}
-	if msg := c.readHex(); msg != "0502" {
+	if msg := c.readHex(); msg != "0509" {
 		t.Error("negotiateAuth(Unknown2) invalid response:", msg)
 	}
 }
 
-// TestRFC1929InvalidVersion tests RFC1929 auth with an invalid version.
-// FIXME: test disabled, is it outdated?
-func _TestRFC1929InvalidVersion(t *testing.T) {
+// TestRFC1928InvalidVersion tests RFC1929 auth with an invalid version.
+func TestRFC1928InvalidVersion(t *testing.T) {
 	c := new(testReadWriter)
 	req := c.toRequest()
 
-	// VER = 03, ULEN = 5, UNAME = "ABCDE", PLEN = 5, PASSWD = "abcde"
-	_, hexErr := c.writeHex("03054142434445056162636465")
+	// VER = 03,  NMETHODS = 03, METHODS = [00,01,09], JLEN = 2, JSON = "{}"
+	_, hexErr := c.writeHex("0303000109000000027b7d")
 	if hexErr != nil {
 		t.Error("authenticate(InvalidVersion) could not be decoded")
 	}
-	if err := req.authenticate(authUsernamePassword); err == nil {
-		t.Error("authenticate(InvalidVersion) succeeded")
-	}
-	if msg := c.readHex(); msg != "0101" {
-		t.Error("authenticate(InvalidVersion) invalid response:", msg)
+	if _, err := req.negotiateAuth(true); err == nil {
+		t.Error("failed to detect incorrect socks version:", err)
 	}
 }
 
-// TestRFC1929InvalidUlen tests RFC1929 auth with an invalid ULEN.
-// FIXME: test disabled, is it outdated?
-func _TestRFC1929InvalidUlen(t *testing.T) {
+// TestPT2Success tests PT2.1 jsonParameterBlock auth with valid pt args.
+func TestPT2Success(t *testing.T) {
 	c := new(testReadWriter)
 	req := c.toRequest()
 
-	// VER = 01, ULEN = 0, UNAME = "", PLEN = 5, PASSWD = "abcde"
-	_, hexErr := c.writeHex("0100056162636465")
-	if hexErr != nil {
-		t.Error("authenticate(InvalidUlen) could not be decoded")
-	}
-	if err := req.authenticate(authUsernamePassword); err == nil {
-		t.Error("authenticate(InvalidUlen) succeeded")
-	}
-	if msg := c.readHex(); msg != "0101" {
-		t.Error("authenticate(InvalidUlen) invalid response:", msg)
-	}
-}
-
-// TestRFC1929InvalidPlen tests RFC1929 auth with an invalid PLEN.
-// FIXME: test disabled, is it outdated?
-func _TestRFC1929InvalidPlen(t *testing.T) {
-	c := new(testReadWriter)
-	req := c.toRequest()
-
-	// VER = 01, ULEN = 5, UNAME = "ABCDE", PLEN = 0, PASSWD = ""
-	_, hexErr := c.writeHex("0105414243444500")
-	if hexErr != nil {
-		t.Error("authenticate(InvalidPlen) could not be decoded")
-	}
-	if err := req.authenticate(authUsernamePassword); err == nil {
-		t.Error("authenticate(InvalidPlen) succeeded")
-	}
-	if msg := c.readHex(); msg != "0101" {
-		t.Error("authenticate(InvalidPlen) invalid response:", msg)
-	}
-}
-
-// TestRFC1929InvalidArgs tests RFC1929 auth with invalid pt args.
-// FIXME: test disabled, is it outdated?
-func _TestRFC1929InvalidPTArgs(t *testing.T) {
-	c := new(testReadWriter)
-	req := c.toRequest()
-
-	// VER = 01, ULEN = 5, UNAME = "ABCDE", PLEN = 5, PASSWD = "abcde"
-	_, hexErr := c.writeHex("01054142434445056162636465")
-	if hexErr != nil {
-		t.Error("authenticate(InvalidArgs) could not be decoded")
-	}
-	if err := req.authenticate(authUsernamePassword); err == nil {
-		t.Error("authenticate(InvalidArgs) succeeded")
-	}
-	if msg := c.readHex(); msg != "0101" {
-		t.Error("authenticate(InvalidArgs) invalid response:", msg)
-	}
-}
-
-// TestRFC1929Success tests RFC1929 auth with valid pt args.
-// FIXME: test disabled, is it outdated?
-func _TestRFC1929Success(t *testing.T) {
-	c := new(testReadWriter)
-	req := c.toRequest()
-
-	// VER = 01, ULEN = 9, UNAME = "key=value", PLEN = 1, PASSWD = "\0"
-	_, hexErr := c.writeHex("01096b65793d76616c75650100")
+	// JLEN = 2, JSON = "{}"
+	_, hexErr := c.writeHex("000000027b7d")
 	if hexErr != nil {
 		t.Error("authenticate(Success) could not be decoded")
 	}
-	if err := req.authenticate(authUsernamePassword); err != nil {
+	if err := req.authenticate(authJsonParameterBlock); err != nil {
 		t.Error("authenticate(Success) failed:", err)
 	}
-	if msg := c.readHex(); msg != "0100" {
+	if msg := c.readHex(); msg != "" {
 		t.Error("authenticate(Success) invalid response:", msg)
 	}
-	v, ok := req.Args.Get("key")
-	if v != "value" || !ok {
-		t.Error("RFC1929 k,v parse failure:", v)
+	if req.Args == nil {
+		t.Error("RFC1929 k,v parse failure:")
 	}
 }
 
+// TestPT2Fail tests PT2.1 jsonParameterBlock auth with invalid pt args.
+func TestPT2Fail(t *testing.T) {
+	c := new(testReadWriter)
+	req := c.toRequest()
+
+	// JLEN = 2, JSON = "{}"
+	_, hexErr := c.writeHex("000000027d7b")
+	if hexErr != nil {
+		t.Error("authenticate(Success) could not be decoded")
+	}
+	if err := req.authenticate(authJsonParameterBlock); err == nil {
+		t.Error("authenticate(Success) failed:", err)
+	}
+}
 // TestRequestInvalidHdr tests SOCKS5 requests with invalid VER/CMD/RSV/ATYPE
 func TestRequestInvalidHdr(t *testing.T) {
 	c := new(testReadWriter)

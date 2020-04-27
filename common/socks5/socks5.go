@@ -61,8 +61,7 @@ const (
 	atypIPv6       = 0x04
 
 	authNoneRequired        = 0x00
-	authUsernamePassword    = 0x02
-	authPT2PrivateMethod    = 0x80
+	authJsonParameterBlock  = 0x09
 	authNoAcceptableMethods = 0xff
 
 	requestTimeout = 5 * time.Second
@@ -215,16 +214,16 @@ func (req *Request) negotiateAuth(needOptions bool) (byte, error) {
 	// Pick the best authentication method, prioritizing authenticating
 	// over not if both options are present and SOCKS header options are needed.
 	if needOptions {
-		if bytes.IndexByte(methods, authPT2PrivateMethod) != -1 {
-			method = authPT2PrivateMethod
+		if bytes.IndexByte(methods, authJsonParameterBlock) != -1 {
+			method = authJsonParameterBlock
 		} else if bytes.IndexByte(methods, authNoneRequired) != -1 {
 			method = authNoneRequired
 		}
 	} else {
 		if bytes.IndexByte(methods, authNoneRequired) != -1 {
 			method = authNoneRequired
-		} else if bytes.IndexByte(methods, authPT2PrivateMethod) != -1 {
-			method = authPT2PrivateMethod
+		} else if bytes.IndexByte(methods, authJsonParameterBlock) != -1 {
+			method = authJsonParameterBlock
 		}
 	}
 
@@ -243,7 +242,7 @@ func (req *Request) authenticate(method byte) error {
 	switch method {
 	case authNoneRequired:
 		// No authentication required.
-	case authPT2PrivateMethod:
+	case authJsonParameterBlock:
 		if err := req.authPT2(); err != nil {
 			return err
 		}
