@@ -3,4 +3,14 @@ language: go
 script:
         - go build -v
         - go test -v github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5
+        - ./testDust.sh
+        - ./testMeek.sh
         - ./testObfs2.sh
+        - ./testObfs4.sh
+        - ./testOptimizerFirst.sh
+        - ./testOptimizerMinimizeDialDuration.sh
+        - ./testOptimizerRandom.sh
+        - ./testOptimizerRotate.sh
+        - ./testOptimizerTrack.sh
+        - ./testReplicant.sh
+        - ./testShadow.sh
