@@ -358,7 +358,7 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 		}
 		return shadowTransport, nil
 	case "obfs2":
-		obfs2Transport := obfs2.New(PartialConfig.Address, dialer)
+		obfs2Transport := obfs2.NewObfs2Transport()
 		return obfs2Transport, nil
 	case "obfs4":
 		obfs4Transport, parseErr := ParseArgsObfs4(jsonConfigString, PartialConfig.Address, dialer)
