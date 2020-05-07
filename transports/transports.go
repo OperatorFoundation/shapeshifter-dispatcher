@@ -34,7 +34,7 @@ import (
 	"errors"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer"
 	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2"
@@ -217,7 +217,7 @@ func ParseArgsMeeklite(args string, target string, dialer proxy.Dialer) (*meekli
 	}
 
 	transport := meeklite.Transport{
-		Url:     config.Url,
+		URL:     config.URL,
 		Front:   config.Front,
 		Address: target,
 		Dialer:  dialer,
@@ -358,7 +358,7 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 		}
 		return shadowTransport, nil
 	case "obfs2":
-		obfs2Transport := obfs2.NewObfs2Transport()
+		obfs2Transport := obfs2.New(PartialConfig.Address, dialer)
 		return obfs2Transport, nil
 	case "obfs4":
 		obfs4Transport, parseErr := ParseArgsObfs4(jsonConfigString, PartialConfig.Address, dialer)
