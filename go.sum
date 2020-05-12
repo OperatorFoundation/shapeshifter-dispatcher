@@ -14,6 +14,8 @@ github.com/OperatorFoundation/shapeshifter-transports v0.0.0-20200211223228-5b0a
 github.com/OperatorFoundation/shapeshifter-transports v0.0.0-20200211223228-5b0aa21018a5/go.mod h1:u3jvRgYV13oHabVAdXekh3yk9PHfpCKvB8uolQEs4jA=
 github.com/OperatorFoundation/shapeshifter-transports v2.1.11+incompatible h1:Icbjg/r1BC9NlQ4yk0XVhjJ4PtWRwd1uS6IrvPSuje4=
 github.com/OperatorFoundation/shapeshifter-transports v2.1.11+incompatible/go.mod h1:u3jvRgYV13oHabVAdXekh3yk9PHfpCKvB8uolQEs4jA=
+github.com/OperatorFoundation/shapeshifter-transports v2.1.16+incompatible h1:rkPo2x+XWxe0l08kZCAI+KrYJhQuhVSF9miSWZbh5V0=
+github.com/OperatorFoundation/shapeshifter-transports v2.1.16+incompatible/go.mod h1:u3jvRgYV13oHabVAdXekh3yk9PHfpCKvB8uolQEs4jA=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2 v2.1.11 h1:WTjk/NG0xpK5w/qsMn6j3YiNMPrgwf4B70ANRIT/Wvo=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2 v2.1.11/go.mod h1:qZRDNZpdNlXjCsBQhCWH3fAAFQJqT2Aw4uMcxP9/YcM=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2 v2.1.12 h1:IwCEYXjj2KnTKPZKxG0K75wJOZQowfEK1iNVc///qzA=
@@ -22,6 +24,8 @@ github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2 v2.1.13
 github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2 v2.1.13/go.mod h1:ryywPUcoXxO+4BoB5d37GaoyhwIrXuUyUHjMvi53KWA=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2 v2.1.15 h1:LphIbJYUytiXZKOwiPM4yXvhCR5fcEXnDOGYp22d0ZE=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2 v2.1.15/go.mod h1:ryywPUcoXxO+4BoB5d37GaoyhwIrXuUyUHjMvi53KWA=
+github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2 v2.1.16 h1:IUeys2kQ1K/sj+0psWc83ErdbYpja+qwT++1gQ23I08=
+github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2 v2.1.16/go.mod h1:ryywPUcoXxO+4BoB5d37GaoyhwIrXuUyUHjMvi53KWA=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2.1.11 h1:/wn3pNtChButuKsVaUjFCMS0h0OXviZaD0xyjuCIEIQ=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2.1.11/go.mod h1:+6kw8eWrXKkyz0svf8DehCRFsi0ehq/SAhH7CdPjmic=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2.1.12 h1:BCDQ0UhF4RGxK7eYIBW94uQpOCQvpYbMkdJxSX5s6ZE=
@@ -30,6 +34,8 @@ github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2
 github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2.1.13/go.mod h1:8XAwFbQ8p5cjnh6QEheJis5yRWnnCpD8JyDO9VC706o=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2.1.15 h1:DWLfAKyT+McM18jR6ZeN0VnBSkw0NZiVLsIMaTlu9no=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2.1.15/go.mod h1:5m+3Q59kbpQsObxRu4pZs8uEMEke3gEXeJVLf9A7dQI=
+github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2.1.16 h1:jqGhUtak0aGUOZ9HScIRThvyQbHioAXoExBITbgbMdY=
+github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2.1.16/go.mod h1:zS0lVIkLr+dQFyaUtdTo4OiKOoUdK4iJNV3Vx4bXrAo=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2 v2.1.11 h1:/lhFrP7Id8GzrwEO/vH9cynRQiphvxk0dRRag3FyKaw=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2 v2.1.11/go.mod h1:6ns7y+q4xQp9SdSJVs1BPiVVMXtYWbJfjlYPB/MPf3M=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2 v2.1.12 h1:taBdNCJ/nuO1Pf8HJeeTIbrv8zvgEEA45lkxkbnK4zI=
@@ -38,6 +44,8 @@ github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2 v2
 github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2 v2.1.13/go.mod h1:6ns7y+q4xQp9SdSJVs1BPiVVMXtYWbJfjlYPB/MPf3M=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2 v2.1.15 h1:IhLvoPUT0UJfBHgb7SHTy5z8HYFA8aI+NAkSWUgXFdM=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2 v2.1.15/go.mod h1:6ns7y+q4xQp9SdSJVs1BPiVVMXtYWbJfjlYPB/MPf3M=
+github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2 v2.1.16 h1:etlaw+c4/5g5isznjpOp8AncAPoaTEHK4oTvMLc+dFs=
+github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2 v2.1.16/go.mod h1:6ns7y+q4xQp9SdSJVs1BPiVVMXtYWbJfjlYPB/MPf3M=
 github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2 v2.1.7/go.mod h1:yPCbCoTjLIG+p0xiuRDwW5t+DivxTHqGU5njf89AkHY=
 github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2 v2.1.11 h1:LpSrJLqvqLG3dDK2/FJBMrNEq+Bez1V7kE5CTUYQvT8=
 github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2 v2.1.11/go.mod h1:yPCbCoTjLIG+p0xiuRDwW5t+DivxTHqGU5njf89AkHY=
@@ -47,6 +55,8 @@ github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2 v2.
 github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2 v2.1.13/go.mod h1:DEfaE6lfJKEG5CkCRks4rXTMi1xYwbYR0sa+JKsgsr0=
 github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2 v2.1.15 h1:wWTYYwDr3yv/DQj4+pkwMJujxuaNI/fuCRjfDLrFN8Q=
 github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2 v2.1.15/go.mod h1:DEfaE6lfJKEG5CkCRks4rXTMi1xYwbYR0sa+JKsgsr0=
+github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2 v2.1.16 h1:dGABxnORcMNSSKR8UrwFG9bIKOZAeOB2DDaA/ynoa3E=
+github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2 v2.1.16/go.mod h1:DEfaE6lfJKEG5CkCRks4rXTMi1xYwbYR0sa+JKsgsr0=
 github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2 v2.1.11 h1:OT9rZLBroMI4U2Gp3JBezOxkldYb8+Rq70Bt5jonKy4=
 github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2 v2.1.11/go.mod h1:PtW/uJ34yJNBtVZSt8Zcvu+GZw/q7+W3mLZ7jbAWCE4=
 github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2 v2.1.12 h1:Wh79f12yRnIiBlRLRicBDoRhpDgRxWFI7hXrX+x4R6w=
@@ -55,6 +65,8 @@ github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2 v
 github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2 v2.1.13/go.mod h1:PtW/uJ34yJNBtVZSt8Zcvu+GZw/q7+W3mLZ7jbAWCE4=
 github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2 v2.1.15 h1:xAS/5hE28CnOx8DwxK1tx/2s+ZAKKxPKZulM5WI2tA4=
 github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2 v2.1.15/go.mod h1:PtW/uJ34yJNBtVZSt8Zcvu+GZw/q7+W3mLZ7jbAWCE4=
+github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2 v2.1.16 h1:VO25seTtXQfa6gfj52Q6z4EIQ7F0bFwM8pUczxSqDlk=
+github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2 v2.1.16/go.mod h1:PtW/uJ34yJNBtVZSt8Zcvu+GZw/q7+W3mLZ7jbAWCE4=
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2 v2.1.11 h1:DIfJlEQAtpBzQiuDKfb25/QsbMuznMKZL0lTqDgGvPY=
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2 v2.1.11/go.mod h1:aQD0Pjqj/3JVPQIq8pS+pf/PIKsvcXqYv3qsQhyH8wk=
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2 v2.1.12 h1:yA6+dJrwv6yTwU7mAteOT6SFvsHJndRS9m+huBp3a8E=
@@ -63,6 +75,8 @@ github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2 v2.1.1
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2 v2.1.13/go.mod h1:S2qmYjCQzB7XGJ5JMuVDTp2IbQveaAhXQ9BVOx+6KD8=
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2 v2.1.15 h1:Eo8ahWxA1gNe0NOjAgC3ixWamzX0bMbOYDGirwNekTw=
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2 v2.1.15/go.mod h1:S2qmYjCQzB7XGJ5JMuVDTp2IbQveaAhXQ9BVOx+6KD8=
+github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2 v2.1.16 h1:IACllA5e1TERxCrUg8akhruF5t4rGp0qe74KovNTurE=
+github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2 v2.1.16/go.mod h1:S2qmYjCQzB7XGJ5JMuVDTp2IbQveaAhXQ9BVOx+6KD8=
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2 v2.1.7/go.mod h1:mJzAaSli3rcl8PpTSXdQFYykCGuBmuhg9wG6feCBYYs=
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2 v2.1.11 h1:YWL++KLcWh0t755gwZlc8p0DqDAIfWVLdISpoY7RFhw=
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2 v2.1.11/go.mod h1:OUFBnkMmjMHTWqEQlanDOMTgBjU5QARjklwQv9Qovr4=
@@ -72,6 +86,8 @@ github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2 v2.1.1
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2 v2.1.13/go.mod h1:OUFBnkMmjMHTWqEQlanDOMTgBjU5QARjklwQv9Qovr4=
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2 v2.1.15 h1:xsiN4Skc3dfpElCRPfOXNzVEzmnS1r1G317z9JaMheU=
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2 v2.1.15/go.mod h1:OUFBnkMmjMHTWqEQlanDOMTgBjU5QARjklwQv9Qovr4=
+github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2 v2.1.16 h1:Z6P0OkeKrb/QnJqJM8ZY62XBEyFtX5AtTn4q+1PEwVE=
+github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2 v2.1.16/go.mod h1:OUFBnkMmjMHTWqEQlanDOMTgBjU5QARjklwQv9Qovr4=
 github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2 v2.1.7/go.mod h1:GN8ahnEHVGcPbR0raxdpWekjgElppspPNAAOpmNxQxU=
 github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2 v2.1.11 h1:gKY17mRkP/VvBWvXzLuivJpFXt0AxkVUx7pv4PX2sUs=
 github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2 v2.1.11/go.mod h1:GN8ahnEHVGcPbR0raxdpWekjgElppspPNAAOpmNxQxU=
@@ -81,6 +97,8 @@ github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2 v2.1.
 github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2 v2.1.13/go.mod h1:GN8ahnEHVGcPbR0raxdpWekjgElppspPNAAOpmNxQxU=
 github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2 v2.1.15 h1:u+IFMzg1C+g5JgWUTy6Tpn76SN2D7WzzTY97FouH7/o=
 github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2 v2.1.15/go.mod h1:GN8ahnEHVGcPbR0raxdpWekjgElppspPNAAOpmNxQxU=
+github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2 v2.1.16 h1:J4LOP3Fqkiw7JTwPnTW3trmJkYmKGroxzZ/N0emJGWY=
+github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2 v2.1.16/go.mod h1:GN8ahnEHVGcPbR0raxdpWekjgElppspPNAAOpmNxQxU=
 github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da h1:KjTM2ks9d14ZYCvmHS9iAKVt9AyzRSqNU1qabPih5BY=
 github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da/go.mod h1:eHEWzANqSiWQsof+nXEI9bUVUyV6F53Fp89EuCh2EAA=
 github.com/blanu/Dust v1.0.0/go.mod h1:jLFQI2Ufz4kBnGiTzh8O9+/p4U/9MLbouXkaympnTI0=
@@ -123,6 +141,10 @@ golang.org/x/crypto v0.0.0-20200414173820-0848c9571904 h1:bXoxMPcSLOq08zI3/c5dEB
 golang.org/x/crypto v0.0.0-20200414173820-0848c9571904/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20200427165652-729f1e841bcc h1:ZGI/fILM2+ueot/UixBSoj9188jCAxVHEZEGhqq67I4=
 golang.org/x/crypto v0.0.0-20200427165652-729f1e841bcc/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
+golang.org/x/crypto v0.0.0-20200429183012-4b2356b1ed79 h1:IaQbIIB2X/Mp/DKctl6ROxz1KyMlKp4uyvL6+kQ7C88=
+golang.org/x/crypto v0.0.0-20200429183012-4b2356b1ed79/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
+golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37 h1:cg5LA/zNPRzIXIWSCxQW10Rvpy94aQh3LT/ShoCpkHw=
+golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3/go.mod h1:t9HGtf8HONx5eT2rtn7q6eTqICYqUVnKs3thJo3Qplg=
 golang.org/x/net v0.0.0-20200202094626-16171245cfb2/go.mod h1:z5CRVTTTmAJ677TzLLGU+0bjPO0LkuOLi4/5GtJWs/s=
 golang.org/x/net v0.0.0-20200226121028-0de0cce0169b h1:0mm1VjtFUOIlE1SbDlwjYaDxZVDP2S5ou6y0gSgXHu8=
@@ -133,6 +155,8 @@ golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e h1:3G+cUijn7XD+S4eJFddp53Pv7
 golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e/go.mod h1:qpuaurCH72eLCgpAm/N6yyVIVM9cpaDIP3A8BGJEC5A=
 golang.org/x/net v0.0.0-20200425230154-ff2c4b7c35a0 h1:Jcxah/M+oLZ/R4/z5RzfPzGbPXnVDPkEDtf2JnuxN+U=
 golang.org/x/net v0.0.0-20200425230154-ff2c4b7c35a0/go.mod h1:qpuaurCH72eLCgpAm/N6yyVIVM9cpaDIP3A8BGJEC5A=
+golang.org/x/net v0.0.0-20200506145744-7e3656a0809f h1:QBjCr1Fz5kw158VqdE9JfI9cJnl/ymnJWAdMuinqL7Y=
+golang.org/x/net v0.0.0-20200506145744-7e3656a0809f/go.mod h1:qpuaurCH72eLCgpAm/N6yyVIVM9cpaDIP3A8BGJEC5A=
 golang.org/x/sys v0.0.0-20190215142949-d0b11bdaac8a/go.mod h1:STP8DvDyc/dI5b8T5hshtkjS+E42TnysNCUPdjciGhY=
 golang.org/x/sys v0.0.0-20190412213103-97732733099d h1:+R4KGOnez64A81RvjARKc4UT5/tI9ujCIVX+P5KiHuI=
 golang.org/x/sys v0.0.0-20190412213103-97732733099d/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
@@ -149,6 +173,10 @@ golang.org/x/sys v0.0.0-20200413165638-669c56c373c4 h1:opSr2sbRXk5X5/givKrrKj9HX
 golang.org/x/sys v0.0.0-20200413165638-669c56c373c4/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/sys v0.0.0-20200427175716-29b57079015a h1:08u6b1caTT9MQY4wSbmsd4Ulm6DmgNYnbImBuZjGJow=
 golang.org/x/sys v0.0.0-20200427175716-29b57079015a/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20200501145240-bc7a7d42d5c3 h1:5B6i6EAiSYyejWfvc5Rc9BbI3rzIsrrXfAQBWnYfn+w=
+golang.org/x/sys v0.0.0-20200501145240-bc7a7d42d5c3/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
+golang.org/x/sys v0.0.0-20200511232937-7e40ca221e25 h1:OKbAoGs4fGM5cPLlVQLZGYkFC8OnOfgo6tt0Smf9XhM=
+golang.org/x/sys v0.0.0-20200511232937-7e40ca221e25/go.mod h1:h1NjWce9XRLGQEsW7wpKNCjG9DtNlClVuFLEZdDNbEs=
 golang.org/x/text v0.3.0 h1:g61tztE5qeGQ89tm6NTjjM9VPIm088od1l6aSorWRWg=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.2 h1:tW2bmiBqwgJj/UpqtC8EpXEZVYOwU0yG4iWbprSVAcs=
