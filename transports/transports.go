@@ -34,7 +34,7 @@ import (
 	"errors"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer"
+	Optimizer "github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2"
 	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2"
