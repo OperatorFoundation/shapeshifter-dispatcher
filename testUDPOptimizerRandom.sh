@@ -26,7 +26,14 @@ echo "Test successful!" | nc localhost 1443 &
 
 sleep 1
 
-FILESIZE=$(stat -f%z "$FILENAME")
+OS=$(uname)
+
+if [ "$OS" = "Darwin" ]
+then
+  FILESIZE=$(stat -f%z "$FILENAME")
+else
+  FILESIZE=$(stat -c%s "$FILENAME")
+fi
 
 if [ "$FILESIZE" = "0" ]
 then
