@@ -26,6 +26,8 @@ github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2 v2.1.15
 github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2 v2.1.15/go.mod h1:ryywPUcoXxO+4BoB5d37GaoyhwIrXuUyUHjMvi53KWA=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2 v2.1.16 h1:IUeys2kQ1K/sj+0psWc83ErdbYpja+qwT++1gQ23I08=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2 v2.1.16/go.mod h1:ryywPUcoXxO+4BoB5d37GaoyhwIrXuUyUHjMvi53KWA=
+github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2 v2.1.18 h1:a1bRqKTIegf5KT302X2RHUqiQDt5iVxvom+8r5/x3Ow=
+github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2 v2.1.18/go.mod h1:ryywPUcoXxO+4BoB5d37GaoyhwIrXuUyUHjMvi53KWA=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2.1.11 h1:/wn3pNtChButuKsVaUjFCMS0h0OXviZaD0xyjuCIEIQ=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2.1.11/go.mod h1:+6kw8eWrXKkyz0svf8DehCRFsi0ehq/SAhH7CdPjmic=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2.1.12 h1:BCDQ0UhF4RGxK7eYIBW94uQpOCQvpYbMkdJxSX5s6ZE=
@@ -36,6 +38,8 @@ github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2
 github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2.1.15/go.mod h1:5m+3Q59kbpQsObxRu4pZs8uEMEke3gEXeJVLf9A7dQI=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2.1.16 h1:jqGhUtak0aGUOZ9HScIRThvyQbHioAXoExBITbgbMdY=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2.1.16/go.mod h1:zS0lVIkLr+dQFyaUtdTo4OiKOoUdK4iJNV3Vx4bXrAo=
+github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2.1.18 h1:EG1z9M3P599AOzxlzEf157HN0010frgLxtTeQiqbcvo=
+github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2.1.18/go.mod h1:0BViAlDoH+UG5LGy5yFMqOhUpNazLDqeI+ldAXUXdco=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2 v2.1.11 h1:/lhFrP7Id8GzrwEO/vH9cynRQiphvxk0dRRag3FyKaw=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2 v2.1.11/go.mod h1:6ns7y+q4xQp9SdSJVs1BPiVVMXtYWbJfjlYPB/MPf3M=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2 v2.1.12 h1:taBdNCJ/nuO1Pf8HJeeTIbrv8zvgEEA45lkxkbnK4zI=
@@ -46,6 +50,8 @@ github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2 v2
 github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2 v2.1.15/go.mod h1:6ns7y+q4xQp9SdSJVs1BPiVVMXtYWbJfjlYPB/MPf3M=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2 v2.1.16 h1:etlaw+c4/5g5isznjpOp8AncAPoaTEHK4oTvMLc+dFs=
 github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2 v2.1.16/go.mod h1:6ns7y+q4xQp9SdSJVs1BPiVVMXtYWbJfjlYPB/MPf3M=
+github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2 v2.1.18 h1:GtlrvVXW8gP0Gobc82zU2zqCB5XaooUhbJK2IM9d2BU=
+github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2 v2.1.18/go.mod h1:6ns7y+q4xQp9SdSJVs1BPiVVMXtYWbJfjlYPB/MPf3M=
 github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2 v2.1.7/go.mod h1:yPCbCoTjLIG+p0xiuRDwW5t+DivxTHqGU5njf89AkHY=
 github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2 v2.1.11 h1:LpSrJLqvqLG3dDK2/FJBMrNEq+Bez1V7kE5CTUYQvT8=
 github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2 v2.1.11/go.mod h1:yPCbCoTjLIG+p0xiuRDwW5t+DivxTHqGU5njf89AkHY=
@@ -57,6 +63,8 @@ github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2 v2.
 github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2 v2.1.15/go.mod h1:DEfaE6lfJKEG5CkCRks4rXTMi1xYwbYR0sa+JKsgsr0=
 github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2 v2.1.16 h1:dGABxnORcMNSSKR8UrwFG9bIKOZAeOB2DDaA/ynoa3E=
 github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2 v2.1.16/go.mod h1:DEfaE6lfJKEG5CkCRks4rXTMi1xYwbYR0sa+JKsgsr0=
+github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2 v2.1.18 h1:nbUKA3g9Q22/cEXrx9qx+FGjIfHV7c2RPQjShsd9CMM=
+github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2 v2.1.18/go.mod h1:DEfaE6lfJKEG5CkCRks4rXTMi1xYwbYR0sa+JKsgsr0=
 github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2 v2.1.11 h1:OT9rZLBroMI4U2Gp3JBezOxkldYb8+Rq70Bt5jonKy4=
 github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2 v2.1.11/go.mod h1:PtW/uJ34yJNBtVZSt8Zcvu+GZw/q7+W3mLZ7jbAWCE4=
 github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2 v2.1.12 h1:Wh79f12yRnIiBlRLRicBDoRhpDgRxWFI7hXrX+x4R6w=
@@ -67,6 +75,8 @@ github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2 v
 github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2 v2.1.15/go.mod h1:PtW/uJ34yJNBtVZSt8Zcvu+GZw/q7+W3mLZ7jbAWCE4=
 github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2 v2.1.16 h1:VO25seTtXQfa6gfj52Q6z4EIQ7F0bFwM8pUczxSqDlk=
 github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2 v2.1.16/go.mod h1:PtW/uJ34yJNBtVZSt8Zcvu+GZw/q7+W3mLZ7jbAWCE4=
+github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2 v2.1.18 h1:FZgmSW7bEV5EQxxzOAQ2l7vkz3KWiaMPaUvw03B8Y2A=
+github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2 v2.1.18/go.mod h1:PtW/uJ34yJNBtVZSt8Zcvu+GZw/q7+W3mLZ7jbAWCE4=
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2 v2.1.11 h1:DIfJlEQAtpBzQiuDKfb25/QsbMuznMKZL0lTqDgGvPY=
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2 v2.1.11/go.mod h1:aQD0Pjqj/3JVPQIq8pS+pf/PIKsvcXqYv3qsQhyH8wk=
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2 v2.1.12 h1:yA6+dJrwv6yTwU7mAteOT6SFvsHJndRS9m+huBp3a8E=
@@ -77,6 +87,8 @@ github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2 v2.1.1
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2 v2.1.15/go.mod h1:S2qmYjCQzB7XGJ5JMuVDTp2IbQveaAhXQ9BVOx+6KD8=
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2 v2.1.16 h1:IACllA5e1TERxCrUg8akhruF5t4rGp0qe74KovNTurE=
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2 v2.1.16/go.mod h1:S2qmYjCQzB7XGJ5JMuVDTp2IbQveaAhXQ9BVOx+6KD8=
+github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2 v2.1.18 h1:K4iJjcwMTHbfrMgj98pYsM+7VRmiF+59ZAcBpmjA4z0=
+github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2 v2.1.18/go.mod h1:S2qmYjCQzB7XGJ5JMuVDTp2IbQveaAhXQ9BVOx+6KD8=
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2 v2.1.7/go.mod h1:mJzAaSli3rcl8PpTSXdQFYykCGuBmuhg9wG6feCBYYs=
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2 v2.1.11 h1:YWL++KLcWh0t755gwZlc8p0DqDAIfWVLdISpoY7RFhw=
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2 v2.1.11/go.mod h1:OUFBnkMmjMHTWqEQlanDOMTgBjU5QARjklwQv9Qovr4=
@@ -88,6 +100,8 @@ github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2 v2.1.1
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2 v2.1.15/go.mod h1:OUFBnkMmjMHTWqEQlanDOMTgBjU5QARjklwQv9Qovr4=
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2 v2.1.16 h1:Z6P0OkeKrb/QnJqJM8ZY62XBEyFtX5AtTn4q+1PEwVE=
 github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2 v2.1.16/go.mod h1:OUFBnkMmjMHTWqEQlanDOMTgBjU5QARjklwQv9Qovr4=
+github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2 v2.1.18 h1:/uGYZjd7cw8yhpCb5x1lxBrrOSACumR8/taqvGF8yV8=
+github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2 v2.1.18/go.mod h1:OUFBnkMmjMHTWqEQlanDOMTgBjU5QARjklwQv9Qovr4=
 github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2 v2.1.7/go.mod h1:GN8ahnEHVGcPbR0raxdpWekjgElppspPNAAOpmNxQxU=
 github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2 v2.1.11 h1:gKY17mRkP/VvBWvXzLuivJpFXt0AxkVUx7pv4PX2sUs=
 github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2 v2.1.11/go.mod h1:GN8ahnEHVGcPbR0raxdpWekjgElppspPNAAOpmNxQxU=
@@ -99,6 +113,8 @@ github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2 v2.1.
 github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2 v2.1.15/go.mod h1:GN8ahnEHVGcPbR0raxdpWekjgElppspPNAAOpmNxQxU=
 github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2 v2.1.16 h1:J4LOP3Fqkiw7JTwPnTW3trmJkYmKGroxzZ/N0emJGWY=
 github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2 v2.1.16/go.mod h1:GN8ahnEHVGcPbR0raxdpWekjgElppspPNAAOpmNxQxU=
+github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2 v2.1.18 h1:G0EoLQ51rcOQiTV3m0iYY1a1GmMQFHN0t6GtgwE6INg=
+github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2 v2.1.18/go.mod h1:GN8ahnEHVGcPbR0raxdpWekjgElppspPNAAOpmNxQxU=
 github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da h1:KjTM2ks9d14ZYCvmHS9iAKVt9AyzRSqNU1qabPih5BY=
 github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da/go.mod h1:eHEWzANqSiWQsof+nXEI9bUVUyV6F53Fp89EuCh2EAA=
 github.com/blanu/Dust v1.0.0/go.mod h1:jLFQI2Ufz4kBnGiTzh8O9+/p4U/9MLbouXkaympnTI0=

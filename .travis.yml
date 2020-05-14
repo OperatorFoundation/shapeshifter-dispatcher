@@ -3,11 +3,14 @@ language: go
 go:
   - 1.14.x
 
+env:
+  - GOSUMDB=off
+
 script:
   - go build -v
   - go test -v github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5
-  - ./testTCPDust.sh
-  - ./testTCPMeek.sh
+  #- ./testTCPDust.sh
+  #- ./testTCPMeek.sh
   - ./testTCPObfs2.sh
   - ./testTCPObfs4.sh
   - ./testTCPOptimizerFirst.sh
@@ -17,8 +20,8 @@ script:
   - ./testTCPOptimizerTrack.sh
   - ./testTCPReplicant.sh
   - ./testTCPShadow.sh
-  - ./testUDPDust.sh
-  - ./testUDPMeek.sh
+  #- ./testUDPDust.sh
+  #- ./testUDPMeek.sh
   - ./testUDPObfs2.sh
   - ./testUDPObfs4.sh
   - ./testUDPOptimizerFirst.sh
