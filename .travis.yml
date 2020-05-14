@@ -1,16 +1,27 @@
 language: go
 
 script:
-        - go build -v
-        - go test -v github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5
-        - ./testDust.sh
-        - ./testMeek.sh
-        - ./testObfs2.sh
-        - ./testObfs4.sh
-        - ./testOptimizerFirst.sh
-        - ./testOptimizerMinimizeDialDuration.sh
-        - ./testOptimizerRandom.sh
-        - ./testOptimizerRotate.sh
-        - ./testOptimizerTrack.sh
-        - ./testReplicant.sh
-        - ./testShadow.sh
+  - go build -v
+  - go test -v github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5
+  - ./testTCPDust.sh
+  - ./testTCPMeek.sh
+  - ./testTCPObfs2.sh
+  - ./testTCPObfs4.sh
+  - ./testTCPOptimizerFirst.sh
+  - ./testTCPOptimizerMinimizeDialDuration.sh
+  - ./testTCPOptimizerRandom.sh
+  - ./testTCPOptimizerRotate.sh
+  - ./testTCPOptimizerTrack.sh
+  - ./testTCPReplicant.sh
+  - ./testTCPShadow.sh
+  - ./testUDPDust.sh
+  - ./testUDPMeek.sh
+  - ./testUDPObfs2.sh
+  - ./testUDPObfs4.sh
+  - ./testUDPOptimizerFirst.sh
+  - ./testUDPOptimizerMinimizeDialDuration.sh
+  - ./testUDPOptimizerRandom.sh
+  - ./testUDPOptimizerRotate.sh
+  - ./testUDPOptimizerTrack.sh
+  - ./testUDPReplicant.sh
+  - ./testUDPShadow.sh
