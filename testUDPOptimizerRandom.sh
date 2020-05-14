@@ -7,7 +7,7 @@ go get -u github.com/OperatorFoundation/shapeshifter-dispatcher
 rm $FILENAME
 
 # Run a demo application server with netcat and write to the output file
-nc -u 3333 >$FILENAME &
+nc -l -u 3333 >$FILENAME &
 
 # Run the transport server
 ./shapeshifter-dispatcher -transparent -udp -server -state state -orport 127.0.0.1:3333 -transports shadow -bindaddr -127.0.0.1:2222 -optionsFile shadowServer.json -logLevel DEBUG -enableLogging &
@@ -22,7 +22,7 @@ sleep 5
 sleep 1
 
 # Run a demo application client with netcat
-echo "Test successful!" | nc localhost 1443 &
+echo "Test successful!" | nc -u localhost 1443 &
 
 sleep 1
 
