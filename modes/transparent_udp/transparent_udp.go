@@ -55,10 +55,12 @@ func clientHandler(target string, name string, options string, conn *net.UDPConn
 
 	// Receive UDP packets and forward them over transport connections forever
 	for {
-		n, addr, err := conn.ReadFromUDP(buf)
+		numBytes, addr, err := conn.ReadFromUDP(buf)
 		if err != nil {
 			fmt.Println("Error: ", err)
 		}
+
+		goodBytes := buf[:numBytes]
 
 		fmt.Println(tracker)
 
@@ -71,17 +73,21 @@ func clientHandler(target string, name string, options string, conn *net.UDPConn
 			} else {
 				// There is an open transport connection.
 				// Send the packet through the transport.
-				length16 = uint16(n)
+				length16 = uint16(numBytes)
 				lengthBuf := new(bytes.Buffer)
 				err = binary.Write(lengthBuf, binary.LittleEndian, length16)
 				if err != nil {
 					fmt.Println("binary.Write failed:", err)
 				} else {
+					println("writing data to server")
+					println(len(lengthBuf.Bytes()))
 					_, writErr := state.Conn.Write(lengthBuf.Bytes())
 					if writErr != nil {
 						continue
 					} else {
-						_, writeBufErr := state.Conn.Write(buf)
+						println("writing data to server")
+						println(len(goodBytes))
+						_, writeBufErr := state.Conn.Write(goodBytes)
 						if writeBufErr != nil {
 							_ = state.Conn.Close()
 							_ = conn.Close()
@@ -150,14 +156,17 @@ func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 		}
 
 		fmt.Println("reading data")
-
+		fmt.Println(length16)
 		readBuffer := make([]byte, length16)
 		readLen, err = io.ReadFull(remote, readBuffer)
 		if err != nil {
 			fmt.Println("read error")
 			break
 		}
-
+		if readLen != int(length16) {
+			println("short read")
+			break
+		}
 		_, _ = dest.Write(readBuffer)
 	}
 
