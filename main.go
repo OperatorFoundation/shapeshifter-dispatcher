@@ -492,6 +492,8 @@ func getServerBindaddrs(bindaddrList *string, options *string, transports *strin
 		serverTransports = *transports
 	}
 	result = pt.FilterBindaddrs(result, strings.Split(serverTransports, ","))
-
+	if len(result) == 0 {
+		log.Errorf("no valid bindaddrs")
+	}
 	return result, nil
 }
