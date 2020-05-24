@@ -15,6 +15,7 @@ func TestSocksTCP(t *testing.T) {
 	}
 
 	time.Sleep(1 * time.Second)
+
 	c := new(socks.TestReadWriter)
 	req := c.ToRequest()
 	var err error

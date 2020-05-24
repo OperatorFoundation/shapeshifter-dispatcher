@@ -25,17 +25,18 @@ sleep 1
 
 CERTSTRING=$(cat "$STATEPATH/obfs4_bridgeline.txt" | grep cert | awk '{print $6}')
 CERT=${CERTSTRING:5}
-echo $STATEPATH
-echo $CERT
-echo $OS
+echo "$STATEPATH"
+echo "$CERT"
+echo "$OS"
 echo "{\"cert\": \"$CERT\", \"iat-mode\": \"0\"}" >obfs4.json
+
 # Run the transport client
 ./shapeshifter-dispatcher -transparent -client -state "$STATEPATH" -target 127.0.0.1:2222 -transports obfs4 -proxylistenaddr 127.0.0.1:1443 -optionsFile obfs4.json -logLevel DEBUG -enableLogging &
 
 sleep 5
 
 # Run a demo application client with netcat
-echo "Test successful!" | nc localhost 1443 &
+go test -run TransparentTCP
 
 sleep 1
 

@@ -21,4 +21,6 @@ func TestTransparentTCP(t *testing.T) {
 		return
 	}
 
+	time.Sleep(1*time.Second)
+
 }
