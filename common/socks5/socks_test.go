@@ -28,9 +28,6 @@
 package socks5
 
 import (
-	"bufio"
-	"bytes"
-	"encoding/hex"
 	"io"
 	"net"
 	"testing"
@@ -40,235 +37,191 @@ func tcpAddrsEqual(a, b *net.TCPAddr) bool {
 	return a.IP.Equal(b.IP) && a.Port == b.Port
 }
 
-// testReadWriter is a bytes.Buffer backed io.ReadWriter used for testing.  The
-// Read and Write routines are to be used by the component being tested.  Data
-// can be written to and read back via the writeHex and readHex routines.
-type testReadWriter struct {
-	readBuf  bytes.Buffer
-	writeBuf bytes.Buffer
-}
-
-func (c *testReadWriter) Read(buf []byte) (n int, err error) {
-	return c.readBuf.Read(buf)
-}
-
-func (c *testReadWriter) Write(buf []byte) (n int, err error) {
-	return c.writeBuf.Write(buf)
-}
-
-func (c *testReadWriter) writeHex(str string) (n int, err error) {
-	var buf []byte
-	if buf, err = hex.DecodeString(str); err != nil {
-		return
-	}
-	return c.readBuf.Write(buf)
-}
-
-func (c *testReadWriter) readHex() string {
-	return hex.EncodeToString(c.writeBuf.Bytes())
-}
-
-func (c *testReadWriter) toBufio() *bufio.ReadWriter {
-	return bufio.NewReadWriter(bufio.NewReader(c), bufio.NewWriter(c))
-}
-
-func (c *testReadWriter) toRequest() *Request {
-	req := new(Request)
-	req.rw = c.toBufio()
-	return req
-}
-
-func (c *testReadWriter) reset(req *Request) {
-	c.readBuf.Reset()
-	c.writeBuf.Reset()
-	req.rw = c.toBufio()
-}
-
 // TestAuthInvalidVersion tests auth negotiation with an invalid version.
 func TestAuthInvalidVersion(t *testing.T) {
-	c := new(testReadWriter)
-	req := c.toRequest()
+	c := new(TestReadWriter)
+	req := c.ToRequest()
 
 	// VER = 03, NMETHODS = 01, METHODS = [00]
-	_, hexErr := c.writeHex("030100")
+	_, hexErr := c.WriteHex("030100")
 	if hexErr != nil {
-		t.Error("negotiateAuth(InvalidVersion) could not be decoded")
+		t.Error("NegotiateAuth(InvalidVersion) could not be decoded")
 	}
-	if _, err := req.negotiateAuth(false); err == nil {
-		t.Error("negotiateAuth(InvalidVersion) succeeded")
+	if _, err := req.NegotiateAuth(false); err == nil {
+		t.Error("NegotiateAuth(InvalidVersion) succeeded")
 	}
 }
 
 // TestAuthInvalidNMethods tests auth negotiation with no methods.
 func TestAuthInvalidNMethods(t *testing.T) {
-	c := new(testReadWriter)
-	req := c.toRequest()
+	c := new(TestReadWriter)
+	req := c.ToRequest()
 	var err error
 	var method byte
 
 	// VER = 05, NMETHODS = 00
-	_, hexErr := c.writeHex("0500")
+	_, hexErr := c.WriteHex("0500")
 	if hexErr != nil {
-		t.Error("negotiateAuth(No Methods) could not be decoded")
+		t.Error("NegotiateAuth(No Methods) could not be decoded")
 	}
-	if method, err = req.negotiateAuth(false); err != nil {
-		t.Error("negotiateAuth(No Methods) failed:", err)
+	if method, err = req.NegotiateAuth(false); err != nil {
+		t.Error("NegotiateAuth(No Methods) failed:", err)
 	}
 	if method != authNoAcceptableMethods {
-		t.Error("negotiateAuth(No Methods) picked unexpected method:", method)
+		t.Error("NegotiateAuth(No Methods) picked unexpected method:", method)
 	}
-	if msg := c.readHex(); msg != "05ff" {
-		t.Error("negotiateAuth(No Methods) invalid response:", msg)
+	if msg := c.ReadHex(); msg != "05ff" {
+		t.Error("NegotiateAuth(No Methods) invalid response:", msg)
 	}
 }
 
 // TestAuthNoneRequired tests auth negotiation with NO AUTHENTICATION REQUIRED.
 func TestAuthNoneRequired(t *testing.T) {
-	c := new(testReadWriter)
-	req := c.toRequest()
+	c := new(TestReadWriter)
+	req := c.ToRequest()
 	var err error
 	var method byte
 
 	// VER = 05, NMETHODS = 01, METHODS = [00]
-	_, hexErr := c.writeHex("050100")
+	_, hexErr := c.WriteHex("050100")
 	if hexErr != nil {
-		t.Error("negotiateAuth(None) could not be decoded")
+		t.Error("NegotiateAuth(None) could not be decoded")
 	}
-	if method, err = req.negotiateAuth(false); err != nil {
-		t.Error("negotiateAuth(None) failed:", err)
+	if method, err = req.NegotiateAuth(false); err != nil {
+		t.Error("NegotiateAuth(None) failed:", err)
 	}
 	if method != authNoneRequired {
-		t.Error("negotiateAuth(None) unexpected method:", method)
+		t.Error("NegotiateAuth(None) unexpected method:", method)
 	}
-	if msg := c.readHex(); msg != "0500" {
-		t.Error("negotiateAuth(None) invalid response:", msg)
+	if msg := c.ReadHex(); msg != "0500" {
+		t.Error("NegotiateAuth(None) invalid response:", msg)
 	}
 }
 
 // TestAuthJsonParameterBlock tests auth negotiation with jsonParameterBlock.
 func TestAuthJsonParameterBlock(t *testing.T) {
-	c := new(testReadWriter)
-	req := c.toRequest()
+	c := new(TestReadWriter)
+	req := c.ToRequest()
 	var err error
 	var method byte
 
 	// VER = 05, NMETHODS = 01, METHODS = [09]
 	//Method 9 is the json parameter block authentication
-	_, hexErr := c.writeHex("050109")
+	_, hexErr := c.WriteHex("050109")
 	if hexErr != nil{
-		t.Error("negotiateAuth(jsonParameterBlock) could not be decoded")
+		t.Error("NegotiateAuth(jsonParameterBlock) could not be decoded")
 	}
-	if method, err = req.negotiateAuth(false); err != nil {
-		t.Error("negotiateAuth(jsonParameterBlock) failed:", err)
+	if method, err = req.NegotiateAuth(false); err != nil {
+		t.Error("NegotiateAuth(jsonParameterBlock) failed:", err)
 	}
-	if method != authJsonParameterBlock {
-		t.Error("negotiateAuth(jsonParameterBlock) unexpected method:", method)
+	if method != AuthJsonParameterBlock {
+		t.Error("NegotiateAuth(jsonParameterBlock) unexpected method:", method)
 	}
-	if msg := c.readHex(); msg != "0509" {
-		t.Error("negotiateAuth(jsonParameterBlock) invalid response:", msg)
+	if msg := c.ReadHex(); msg != "0509" {
+		t.Error("NegotiateAuth(jsonParameterBlock) invalid response:", msg)
 	}
 }
 
 // TestAuthBoth tests auth negotiation containing both NO AUTHENTICATION
 // REQUIRED and jsonParameterBlock.
 func TestAuthBoth(t *testing.T) {
-	c := new(testReadWriter)
-	req := c.toRequest()
+	c := new(TestReadWriter)
+	req := c.ToRequest()
 	var err error
 	var method byte
 
 	// VER = 05, NMETHODS = 02, METHODS = [00, 09]
-	_, hexErr := c.writeHex("05020009")
+	_, hexErr := c.WriteHex("05020009")
 	if hexErr != nil {
-		t.Error("negotiateAuth(Both) could not be decoded")
+		t.Error("NegotiateAuth(Both) could not be decoded")
 	}
-	if method, err = req.negotiateAuth(true); err != nil {
-		t.Error("negotiateAuth(Both) failed:", err)
+	if method, err = req.NegotiateAuth(true); err != nil {
+		t.Error("NegotiateAuth(Both) failed:", err)
 	}
-	if method != authJsonParameterBlock {
-		t.Error("negotiateAuth(Both) unexpected method:", method)
+	if method != AuthJsonParameterBlock {
+		t.Error("NegotiateAuth(Both) unexpected method:", method)
 	}
-	if msg := c.readHex(); msg != "0509" {
-		t.Error("negotiateAuth(Both) invalid response:", msg)
+	if msg := c.ReadHex(); msg != "0509" {
+		t.Error("NegotiateAuth(Both) invalid response:", msg)
 	}
 }
 
 // TestAuthUnsupported tests auth negotiation with a unsupported method.
 func TestAuthUnsupported(t *testing.T) {
-	c := new(testReadWriter)
-	req := c.toRequest()
+	c := new(TestReadWriter)
+	req := c.ToRequest()
 	var err error
 	var method byte
 
 	// VER = 05, NMETHODS = 01, METHODS = [01] (GSSAPI)
-	_, hexErr := c.writeHex("050101")
+	_, hexErr := c.WriteHex("050101")
 	if hexErr != nil {
-		t.Error("negotiateAuth(Unknown) could not be decoded")
+		t.Error("NegotiateAuth(Unknown) could not be decoded")
 	}
-	if method, err = req.negotiateAuth(false); err != nil {
-		t.Error("negotiateAuth(Unknown) failed:", err)
+	if method, err = req.NegotiateAuth(false); err != nil {
+		t.Error("NegotiateAuth(Unknown) failed:", err)
 	}
 	if method != authNoAcceptableMethods {
-		t.Error("negotiateAuth(Unknown) picked unexpected method:", method)
+		t.Error("NegotiateAuth(Unknown) picked unexpected method:", method)
 	}
-	if msg := c.readHex(); msg != "05ff" {
-		t.Error("negotiateAuth(Unknown) invalid response:", msg)
+	if msg := c.ReadHex(); msg != "05ff" {
+		t.Error("NegotiateAuth(Unknown) invalid response:", msg)
 	}
 }
 
 // TestAuthUnsupported2 tests auth negotiation with supported and unsupported
 // methods.
 func TestAuthUnsupported2(t *testing.T) {
-	c := new(testReadWriter)
-	req := c.toRequest()
+	c := new(TestReadWriter)
+	req := c.ToRequest()
 	var err error
 	var method byte
 
 	// VER = 05, NMETHODS = 03, METHODS = [00,01,09]
-	_, hexErr := c.writeHex("0503000109")
+	_, hexErr := c.WriteHex("0503000109")
 	if hexErr != nil {
-		t.Error("negotiateAuth(Unknown2) could not be decoded")
+		t.Error("NegotiateAuth(Unknown2) could not be decoded")
 	}
-	if method, err = req.negotiateAuth(true); err != nil {
-		t.Error("negotiateAuth(Unknown2) failed:", err)
+	if method, err = req.NegotiateAuth(true); err != nil {
+		t.Error("NegotiateAuth(Unknown2) failed:", err)
 	}
-	if method != authJsonParameterBlock {
-		t.Error("negotiateAuth(Unknown2) picked unexpected method:", method)
+	if method != AuthJsonParameterBlock {
+		t.Error("NegotiateAuth(Unknown2) picked unexpected method:", method)
 	}
-	if msg := c.readHex(); msg != "0509" {
-		t.Error("negotiateAuth(Unknown2) invalid response:", msg)
+	if msg := c.ReadHex(); msg != "0509" {
+		t.Error("NegotiateAuth(Unknown2) invalid response:", msg)
 	}
 }
 
 // TestRFC1928InvalidVersion tests RFC1929 auth with an invalid version.
 func TestRFC1928InvalidVersion(t *testing.T) {
-	c := new(testReadWriter)
-	req := c.toRequest()
+	c := new(TestReadWriter)
+	req := c.ToRequest()
 
 	// VER = 03,  NMETHODS = 03, METHODS = [00,01,09], JLEN = 2, JSON = "{}"
-	_, hexErr := c.writeHex("0303000109000000027b7d")
+	_, hexErr := c.WriteHex("0303000109000000027b7d")
 	if hexErr != nil {
 		t.Error("authenticate(InvalidVersion) could not be decoded")
 	}
-	if _, err := req.negotiateAuth(true); err == nil {
+	if _, err := req.NegotiateAuth(true); err == nil {
 		t.Error("failed to detect incorrect socks version:", err)
 	}
 }
 
 // TestPT2Success tests PT2.1 jsonParameterBlock auth with valid pt args.
 func TestPT2Success(t *testing.T) {
-	c := new(testReadWriter)
-	req := c.toRequest()
+	c := new(TestReadWriter)
+	req := c.ToRequest()
 
 	// JLEN = 2, JSON = "{}"
-	_, hexErr := c.writeHex("000000027b7d")
+	_, hexErr := c.WriteHex("000000027b7d")
 	if hexErr != nil {
 		t.Error("authenticate(Success) could not be decoded")
 	}
-	if err := req.authenticate(authJsonParameterBlock); err != nil {
+	if err := req.authenticate(AuthJsonParameterBlock); err != nil {
 		t.Error("authenticate(Success) failed:", err)
 	}
-	if msg := c.readHex(); msg != "" {
+	if msg := c.ReadHex(); msg != "" {
 		t.Error("authenticate(Success) invalid response:", msg)
 	}
 	if req.Args == nil {
@@ -278,71 +231,71 @@ func TestPT2Success(t *testing.T) {
 
 // TestPT2Fail tests PT2.1 jsonParameterBlock auth with invalid pt args.
 func TestPT2Fail(t *testing.T) {
-	c := new(testReadWriter)
-	req := c.toRequest()
+	c := new(TestReadWriter)
+	req := c.ToRequest()
 
 	// JLEN = 2, JSON = "{}"
-	_, hexErr := c.writeHex("000000027d7b")
+	_, hexErr := c.WriteHex("000000027d7b")
 	if hexErr != nil {
 		t.Error("authenticate(Success) could not be decoded")
 	}
-	if err := req.authenticate(authJsonParameterBlock); err == nil {
+	if err := req.authenticate(AuthJsonParameterBlock); err == nil {
 		t.Error("authenticate(Success) failed:", err)
 	}
 }
 // TestRequestInvalidHdr tests SOCKS5 requests with invalid VER/CMD/RSV/ATYPE
 func TestRequestInvalidHdr(t *testing.T) {
-	c := new(testReadWriter)
-	req := c.toRequest()
+	c := new(TestReadWriter)
+	req := c.ToRequest()
 
 	// VER = 03, CMD = 01, RSV = 00, ATYPE = 01, DST.ADDR = 127.0.0.1, DST.PORT = 9050
-	_, hexErr := c.writeHex("030100017f000001235a")
+	_, hexErr := c.WriteHex("030100017f000001235a")
 	if hexErr != nil {
 		t.Error("readCommand(InvalidVer) could not be decoded")
 	}
 	if err := req.readCommand(); err == nil {
 		t.Error("readCommand(InvalidVer) succeeded")
 	}
-	if msg := c.readHex(); msg != "05010001000000000000" {
+	if msg := c.ReadHex(); msg != "05010001000000000000" {
 		t.Error("readCommand(InvalidVer) invalid response:", msg)
 	}
 	c.reset(req)
 
 	// VER = 05, CMD = 05, RSV = 00, ATYPE = 01, DST.ADDR = 127.0.0.1, DST.PORT = 9050
-	_, hexErr2 := c.writeHex("050500017f000001235a")
+	_, hexErr2 := c.WriteHex("050500017f000001235a")
 	if hexErr2 != nil {
 		t.Error("readCommand(InvalidCmd) could not be decoded")
 	}
 	if err := req.readCommand(); err == nil {
 		t.Error("readCommand(InvalidCmd) succeeded")
 	}
-	if msg := c.readHex(); msg != "05070001000000000000" {
+	if msg := c.ReadHex(); msg != "05070001000000000000" {
 		t.Error("readCommand(InvalidCmd) invalid response:", msg)
 	}
 	c.reset(req)
 
 	// VER = 05, CMD = 01, RSV = 30, ATYPE = 01, DST.ADDR = 127.0.0.1, DST.PORT = 9050
-	_, hexErr3 := c.writeHex("050130017f000001235a")
+	_, hexErr3 := c.WriteHex("050130017f000001235a")
 	if hexErr3 != nil {
 		t.Error("readCommand(InvalidRsv) could not be decoded")
 	}
 	if err := req.readCommand(); err == nil {
 		t.Error("readCommand(InvalidRsv) succeeded")
 	}
-	if msg := c.readHex(); msg != "05010001000000000000" {
+	if msg := c.ReadHex(); msg != "05010001000000000000" {
 		t.Error("readCommand(InvalidRsv) invalid response:", msg)
 	}
 	c.reset(req)
 
 	// VER = 05, CMD = 01, RSV = 01, ATYPE = 05, DST.ADDR = 127.0.0.1, DST.PORT = 9050
-	_, hexErr4 := c.writeHex("050100057f000001235a")
+	_, hexErr4 := c.WriteHex("050100057f000001235a")
 	if hexErr4 != nil {
 		t.Error("readCommand(InvalidAtype) could not be decoded")
 	}
 	if err := req.readCommand(); err == nil {
 		t.Error("readCommand(InvalidAtype) succeeded")
 	}
-	if msg := c.readHex(); msg != "05080001000000000000" {
+	if msg := c.ReadHex(); msg != "05080001000000000000" {
 		t.Error("readCommand(InvalidAtype) invalid response:", msg)
 	}
 	c.reset(req)
@@ -350,11 +303,11 @@ func TestRequestInvalidHdr(t *testing.T) {
 
 // TestRequestIPv4 tests IPv4 SOCKS5 requests.
 func TestRequestIPv4(t *testing.T) {
-	c := new(testReadWriter)
-	req := c.toRequest()
+	c := new(TestReadWriter)
+	req := c.ToRequest()
 
 	// VER = 05, CMD = 01, RSV = 00, ATYPE = 01, DST.ADDR = 127.0.0.1, DST.PORT = 9050
-	_, hexErr := c.writeHex("050100017f000001235a")
+	_, hexErr := c.WriteHex("050100017f000001235a")
 	if hexErr != nil {
 		t.Error("readCommand(IPv4) could not be decoded")
 	}
@@ -372,11 +325,11 @@ func TestRequestIPv4(t *testing.T) {
 
 // TestRequestIPv6 tests IPv4 SOCKS5 requests.
 func TestRequestIPv6(t *testing.T) {
-	c := new(testReadWriter)
-	req := c.toRequest()
+	c := new(TestReadWriter)
+	req := c.ToRequest()
 
 	// VER = 05, CMD = 01, RSV = 00, ATYPE = 04, DST.ADDR = 0102:0304:0506:0708:090a:0b0c:0d0e:0f10, DST.PORT = 9050
-	_, hexErr := c.writeHex("050100040102030405060708090a0b0c0d0e0f10235a")
+	_, hexErr := c.WriteHex("050100040102030405060708090a0b0c0d0e0f10235a")
 	if hexErr != nil {
 		t.Error("readCommand(IPv6) could not be decoded")
 	}
@@ -394,11 +347,11 @@ func TestRequestIPv6(t *testing.T) {
 
 // TestRequestFQDN tests FQDN (DOMAINNAME) SOCKS5 requests.
 func TestRequestFQDN(t *testing.T) {
-	c := new(testReadWriter)
-	req := c.toRequest()
+	c := new(TestReadWriter)
+	req := c.ToRequest()
 
 	// VER = 05, CMD = 01, RSV = 00, ATYPE = 04, DST.ADDR = example.com, DST.PORT = 9050
-	_, hexErr := c.writeHex("050100030b6578616d706c652e636f6d235a")
+	_, hexErr := c.WriteHex("050100030b6578616d706c652e636f6d235a")
 	if hexErr != nil {
 		t.Error("readCommand(FQDN) could not be decoded")
 	}
@@ -412,15 +365,15 @@ func TestRequestFQDN(t *testing.T) {
 
 // TestResponseNil tests nil address SOCKS5 responses.
 func TestResponseNil(t *testing.T) {
-	c := new(testReadWriter)
-	req := c.toRequest()
+	c := new(TestReadWriter)
+	req := c.ToRequest()
 
 	if err := req.Reply(ReplySucceeded); err != nil {
 		t.Error("Reply(ReplySucceeded) failed:", err)
 	}
-	if msg := c.readHex(); msg != "05000001000000000000" {
+	if msg := c.ReadHex(); msg != "05000001000000000000" {
 		t.Error("Reply(ReplySucceeded) invalid response:", msg)
 	}
 }
 
-var _ io.ReadWriter = (*testReadWriter)(nil)
+var _ io.ReadWriter = (*TestReadWriter)(nil)

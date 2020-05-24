@@ -62,12 +62,14 @@ func clientHandler(target string, name string, options string, conn *net.UDPConn
 
 	// Receive UDP packets and forward them over transport connections forever
 	for {
-		n, addr, err := conn.ReadFromUDP(buf)
-		fmt.Println("Received ", string(buf[0:n]), " from ", addr)
+		numBytes, addr, err := conn.ReadFromUDP(buf)
+		fmt.Println("Received ", string(buf[0:numBytes]), " from ", addr)
 
 		if err != nil {
 			fmt.Println("Error: ", err)
 		}
+
+		goodBytes := buf[:numBytes]
 
 		fmt.Println(tracker)
 
@@ -83,7 +85,7 @@ func clientHandler(target string, name string, options string, conn *net.UDPConn
 				// Send the packet through the transport.
 				fmt.Println("recv: write")
 				//ignoring failed writes because packets can be dropped
-				_, _ = state.Conn.Write(buf)
+				_, _ = state.Conn.Write(goodBytes)
 			}
 		} else {
 			// There is not an open transport connection and a connection attempt is not in progress.

@@ -61,7 +61,7 @@ const (
 	atypIPv6       = 0x04
 
 	authNoneRequired        = 0x00
-	authJsonParameterBlock  = 0x09
+	AuthJsonParameterBlock  = 0x09
 	authNoAcceptableMethods = 0xff
 
 	requestTimeout = 5 * time.Second
@@ -147,7 +147,7 @@ func Handshake(conn net.Conn, needOptions bool) (*Request, error) {
 
 	// Negotiate the protocol version and authentication method.
 	var method byte
-	if method, err = req.negotiateAuth(needOptions); err != nil {
+	if method, err = req.NegotiateAuth(needOptions); err != nil {
 		return nil, err
 	}
 
@@ -189,7 +189,7 @@ func (req *Request) Reply(code ReplyCode) error {
 	return req.flushBuffers()
 }
 
-func (req *Request) negotiateAuth(needOptions bool) (byte, error) {
+func (req *Request) NegotiateAuth(needOptions bool) (byte, error) {
 	// The client sends a version identifier/selection message.
 	//	uint8_t ver (0x05)
 	//  uint8_t nmethods (>= 1).
@@ -214,16 +214,16 @@ func (req *Request) negotiateAuth(needOptions bool) (byte, error) {
 	// Pick the best authentication method, prioritizing authenticating
 	// over not if both options are present and SOCKS header options are needed.
 	if needOptions {
-		if bytes.IndexByte(methods, authJsonParameterBlock) != -1 {
-			method = authJsonParameterBlock
+		if bytes.IndexByte(methods, AuthJsonParameterBlock) != -1 {
+			method = AuthJsonParameterBlock
 		} else if bytes.IndexByte(methods, authNoneRequired) != -1 {
 			method = authNoneRequired
 		}
 	} else {
 		if bytes.IndexByte(methods, authNoneRequired) != -1 {
 			method = authNoneRequired
-		} else if bytes.IndexByte(methods, authJsonParameterBlock) != -1 {
-			method = authJsonParameterBlock
+		} else if bytes.IndexByte(methods, AuthJsonParameterBlock) != -1 {
+			method = AuthJsonParameterBlock
 		}
 	}
 
@@ -242,7 +242,7 @@ func (req *Request) authenticate(method byte) error {
 	switch method {
 	case authNoneRequired:
 		// No authentication required.
-	case authJsonParameterBlock:
+	case AuthJsonParameterBlock:
 		if err := req.authPT2(); err != nil {
 			return err
 		}

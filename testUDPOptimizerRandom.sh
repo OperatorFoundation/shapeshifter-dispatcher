@@ -22,7 +22,7 @@ sleep 5
 sleep 1
 
 # Run a demo application client with netcat
-echo "Test successful!" | nc -u localhost 1443 &
+go test -run TransparentUDP
 
 sleep 1
 
