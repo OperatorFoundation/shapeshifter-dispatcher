@@ -31,3 +31,14 @@ script:
   - ./testUDPOptimizerTrack.sh
   - ./testUDPReplicant.sh
   - ./testUDPShadow.sh
+  #- ./testStunUDPDust.sh
+  #- ./testStunUDPMeek.sh
+  - ./testStunUDPObfs2.sh
+  - ./testStunUDPObfs4.sh
+  - ./testStunUDPOptimizerFirst.sh
+  - ./testStunUDPOptimizerMinimizeDialDuration.sh
+  - ./testStunUDPOptimizerRandom.sh
+  - ./testStunUDPOptimizerRotate.sh
+  - ./testStunUDPOptimizerTrack.sh
+  - ./testStunUDPReplicant.sh
+  - ./testStunUDPShadow.sh
