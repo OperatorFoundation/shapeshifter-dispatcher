@@ -26,11 +26,13 @@ package modes
 
 import (
 	"errors"
+	"fmt"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	pt "github.com/OperatorFoundation/shapeshifter-ipc"
 	"io"
 	"net"
 	"net/url"
+	"os"
 	"sync"
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
@@ -41,6 +43,7 @@ func ClientSetupTCP(socksAddr string, target string, ptClientProxy *url.URL, nam
 	for _, name := range names {
 		ln, err := net.Listen("tcp", socksAddr)
 		if err != nil {
+			fmt.Fprintf(os.Stderr, "failed to listen %s %s", name, err.Error());
 			log.Errorf("failed to listen %s %s", name, err.Error())
 			continue
 		}
@@ -58,6 +61,7 @@ func clientAcceptLoop(target string, name string, options string, ln net.Listene
 		conn, err := ln.Accept()
 		if err != nil {
 			if e, ok := err.(net.Error); ok && !e.Temporary() {
+				fmt.Fprintf(os.Stderr, "Fatal listener error: %s", err.Error());
 				log.Errorf("Fatal listener error: %s", err.Error())
 				return
 			}
@@ -92,6 +96,7 @@ func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 				ServerAcceptLoop(name, transportLn, &ptServerInfo, serverHandler)
 				transportLnErr := transportLn.Close()
 				if transportLnErr != nil {
+					fmt.Fprintf(os.Stderr, "Listener close error: %s", transportLnErr.Error());
 					log.Errorf("Listener close error: %s", transportLnErr.Error())
 				}
 			}
