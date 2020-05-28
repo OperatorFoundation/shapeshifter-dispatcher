@@ -140,6 +140,7 @@ func Handshake(conn net.Conn, needOptions bool) (*Request, error) {
 		if err == nil {
 			err = nerr
 		}
+
 	}()
 
 	req := new(Request)
