@@ -15,6 +15,76 @@ const (
 	version                = 0x05
 )
 
+func TestSocksTCPDust(t *testing.T) {
+	negotiateError := negotiateSocks("dustClient.json")
+	if negotiateError != nil {
+		t.Fail()
+	}
+}
+
+func TestSocksTCPMeek(t *testing.T) {
+	negotiateError := negotiateSocks("meek.json")
+	if negotiateError != nil {
+		t.Fail()
+	}
+}
+
+func TestSocksTCPObfs2(t *testing.T) {
+	negotiateError := negotiateSocks("")
+	if negotiateError != nil {
+		t.Fail()
+	}
+}
+
+func TestSocksTCPObfs4(t *testing.T) {
+	negotiateError := negotiateSocks("obfs4.json")
+	if negotiateError != nil {
+		t.Fail()
+	}
+}
+
+func TestSocksTCPOptimizerFirst(t *testing.T) {
+	negotiateError := negotiateSocks("OptimizerFirst.json")
+	if negotiateError != nil {
+		t.Fail()
+	}
+}
+
+func TestSocksTCPOptimizerMinimizeDialDuration(t *testing.T) {
+	negotiateError := negotiateSocks("OptimizerMinimizeDialDuration.json")
+	if negotiateError != nil {
+		t.Fail()
+	}
+}
+
+func TestSocksTCPOptimizerRandom(t *testing.T) {
+	negotiateError := negotiateSocks("OptimizerRandom.json")
+	if negotiateError != nil {
+		t.Fail()
+	}
+}
+
+func TestSocksTCPOptimizerRotate(t *testing.T) {
+	negotiateError := negotiateSocks("OptimizerRotate.json")
+	if negotiateError != nil {
+		t.Fail()
+	}
+}
+
+func TestSocksTCPOptimizerTrack(t *testing.T) {
+	negotiateError := negotiateSocks("OptimizerTrack.json")
+	if negotiateError != nil {
+		t.Fail()
+	}
+}
+
+func TestSocksTCPReplicant(t *testing.T) {
+	negotiateError := negotiateSocks("ReplicantClient1.json")
+	if negotiateError != nil {
+		t.Fail()
+	}
+}
+
 func TestSocksTCPShadow(t *testing.T) {
 	negotiateError := negotiateSocks("shadowClient.json")
 	if negotiateError != nil {
