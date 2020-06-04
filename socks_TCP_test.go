@@ -30,7 +30,7 @@ func TestSocksTCPMeek(t *testing.T) {
 }
 
 func TestSocksTCPObfs2(t *testing.T) {
-	negotiateError := negotiateSocks("")
+	negotiateError := negotiateSocks("obfs2.json")
 	if negotiateError != nil {
 		t.Fail()
 	}
@@ -138,13 +138,22 @@ func negotiateSocks(jsonFile string) error {
 	time.Sleep(100 * time.Millisecond)
 
 	request := []byte{0x05, 0x01, 0x00, 0x01, 0x7F, 0x00, 0x00, 0x01, 0x0D, 0x05}
-	_, writeReqErr := dialConn.Write(request)
+	writeCount, writeReqErr := dialConn.Write(request)
+	println(writeCount)
 	if writeReqErr != nil {
 		return writeReqErr
 	}
 
 	reply := make([]byte, 10)
-	_, readError := dialConn.Read(reply)
+	if dialConn == nil {
+		println("dialConn is nil")
+		return dialError
+	}
+	readCount, readError := dialConn.Read(reply)
+	if readCount <1 {
+		println("did not receive reply from server")
+	}
+	println(readCount, "is the number of bytes being read")
 	if readError != nil {
 		return readError
 	}

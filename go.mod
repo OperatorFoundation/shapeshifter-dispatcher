@@ -16,8 +16,8 @@ require (
 	github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2 v2.1.22
 	github.com/shadowsocks/go-shadowsocks2 v0.1.0 // indirect
 	github.com/willscott/goturn v0.0.0-20170802220503-19f41278d0c9
-	golang.org/x/crypto v0.0.0-20200510223506-06a226fb4e37 // indirect
-	golang.org/x/net v0.0.0-20200528225125-3c3fba18258b
-	golang.org/x/sys v0.0.0-20200523222454-059865788121 // indirect
+	golang.org/x/crypto v0.0.0-20200602180216-279210d13fed // indirect
+	golang.org/x/net v0.0.0-20200602114024-627f9648deb9
+	golang.org/x/sys v0.0.0-20200602225109-6fdc65e7d980 // indirect
 	golang.org/x/text v0.3.2 // indirect
 )
