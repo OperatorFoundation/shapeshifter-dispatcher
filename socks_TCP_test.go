@@ -98,7 +98,9 @@ func negotiateSocks(jsonFile string) error {
 		return dialError
 	}
 
+	println("sleeping")
 	time.Sleep(1 * time.Second)
+	println("done with nap")
 
 	var err error
 	var method byte
@@ -135,9 +137,13 @@ func negotiateSocks(jsonFile string) error {
 		return byteWriteError
 	}
 
-	time.Sleep(100 * time.Millisecond)
-
-	request := []byte{0x05, 0x01, 0x00, 0x01, 0x7F, 0x00, 0x00, 0x01, 0x0D, 0x05}
+	//version: 0x05
+	//CMD: connect: 0x01
+	//RSV: reserved: 0x00
+	//ATYP: IPV4: 0x01
+	//IPV4 address: 127.0.0.1 : 0x7F, 0x00, 0x00, 0x01
+	//Port: 2222: 0x08, 0xAE
+	request := []byte{0x05, 0x01, 0x00, 0x01, 0x7F, 0x00, 0x00, 0x01, 0x08, 0xAE}
 	writeCount, writeReqErr := dialConn.Write(request)
 	println(writeCount)
 	if writeReqErr != nil {
@@ -196,6 +202,7 @@ func NegotiateAuth(req net.Conn) (byte, error) {
 		return 0, err
 	}
 	method := methods[0]
+	println("this is the socks authentication variable:", method)
 
 	return method, nil
 }

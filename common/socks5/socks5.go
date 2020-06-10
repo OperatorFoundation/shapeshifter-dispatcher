@@ -235,6 +235,7 @@ func (req *Request) NegotiateAuth(needOptions bool) (byte, error) {
 	if _, err = req.rw.Write(msg); err != nil {
 		return 0, err
 	}
+	println("this is the authentication method the socks server is sending:",msg)
 
 	return method, req.flushBuffers()
 }
@@ -340,9 +341,9 @@ func (req *Request) flushBuffers() error {
 	if err := req.rw.Flush(); err != nil {
 		return err
 	}
-	if req.rw.Reader.Buffered() > 0 {
-		return fmt.Errorf("read buffer has %d bytes of trailing data", req.rw.Reader.Buffered())
-	}
+	//if req.rw.Reader.Buffered() > 0 {
+	//	return fmt.Errorf("read buffer has %d bytes of trailing data", req.rw.Reader.Buffered())
+	//}
 	return nil
 }
 
