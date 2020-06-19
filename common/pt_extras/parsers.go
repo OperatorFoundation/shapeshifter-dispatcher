@@ -103,8 +103,8 @@ func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) 
 	}
 }
 
-func ArgsToListener(name string, stateDir string, options string) (func(address string) net.Listener, error) {
-	var listen func(address string) net.Listener
+func ArgsToListener(name string, stateDir string, options string) (func(address string) (net.Listener, error), error) {
+	var listen func(address string) (net.Listener, error)
 
 	//var config meekserver.Config
 

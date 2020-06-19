@@ -88,8 +88,8 @@ func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 			for {
 				print("listening on ")
 				println(bindaddr.Addr.String())
-				transportLn := listen(bindaddr.Addr.String())
-				if transportLn == nil {
+				transportLn, LnError := listen(bindaddr.Addr.String())
+				if LnError != nil {
 					continue
 				}
 				log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))

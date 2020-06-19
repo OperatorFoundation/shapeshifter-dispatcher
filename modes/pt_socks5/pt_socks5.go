@@ -142,7 +142,10 @@ func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (l
 
 		go func() {
 			for {
-				transportLn := listen(bindaddr.Addr.String())
+				transportLn, LnError := listen(bindaddr.Addr.String())
+				if LnError != nil {
+					continue
+				}
 				log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
 				modes.ServerAcceptLoop(name, transportLn, &ptServerInfo, serverHandler)
 				transportLnErr := transportLn.Close()
