@@ -30,14 +30,14 @@ import (
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
-	Optimizer "github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2"
+	Optimizer "github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v3"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v3"
 	"golang.org/x/net/proxy"
 	"net"
 
 
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v3"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v3"
 )
 
 // target is the server address string
