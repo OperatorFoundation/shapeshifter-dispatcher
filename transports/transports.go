@@ -201,7 +201,7 @@ func ParseArgsReplicantServer(args string) (*replicant.ServerConfig, error) {
 	var parseErr error
 	config, parseErr = replicant.DecodeServerConfig(ReplicantConfig.Config)
 	if parseErr != nil {
-		return nil, errors.New("could not parse config")
+		return nil, parseErr
 	}
 
 	return config, nil
@@ -251,7 +251,7 @@ type OptimizerArgs struct {
 
 func ParseArgsOptimizer(jsonConfig string, dialer proxy.Dialer) (*Optimizer.Client, error) {
 	var config OptimizerConfig
-	var transports []Optimizer.Transport
+	var transports []Optimizer.TransportDialer
 	var strategy Optimizer.Strategy
 	jsonByte := []byte(jsonConfig)
 	parseErr := json.Unmarshal(jsonByte, &config)
@@ -273,7 +273,7 @@ func ParseArgsOptimizer(jsonConfig string, dialer proxy.Dialer) (*Optimizer.Clie
 	return transport, nil
 }
 
-func parseStrategy(strategyString string, transports []Optimizer.Transport) (Optimizer.Strategy, error) {
+func parseStrategy(strategyString string, transports []Optimizer.TransportDialer) (Optimizer.Strategy, error) {
 	switch strategyString {
 	case "first":
 		strategy := Optimizer.NewFirstStrategy(transports)
@@ -294,8 +294,8 @@ func parseStrategy(strategyString string, transports []Optimizer.Transport) (Opt
 	}
 }
 
-func parseTransports(otcs []interface{}, dialer proxy.Dialer) ([]Optimizer.Transport, error) {
-	transports := make([]Optimizer.Transport, len(otcs))
+func parseTransports(otcs []interface{}, dialer proxy.Dialer) ([]Optimizer.TransportDialer, error) {
+	transports := make([]Optimizer.TransportDialer, len(otcs))
 	for index, untypedOtc := range otcs {
 		switch untypedOtc.(type) {
 		case map[string]interface{}:
@@ -314,7 +314,7 @@ func parseTransports(otcs []interface{}, dialer proxy.Dialer) ([]Optimizer.Trans
 	return transports, nil
 }
 
-func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer.Transport, error) {
+func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer.TransportDialer, error) {
 	var config map[string]interface{}
 
 	type PartialOptimizerConfig struct {

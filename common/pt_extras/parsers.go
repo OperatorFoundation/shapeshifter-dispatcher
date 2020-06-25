@@ -41,7 +41,7 @@ import (
 )
 
 // target is the server address string
-func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) (Optimizer.Transport, error) {
+func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) (Optimizer.TransportDialer, error) {
 	switch name {
 	case "obfs2":
 		transport := obfs2.New(target, dialer)
@@ -56,7 +56,6 @@ func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) 
 			return transport, nil
 		}
 	case "shadow":
-
 		transport, err := transports.ParseArgsShadow(args, target)
 		if err != nil {
 			log.Errorf("Could not parse options %s", err.Error())
@@ -132,6 +131,9 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 		}
 
 		shargsBytes, err:= json.Marshal(shargs)
+		if err != nil {
+			return nil, errors.New("could not marshall json")
+		}
 		shargsString := string(shargsBytes)
 		config, err := transports.ParseArgsReplicantServer(shargsString)
 		if err != nil {
