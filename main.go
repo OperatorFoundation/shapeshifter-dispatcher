@@ -86,14 +86,26 @@ func main() {
 
 	// Parsing flags starts here, but variables are not set to actual values until flag.Parse() is called.
 	// PT 2.1 specification, 3.3.1.1. Common Configuration Parameters
-	var version = flag.String("version", "", "Specify the Pluggable Transport protocol version to use")
-	var ptversion = flag.String("ptversion", "", "Specify the Pluggable Transport protocol version to use")
+	var ptversion = flag.String("ptversion", "2.1", "Specify the Pluggable Transport protocol version to use")
 
-	statePath := flag.String("state", "", "Specify the directory to use to store state information required by the transports")
+	statePath := flag.String("state", "state", "Specify the directory to use to store state information required by the transports")
 	exitOnStdinClose := flag.Bool("exit-on-stdin-close", false, "Set to true to force the dispatcher to close when the stdin pipe is closed")
 
 	// NOTE: -transports is parsed as a common command line flag that overrides either TOR_PT_SERVER_TRANSPORTS or TOR_PT_CLIENT_TRANSPORTS
 	transportsList := flag.String("transports", "", "Specify transports to enable")
+
+	//This is for proposal no.9
+	//transport := flag.String("transport", "", "Specify a single transport to enable")
+	//clientBindPort := flag.String("bindport", "", "Specify the bind address port for transparent client")
+	//clientBindHost := flag.String("bindhost", "", "Specify the bind address host for transparent client")
+	//serverBindPort := flag.String("bindport", "", "Specify the bind address port for transparent server")
+	//serverBindHost := flag.String("bindhost", "", "Specify the bind address host for transparent server")
+	//targetHost := flag.String("targethost", "", "Specify transport server destination address port")
+	//targetPort := flag.String("targetport", "", "Specify transport server destination address host")
+	//proxyListenHost := flag.String("proxylistenhost", "", "Specify the bind address for the local SOCKS server host provided by the client")
+	//proxyListnePort := flag.String("proxylistenport", "", "Specify the bind address for the local SOCKS server port provided by the client")
+	//modeName := flag.String("mode", "socks5", "Specify which mode is being used: transparent-TCP, transparent-UDP, socks5, or STUN")
+
 
 	// PT 2.1 specification, 3.3.1.2. Pluggable PT Client Configuration Parameters
 	proxy := flag.String("proxy", "", "Specify an HTTP or SOCKS4a proxy that the PT needs to use to reach the Internet")
@@ -127,10 +139,6 @@ func main() {
 	flag.Parse() // Flag variables are set to actual values here.
 
 	// Start validation of command line arguments
-
-	if *version != "" {
-		ptversion = version
-	}
 
 	if *showVer {
 		fmt.Printf("%s\n", getVersion())
