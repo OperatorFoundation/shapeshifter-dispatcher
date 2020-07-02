@@ -260,6 +260,7 @@ func ParseArgsOptimizer(jsonConfig string, dialer proxy.Dialer) (*Optimizer.Clie
 	}
 	transports, parseErr = parseTransports(config.Transports, dialer)
 	if parseErr != nil {
+		println("this is the returned error from parseTransports:", parseErr)
 		return nil, errors.New("could not parse transports")
 	}
 

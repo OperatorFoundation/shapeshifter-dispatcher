@@ -27,7 +27,7 @@ package modes
 import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
-	pt "github.com/OperatorFoundation/shapeshifter-ipc"
+	pt "github.com/OperatorFoundation/shapeshifter-ipc/v2"
 	"net"
 	"net/url"
 )

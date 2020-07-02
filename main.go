@@ -43,7 +43,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
-	"github.com/OperatorFoundation/shapeshifter-ipc"
+	"github.com/OperatorFoundation/shapeshifter-ipc/v2"
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/pt_socks5"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/stun_udp"
@@ -440,14 +440,14 @@ func getServerBindaddrs(bindaddrList *string, options *string, transports *strin
 	var serverTransportOptions string
 	var serverBindaddr string
 	var serverTransports string
-	var optionsMap map[string]pt.Args
+	var optionsMap map[string]map[string]interface{}
 	var err error
 
 	// Parse the list of server transport options.
 	if options == nil {
 		serverTransportOptions = pt.Getenv("TOR_PT_SERVER_TRANSPORT_OPTIONS")
 		if serverTransportOptions != "" {
-			optionsMap, err = pt.ParseServerTransportOptions(serverTransportOptions)
+			optionsMap, err = pt.ParsePT2ServerParameters(serverTransportOptions)
 			if err != nil {
 				log.Errorf("Error parsing options map %q %q", serverTransportOptions, err)
 				return nil, fmt.Errorf("TOR_PT_SERVER_TRANSPORT_OPTIONS: %q: %s", serverTransportOptions, err.Error())

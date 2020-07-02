@@ -28,7 +28,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
-	pt "github.com/OperatorFoundation/shapeshifter-ipc"
+	pt "github.com/OperatorFoundation/shapeshifter-ipc/v2"
 	"io"
 	"net"
 	"net/url"

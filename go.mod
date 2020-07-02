@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/OperatorFoundation/obfs4 v1.0.0
-	github.com/OperatorFoundation/shapeshifter-ipc v0.0.0-20170814234159-11746ba927e0
+	github.com/OperatorFoundation/shapeshifter-ipc/v2 v2.0.0
 	github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2 v2.1.27
 	github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2.1.27
 	github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2 v2.1.27
