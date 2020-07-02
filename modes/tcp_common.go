@@ -29,6 +29,7 @@ import (
 	"fmt"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	pt "github.com/OperatorFoundation/shapeshifter-ipc/v2"
+	"github.com/op/go-logging"
 	"io"
 	"net"
 	"net/url"
@@ -38,7 +39,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 )
 
-func ClientSetupTCP(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string, clientHandler ClientHandlerTCP) (launched bool) {
+func ClientSetupTCP(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string, clientHandler ClientHandlerTCP, log *logging.Logger) (launched bool) {
 	// Launch each of the client listeners.
 	for _, name := range names {
 		ln, err := net.Listen("tcp", socksAddr)
@@ -48,7 +49,7 @@ func ClientSetupTCP(socksAddr string, target string, ptClientProxy *url.URL, nam
 			continue
 		}
 
-		go clientAcceptLoop(target, name, options, ln, ptClientProxy, clientHandler)
+		go clientAcceptLoop(target, name, options, ln, ptClientProxy, clientHandler, log)
 		log.Infof("%s - registered listener: %s", name, ln.Addr())
 		launched = true
 	}
@@ -56,7 +57,7 @@ func ClientSetupTCP(socksAddr string, target string, ptClientProxy *url.URL, nam
 	return
 }
 
-func clientAcceptLoop(target string, name string, options string, ln net.Listener, proxyURI *url.URL, clientHandler ClientHandlerTCP) {
+func clientAcceptLoop(target string, name string, options string, ln net.Listener, proxyURI *url.URL, clientHandler ClientHandlerTCP, log *logging.Logger) {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
@@ -65,11 +66,11 @@ func clientAcceptLoop(target string, name string, options string, ln net.Listene
 				log.Errorf("Fatal listener error: %s", err.Error())
 				return
 			}
-			log.Warnf("Failed to accept connection: %s", err.Error())
+			log.Warningf("Failed to accept connection: %s", err.Error())
 			continue
 		}
 
-		go clientHandler(target, name, options, conn, proxyURI)
+		go clientHandler(target, name, options, conn, proxyURI, log)
 	}
 }
 

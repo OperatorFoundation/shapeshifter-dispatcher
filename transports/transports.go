@@ -41,6 +41,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2"
+	"github.com/op/go-logging"
 	"golang.org/x/net/proxy"
 )
 
@@ -73,20 +74,14 @@ func ParseArgsObfs4(args string, target string, dialer proxy.Dialer) (*obfs4.Opt
 	return &transport, nil
 }
 
-func ParseArgsShadow(args string, target string) (*shadow.Transport, error) {
+func ParseArgsShadow(args string, target string, log *logging.Logger) (*shadow.Transport, error) {
 	var config shadow.Config
-
 	bytes := []byte(args)
 	jsonError := json.Unmarshal(bytes, &config)
 	if jsonError != nil {
 		return nil, errors.New("shadow options json decoding error")
 	}
-
-	transport := shadow.Transport{
-		Password:   config.Password,
-		CipherName: config.CipherName,
-		Address:    target,
-	}
+	transport := shadow.NewTransport(config.Password, config.CipherName, target, log)
 
 	return &transport, nil
 }
@@ -249,7 +244,7 @@ type OptimizerArgs struct {
 	Config  map[string]interface{} `json:"config"`
 }
 
-func ParseArgsOptimizer(jsonConfig string, dialer proxy.Dialer) (*Optimizer.Client, error) {
+func ParseArgsOptimizer(jsonConfig string, dialer proxy.Dialer, log *logging.Logger) (*Optimizer.Client, error) {
 	var config OptimizerConfig
 	var transports []Optimizer.Transport
 	var strategy Optimizer.Strategy
@@ -258,7 +253,7 @@ func ParseArgsOptimizer(jsonConfig string, dialer proxy.Dialer) (*Optimizer.Clie
 	if parseErr != nil {
 		return nil, errors.New("could not marshal optimizer config")
 	}
-	transports, parseErr = parseTransports(config.Transports, dialer)
+	transports, parseErr = parseTransports(config.Transports, dialer, log)
 	if parseErr != nil {
 		println("this is the returned error from parseTransports:", parseErr)
 		return nil, errors.New("could not parse transports")
@@ -295,13 +290,13 @@ func parseStrategy(strategyString string, transports []Optimizer.Transport) (Opt
 	}
 }
 
-func parseTransports(otcs []interface{}, dialer proxy.Dialer) ([]Optimizer.Transport, error) {
+func parseTransports(otcs []interface{}, dialer proxy.Dialer, log *logging.Logger) ([]Optimizer.Transport, error) {
 	transports := make([]Optimizer.Transport, len(otcs))
 	for index, untypedOtc := range otcs {
 		switch untypedOtc.(type) {
 		case map[string]interface{}:
 			otc := untypedOtc.(map[string]interface{})
-			transport, err := parsedTransport(otc, dialer)
+			transport, err := parsedTransport(otc, dialer, log)
 			if err != nil {
 				return nil, errors.New("transport could not parse config")
 				//this error sucks and is uninformative
@@ -315,7 +310,7 @@ func parseTransports(otcs []interface{}, dialer proxy.Dialer) ([]Optimizer.Trans
 	return transports, nil
 }
 
-func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer.Transport, error) {
+func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer, log *logging.Logger) (Optimizer.Transport, error) {
 	var config map[string]interface{}
 
 	type PartialOptimizerConfig struct {
@@ -353,7 +348,7 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 	jsonConfigString := string(jsonConfigBytes)
 	switch PartialConfig.Name {
 	case "shadow":
-		shadowTransport, parseErr := ParseArgsShadow(jsonConfigString, PartialConfig.Address)
+		shadowTransport, parseErr := ParseArgsShadow(jsonConfigString, PartialConfig.Address, log)
 		if parseErr != nil {
 			return nil, errors.New("could not parse shadow Args")
 		}
@@ -386,7 +381,7 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 		}
 		return replicantTransport, nil
 	case "Optimizer":
-		optimizerTransport, parseErr := ParseArgsOptimizer(jsonConfigString, dialer)
+		optimizerTransport, parseErr := ParseArgsOptimizer(jsonConfigString, dialer, log)
 		if parseErr != nil {
 			return nil, errors.New("could not parse Optimizer Args")
 		}
