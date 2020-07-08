@@ -92,7 +92,7 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 	var dialer proxy.Dialer = proxy.Direct
 
 	// Deal with arguments.
-	transport, argsToDialerErr := pt_extras.ArgsToDialer(socksReq.Target, name, options, dialer, log)
+	transport, argsToDialerErr := pt_extras.ArgsToDialer(socksReq.Target, name, options, dialer)
 	if argsToDialerErr != nil {
 		log.Errorf("Error creating a transport with the provided options: %s", options)
 		log.Errorf("Error: %s", argsToDialerErr)
