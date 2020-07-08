@@ -30,17 +30,19 @@
 package pt_socks5
 
 import (
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
+	"github.com/OperatorFoundation/obfs4/common/log"
+	commonLog "github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes"
-	"github.com/OperatorFoundation/shapeshifter-ipc"
+	"github.com/OperatorFoundation/shapeshifter-ipc/v2"
+	"github.com/op/go-logging"
 	"golang.org/x/net/proxy"
 	"net"
 	"net/url"
 )
 
-func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, options string) (launched bool) {
+func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, options string, log *logging.Logger) (launched bool) {
 	// Launch each of the client listeners.
 	for _, name := range names {
 		ln, err := net.Listen("tcp", socksAddr)
@@ -49,7 +51,7 @@ func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, optio
 			continue
 		}
 
-		go clientAcceptLoop(name, ln, ptClientProxy, options)
+		go clientAcceptLoop(name, ln, ptClientProxy, options, log)
 		pt.Cmethod(name, socks5.Version(), ln.Addr())
 
 		log.Infof("%s - registered listener: %s", name, ln.Addr())
@@ -61,7 +63,7 @@ func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, optio
 	return
 }
 
-func clientAcceptLoop(name string, ln net.Listener, proxyURI *url.URL, options string) {
+func clientAcceptLoop(name string, ln net.Listener, proxyURI *url.URL, options string, log *logging.Logger) {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
@@ -72,11 +74,11 @@ func clientAcceptLoop(name string, ln net.Listener, proxyURI *url.URL, options s
 			}
 			continue
 		}
-		go clientHandler(name, conn, proxyURI, options)
+		go clientHandler(name, conn, proxyURI, options, log)
 	}
 }
 
-func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string) {
+func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string, log *logging.Logger) {
 	var needOptions = options == ""
 
 	// Read the client's SOCKS handshake.
@@ -85,12 +87,12 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 		log.Errorf("%s - client failed socks handshake: %s", name, err)
 		return
 	}
-	addrStr := log.ElideAddr(socksReq.Target)
+	addrStr := commonLog.ElideAddr(socksReq.Target)
 
 	var dialer proxy.Dialer = proxy.Direct
 
 	// Deal with arguments.
-	transport, argsToDialerErr := pt_extras.ArgsToDialer(socksReq.Target, name, options, dialer)
+	transport, argsToDialerErr := pt_extras.ArgsToDialer(socksReq.Target, name, options, dialer, log)
 	if argsToDialerErr != nil {
 		log.Errorf("Error creating a transport with the provided options: %s", options)
 		log.Errorf("Error: %s", argsToDialerErr)
@@ -103,7 +105,7 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 		if proxyErr != nil {
 			// This should basically never happen, since config protocol
 			// verifies this.
-			log.Errorf("%s(%s) - failed to obtain proxy dialer: %s", name, addrStr, log.ElideError(err))
+			log.Errorf("%s(%s) - failed to obtain proxy dialer: %s", name, addrStr, commonLog.ElideError(err))
 			_ = socksReq.Reply(socks5.ReplyGeneralFailure)
 			return
 		}
@@ -111,18 +113,18 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 
 	remote, err2 := transport.Dial()
 	if err2 != nil {
-		log.Errorf("%s(%s) - outgoing connection failed: %s", name, addrStr, log.ElideError(err2))
+		log.Errorf("%s(%s) - outgoing connection failed: %s", name, addrStr, commonLog.ElideError(err2))
 		_ = socksReq.Reply(socks5.ErrorToReplyCode(err2))
 		return
 	}
 	err = socksReq.Reply(socks5.ReplySucceeded)
 	if err != nil {
-		log.Errorf("%s(%s) - SOCKS reply failed: %s", name, addrStr, log.ElideError(err))
+		log.Errorf("%s(%s) - SOCKS reply failed: %s", name, addrStr, commonLog.ElideError(err))
 		return
 	}
 
 	if err = modes.CopyLoop(conn, remote); err != nil {
-		log.Warnf("%s(%s) - closed connection: %s", name, addrStr, log.ElideError(err))
+		log.Warningf("%s(%s) - closed connection: %s", name, addrStr, commonLog.ElideError(err))
 	} else {
 		log.Infof("%s(%s) - closed connection", name, addrStr)
 	}

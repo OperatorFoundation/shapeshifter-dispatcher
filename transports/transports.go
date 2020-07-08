@@ -75,18 +75,12 @@ func ParseArgsObfs4(args string, target string, dialer proxy.Dialer) (*obfs4.Opt
 
 func ParseArgsShadow(args string, target string) (*shadow.Transport, error) {
 	var config shadow.Config
-
 	bytes := []byte(args)
 	jsonError := json.Unmarshal(bytes, &config)
 	if jsonError != nil {
 		return nil, errors.New("shadow options json decoding error")
 	}
-
-	transport := shadow.Transport{
-		Password:   config.Password,
-		CipherName: config.CipherName,
-		Address:    target,
-	}
+	transport := shadow.NewTransport(config.Password, config.CipherName, target)
 
 	return &transport, nil
 }
@@ -260,6 +254,7 @@ func ParseArgsOptimizer(jsonConfig string, dialer proxy.Dialer) (*Optimizer.Clie
 	}
 	transports, parseErr = parseTransports(config.Transports, dialer)
 	if parseErr != nil {
+		println("this is the returned error from parseTransports:", parseErr)
 		return nil, errors.New("could not parse transports")
 	}
 
@@ -313,6 +308,7 @@ func parseTransports(otcs []interface{}, dialer proxy.Dialer) ([]Optimizer.Trans
 	}
 	return transports, nil
 }
+
 
 func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer.TransportDialer, error) {
 	var config map[string]interface{}

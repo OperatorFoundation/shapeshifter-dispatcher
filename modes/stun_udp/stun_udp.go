@@ -32,6 +32,7 @@ package stun_udp
 import (
 	"fmt"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes"
+	"github.com/op/go-logging"
 	common "github.com/willscott/goturn/common"
 	"io"
 	golog "log"
@@ -41,14 +42,14 @@ import (
 	"github.com/willscott/goturn"
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
-	"github.com/OperatorFoundation/shapeshifter-ipc"
+	"github.com/OperatorFoundation/shapeshifter-ipc/v2"
 )
 
-func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) bool {
-	return modes.ClientSetupUDP(socksAddr, target, ptClientProxy, names, options, clientHandler)
+func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string, log *logging.Logger) bool {
+	return modes.ClientSetupUDP(socksAddr, target, ptClientProxy, names, options, clientHandler, log)
 }
 
-func clientHandler(target string, name string, options string, conn *net.UDPConn, proxyURI *url.URL) {
+func clientHandler(target string, name string, options string, conn *net.UDPConn, proxyURI *url.URL, log *logging.Logger) {
 
 	//defers are never called due to infinite loop
 
@@ -93,7 +94,7 @@ func clientHandler(target string, name string, options string, conn *net.UDPConn
 
 			fmt.Println("Opening connection to ", target)
 
-			modes.OpenConnection(&tracker, addr.String(), target, name, options, proxyURI)
+			modes.OpenConnection(&tracker, addr.String(), target, name, options, proxyURI, log)
 
 			// Drop the packet.
 			fmt.Println("recv: Open")

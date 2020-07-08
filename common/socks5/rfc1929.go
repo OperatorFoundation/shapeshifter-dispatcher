@@ -27,7 +27,10 @@
 
 package socks5
 
-import "fmt"
+import (
+	"fmt"
+	pt "github.com/OperatorFoundation/shapeshifter-ipc/v2"
+)
 
 const (
 	authRFC1929Ver     = 0x01
@@ -94,7 +97,7 @@ func (req *Request) authRFC1929() (err error) {
 		// actual argument data.
 		argStr += string(passwd)
 	}
-	if req.Args, err = parseClientParameters(argStr); err != nil {
+	if req.Args, err = pt.ParsePT2ClientParameters(argStr); err != nil {
 		sendErrResp()
 		return
 	}

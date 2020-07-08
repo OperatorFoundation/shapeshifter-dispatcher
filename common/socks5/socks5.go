@@ -46,8 +46,6 @@ import (
 	"net"
 	"syscall"
 	"time"
-
-	"github.com/OperatorFoundation/shapeshifter-ipc"
 )
 
 const (
@@ -120,7 +118,7 @@ func ErrorToReplyCode(err error) ReplyCode {
 // Request describes a SOCKS 5 request.
 type Request struct {
 	Target string
-	Args   pt.Args
+	Args   map[string]interface{}
 	rw     *bufio.ReadWriter
 }
 

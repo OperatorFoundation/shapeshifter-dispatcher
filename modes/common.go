@@ -28,7 +28,8 @@ import (
 	"fmt"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
-	pt "github.com/OperatorFoundation/shapeshifter-ipc"
+	pt "github.com/OperatorFoundation/shapeshifter-ipc/v2"
+	"github.com/op/go-logging"
 	"golang.org/x/net/proxy"
 	"net"
 	"net/url"
@@ -41,23 +42,23 @@ type ConnState struct {
 
 type ConnTracker map[string]ConnState
 
-type ClientHandlerTCP func(target string, name string, options string, conn net.Conn, proxyURI *url.URL)
+type ClientHandlerTCP func(target string, name string, options string, conn net.Conn, proxyURI *url.URL, log *logging.Logger)
 
-type ClientHandlerUDP func(target string, name string, options string, conn *net.UDPConn, proxyURI *url.URL)
+type ClientHandlerUDP func(target string, name string, options string, conn *net.UDPConn, proxyURI *url.URL, log *logging.Logger)
 type ServerHandler func(name string, remote net.Conn, info *pt.ServerInfo)
 
 func NewConnState() ConnState {
 	return ConnState{nil, true}
 }
 
-func OpenConnection(tracker *ConnTracker, addr string, target string, name string, options string, proxyURI *url.URL) {
+func OpenConnection(tracker *ConnTracker, addr string, target string, name string, options string, proxyURI *url.URL, log *logging.Logger) {
 	newConn := NewConnState()
 	(*tracker)[addr] = newConn
 
-	go dialConn(tracker, addr, target, name, options, proxyURI)
+	go dialConn(tracker, addr, target, name, options, proxyURI, log)
 }
 
-func dialConn(tracker *ConnTracker, addr string, target string, name string, options string, proxyURI *url.URL) {
+func dialConn(tracker *ConnTracker, addr string, target string, name string, options string, proxyURI *url.URL, log *logging.Logger) {
 	// Obtain the proxy dialer if any, and create the outgoing TCP connection.
 	var dialer proxy.Dialer
 	dialer = proxy.Direct
@@ -68,7 +69,7 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 			// This should basically never happen, since config protocol
 			// verifies this.
 			fmt.Println("failed to obtain dialer", proxyURI, proxy.Direct)
-			log.Errorf("(%s) - failed to obtain proxy dialer: %s", target, log.ElideError(err))
+			log.Errorf("(%s) - failed to obtain proxy dialer: %s", target)
 			return
 		}
 
@@ -77,7 +78,7 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 	fmt.Println("Dialing....")
 
 	// Deal with arguments.
-	transport, argsToDialerErr := pt_extras.ArgsToDialer(target, name, options, dialer)
+	transport, argsToDialerErr := pt_extras.ArgsToDialer(target, name, options, dialer, log)
 	if argsToDialerErr != nil {
 		log.Errorf("Error creating a transport with the provided options: %s", options)
 		log.Errorf("Error: %s", argsToDialerErr)
@@ -87,7 +88,7 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 	remote, dialError := transport.Dial()
 	if dialError != nil {
 		fmt.Println("outgoing connection failed", dialError)
-		log.Errorf("(%s) - outgoing connection failed: %s", target, log.ElideError(dialError))
+		log.Errorf("(%s) - outgoing connection failed: %s", target)
 		fmt.Println("Failed")
 		delete(*tracker, addr)
 		return

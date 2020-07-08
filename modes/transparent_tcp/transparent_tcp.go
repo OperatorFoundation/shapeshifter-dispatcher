@@ -31,22 +31,22 @@ package transparent_tcp
 
 import (
 	"fmt"
+	"github.com/OperatorFoundation/obfs4/common/log"
+	commonLog "github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes"
+	"github.com/OperatorFoundation/shapeshifter-ipc/v2"
+	"github.com/op/go-logging"
 	"golang.org/x/net/proxy"
 	"net"
 	"net/url"
-
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
-	"github.com/OperatorFoundation/shapeshifter-ipc"
-
 )
 
-func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) (launched bool) {
-	return modes.ClientSetupTCP(socksAddr, target, ptClientProxy, names, options, clientHandler)
+func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string, log *logging.Logger) (launched bool) {
+	return modes.ClientSetupTCP(socksAddr, target, ptClientProxy, names, options, clientHandler, log)
 }
 
-func clientHandler(target string, name string, options string, conn net.Conn, proxyURI *url.URL) {
+func clientHandler(target string, name string, options string, conn net.Conn, proxyURI *url.URL, log *logging.Logger) {
 	var dialer proxy.Dialer
 	dialer = proxy.Direct
 	if proxyURI != nil {
@@ -56,13 +56,13 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 			// This should basically never happen, since config protocol
 			// verifies this.
 			fmt.Println("-> failed to obtain dialer", proxyURI, proxy.Direct)
-			log.Errorf("(%s) - failed to obtain proxy dialer: %s", target, log.ElideError(err))
+			log.Errorf("(%s) - failed to obtain proxy dialer: %s", target, commonLog.ElideError(err))
 			return
 		}
 	}
 
 	// Deal with arguments.
-	transport, argsToDialerErr := pt_extras.ArgsToDialer(target, name, options, dialer)
+	transport, argsToDialerErr := pt_extras.ArgsToDialer(target, name, options, dialer, log)
 	if argsToDialerErr != nil {
 		log.Errorf("Error creating a transport with the provided options: %v", options)
 		log.Errorf("Error: %v", argsToDialerErr.Error())
@@ -92,8 +92,8 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 	}
 
 	if err := modes.CopyLoop(conn, remote); err != nil {
-		log.Warnf("%s(%s) - closed connection: %s", name, target, log.ElideError(err))
-		println("%s(%s) - closed connection: %s", name, target, log.ElideError(err))
+		log.Warningf("%s(%s) - closed connection: %s", name, target, commonLog.ElideError(err))
+		println("%s(%s) - closed connection: %s", name, target, commonLog.ElideError(err))
 	} else {
 		log.Infof("%s(%s) - closed connection", name, target)
 		println("%s(%s) - closed connection", name, target)

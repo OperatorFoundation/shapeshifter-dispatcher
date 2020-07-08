@@ -35,7 +35,7 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/OperatorFoundation/shapeshifter-ipc"
+	"github.com/OperatorFoundation/shapeshifter-ipc/v2"
 )
 
 // This file contains things that probably should be in goptlib but are not
