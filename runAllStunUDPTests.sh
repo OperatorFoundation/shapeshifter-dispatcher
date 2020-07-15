@@ -1,0 +1,11 @@
+#./testStunUDPDust.sh
+#./TestStunUDPMeek.sh
+./TestStunUDPObfs2.sh
+./TestStunUDPObfs4.sh
+./TestStunUDPOptimizerFirst.sh
+./TestStunUDPOptimizerMinimizeDialDuration.sh
+./TestStunUDPOptimizerRandom.sh
+./TestStunUDPOptimizerRotate.sh
+./TestStunUDPOptimizerTrack.sh
+./TestStunUDPReplicant.sh
+./TestStunUDPShadow.sh

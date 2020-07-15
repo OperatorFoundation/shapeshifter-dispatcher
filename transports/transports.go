@@ -49,7 +49,7 @@ func Transports() []string {
 	return []string{"obfs2", "shadow", "Dust", "meeklite", "Replicant", "obfs4", "Optimizer"}
 }
 
-func ParseArgsObfs4(args string, target string, dialer proxy.Dialer) (*obfs4.OptimizerTransport, error) {
+func ParseArgsObfs4(args string, target string, dialer proxy.Dialer) (*obfs4.TransportClient, error) {
 	var config obfs4.Config
 
 	bytes := []byte(args)
@@ -63,7 +63,7 @@ func ParseArgsObfs4(args string, target string, dialer proxy.Dialer) (*obfs4.Opt
 		iatMode = 1
 	}
 
-	transport := obfs4.OptimizerTransport{
+	transport := obfs4.TransportClient{
 		CertString: config.CertString,
 		IatMode:    iatMode,
 		Address:    target,
@@ -115,13 +115,13 @@ func ParseArgsDust(args string, target string, dialer proxy.Dialer) (*Dust.Trans
 	return &transport, nil
 }
 
-func CreateDefaultReplicantClient(target string, dialer proxy.Dialer) *replicant.Transport {
+func CreateDefaultReplicantClient(target string, dialer proxy.Dialer) *replicant.TransportClient {
 	config := replicant.ClientConfig{
 		Toneburst: nil,
 		Polish:    nil,
 	}
 
-	transport := replicant.Transport{
+	transport := replicant.TransportClient{
 		Config:  config,
 		Address: target,
 		Dialer:  dialer,
@@ -139,7 +139,7 @@ func CreateDefaultReplicantServer() replicant.ServerConfig {
 	return config
 }
 
-func ParseArgsReplicantClient(args string, target string, dialer proxy.Dialer) (*replicant.Transport, error) {
+func ParseArgsReplicantClient(args string, target string, dialer proxy.Dialer) (*replicant.TransportClient, error) {
 	var config *replicant.ClientConfig
 
 	type replicantJsonConfig struct {
@@ -166,7 +166,7 @@ func ParseArgsReplicantClient(args string, target string, dialer proxy.Dialer) (
 		log.Debugf("REPLICANT CONFIG\n", string(configJSON))
 	}
 
-	transport := replicant.Transport{
+	transport := replicant.TransportClient{
 		Config:  *config,
 		Address: target,
 		Dialer:  dialer,
