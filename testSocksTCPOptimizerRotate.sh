@@ -16,7 +16,7 @@ export TOR_PT_SERVER_BINDADDR=shadow-127.0.0.1:2222
 export TOR_PT_SERVER_BINDADDR=obfs2-127.0.0.1:2223
 ./shapeshifter-dispatcher -server -state state -orport 127.0.0.1:3333 -transports obfs2 -logLevel DEBUG -enableLogging &
 export TOR_PT_SERVER_BINDADDR=Replicant-127.0.0.1:2224
-./shapeshifter-dispatcher -server -state state -orport 127.0.0.1:3333 -transports Replicant -optionsFile ReplicantServerConfig1.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -server -state state -orport 127.0.0.1:3333 -transports Replicant -optionsFile ReplicantServerConfigV2.json -logLevel DEBUG -enableLogging &
 
 sleep 5
 

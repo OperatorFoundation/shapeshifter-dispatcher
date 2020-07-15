@@ -79,7 +79,7 @@ func TestSocksTCPOptimizerTrack(t *testing.T) {
 }
 
 func TestSocksTCPReplicant(t *testing.T) {
-	negotiateError := negotiateSocks("ReplicantClientConfig1.json")
+	negotiateError := negotiateSocks("ReplicantClientConfigV2.json")
 	if negotiateError != nil {
 		t.Fail()
 	}
