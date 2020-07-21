@@ -206,13 +206,13 @@ func main() {
 		if mode == socks5 {
 			targetValidationError := validatetargetSocks5(targetHost, targetPort, target)
 			if targetValidationError != nil {
-				log.Errorf("",targetValidationError)
+				log.Errorf("could not validate %s",targetValidationError)
 				return
 			}
 		} else {
 			targetValidationError := validatetarget(targetHost, targetPort, target)
 			if targetValidationError != nil {
-				log.Errorf("",targetValidationError)
+				log.Errorf("could not validate %s",targetValidationError)
 				return
 			}
 		}
@@ -220,7 +220,7 @@ func main() {
 	} else {
 		serverBindValidationError := validateServerBindAddr(transport, serverBindHost, serverBindPort, bindAddr)
 		if serverBindValidationError != nil {
-			log.Errorf("",serverBindValidationError)
+			log.Errorf("could not validate %s",serverBindValidationError)
 			return
 		}
 
