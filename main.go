@@ -184,13 +184,13 @@ func main() {
 
 	transportValidationError := validateTransports(transport, transportsList)
 	if transportValidationError != nil {
-		log.Errorf("", transportValidationError)
+		log.Errorf("could not validate: %s", transportValidationError)
 		return
 	}
 
 	modeValidationError := validateMode(modeName, transparent, udp)
 	if modeValidationError != nil {
-		log.Errorf("", modeValidationError)
+		log.Errorf("could not validate: %s", modeValidationError)
 		return
 	}
 
@@ -199,20 +199,20 @@ func main() {
 	if isClient {
 		proxyListenValidationError := validateProxyListenAddr(proxyListenHost, proxyListnePort, socksAddr)
 		if proxyListenValidationError != nil {
-			log.Errorf("could not validate %s", proxyListenValidationError)
+			log.Errorf("could not validate: %s", proxyListenValidationError)
 			return
 		}
 
 		if mode == socks5 {
 			targetValidationError := validatetargetSocks5(targetHost, targetPort, target)
 			if targetValidationError != nil {
-				log.Errorf("could not validate %s",targetValidationError)
+				log.Errorf("could not validate: %s",targetValidationError)
 				return
 			}
 		} else {
 			targetValidationError := validatetarget(targetHost, targetPort, target)
 			if targetValidationError != nil {
-				log.Errorf("could not validate %s",targetValidationError)
+				log.Errorf("could not validate: %s",targetValidationError)
 				return
 			}
 		}
@@ -220,7 +220,7 @@ func main() {
 	} else {
 		serverBindValidationError := validateServerBindAddr(transport, serverBindHost, serverBindPort, bindAddr)
 		if serverBindValidationError != nil {
-			log.Errorf("could not validate %s",serverBindValidationError)
+			log.Errorf("could not validate: %s",serverBindValidationError)
 			return
 		}
 
