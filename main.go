@@ -96,20 +96,15 @@ func main() {
 	transportsList := flag.String("transports", "", "Specify transports to enable")
 
 	//This is for proposal no.9
-	//transport := flag.String("transport", "", "Specify a single transport to enable")
+	transport := flag.String("transport", "", "Specify a single transport to enable")
 	//copy old code
-	//clientBindPort := flag.String("bindport", "", "Specify the bind address port for transparent client")
-	//clientBindHost := flag.String("bindhost", "", "Specify the bind address host for transparent client")
-	//bindhost:bindport
-	//serverBindPort := flag.String("bindport", "", "Specify the bind address port for transparent server")
-	//serverBindHost := flag.String("bindhost", "", "Specify the bind address host for transparent server")
-	//targetHost := flag.String("targethost", "", "Specify transport server destination address port")
-	//targetPort := flag.String("targetport", "", "Specify transport server destination address host")
-	//proxyListenHost := flag.String("proxylistenhost", "", "Specify the bind address for the local SOCKS server host provided by the client")
-	//proxyListnePort := flag.String("proxylistenport", "", "Specify the bind address for the local SOCKS server port provided by the client")
-	//modeName := flag.String("mode", "socks5", "Specify which mode is being used: transparent-TCP, transparent-UDP, socks5, or STUN")
-	//set transparent or udp to nil
-
+	serverBindPort := flag.String("bindport", "", "Specify the bind address port for transparent server")
+	serverBindHost := flag.String("bindhost", "", "Specify the bind address host for transparent server")
+	targetHost := flag.String("targethost", "", "Specify transport server destination address port")
+	targetPort := flag.String("targetport", "", "Specify transport server destination address host")
+	proxyListenHost := flag.String("proxylistenhost", "", "Specify the bind address for the local SOCKS server host provided by the client")
+	proxyListnePort := flag.String("proxylistenport", "", "Specify the bind address for the local SOCKS server port provided by the client")
+	modeName := flag.String("mode", "", "Specify which mode is being used: transparent-TCP, transparent-UDP, socks5, or STUN")
 
 	// PT 2.1 specification, 3.3.1.2. Pluggable PT Client Configuration Parameters
 	proxy := flag.String("proxy", "", "Specify an HTTP or SOCKS4a proxy that the PT needs to use to reach the Internet")
@@ -197,35 +192,48 @@ func main() {
 		}
 	}
 
+	transportValidationError := validateTransports(transport, transportsList)
+	if transportValidationError != nil {
+		log.Error(transportValidationError)
+		return
+	}
+
+	modeValidationError := validateMode(modeName, transparent, udp)
+	if modeValidationError != nil {
+		log.Error(modeValidationError)
+		return
+	}
+
 	mode := determineMode(*transparent, *udp, log)
 
 	if isClient {
-		switch mode {
-		case socks5:
-			if *target != "" {
-				log.Errorf("-target option cannot be used in socks5 mode")
-				return
-			}
-		case transparentTCP:
-			if *target == "" {
-				log.Errorf("%s - transparent mode requires a target", execName)
-				return
-			}
-		case transparentUDP:
-			if *target == "" {
-				log.Errorf("%s - transparent mode requires a target", execName)
-				return
-			}
-		case stunUDP:
-			if *target == "" {
-				log.Errorf("%s - STUN mode requires a target", execName)
-				return
-			}
-		default:
-			log.Errorf("unsupported mode %d", mode)
+		proxyListenValidationError := validateProxyListenAddr(proxyListenHost, proxyListnePort, socksAddr)
+		if proxyListenValidationError != nil {
+			log.Error(proxyListenValidationError)
 			return
 		}
+
+		if mode == socks5 {
+			targetValidationError := validatetargetSocks5(targetHost, targetPort, target)
+			if targetValidationError != nil {
+				log.Error(targetValidationError)
+				return
+			}
+		} else {
+			targetValidationError := validatetarget(targetHost, targetPort, target)
+			if targetValidationError != nil {
+				log.Error(targetValidationError)
+				return
+			}
+		}
+
 	} else {
+		serverBindValidationError := validateServerBindAddr(transport, serverBindHost, serverBindPort, bindAddr)
+		if serverBindValidationError != nil {
+			log.Error(serverBindValidationError)
+			return
+		}
+
 		switch mode {
 		case socks5:
 			if *bindAddr != "" {
