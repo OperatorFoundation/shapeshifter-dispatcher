@@ -32,7 +32,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	Optimizer "github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2"
-	"github.com/op/go-logging"
+
 	"golang.org/x/net/proxy"
 	"net"
 
@@ -42,7 +42,7 @@ import (
 )
 
 // target is the server address string
-func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer, log *logging.Logger) (Optimizer.Transport, error) {
+func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) (Optimizer.Transport, error) {
 	switch name {
 	case "obfs2":
 		transport := obfs2.New(target, dialer)
@@ -58,7 +58,7 @@ func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer, 
 		}
 	case "shadow":
 
-		transport, err := transports.ParseArgsShadow(args, target, log)
+		transport, err := transports.ParseArgsShadow(args, target)
 		if err != nil {
 			log.Errorf("Could not parse options %s", err.Error())
 			return nil, err
@@ -66,7 +66,7 @@ func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer, 
 			return transport, nil
 		}
 	case "Optimizer":
-		transport, err := transports.ParseArgsOptimizer(args, dialer, log)
+		transport, err := transports.ParseArgsOptimizer(args, dialer)
 		if err != nil {
 			log.Errorf("Could not parse options %s", err.Error())
 			return nil, err

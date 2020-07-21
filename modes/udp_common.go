@@ -28,12 +28,12 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	pt "github.com/OperatorFoundation/shapeshifter-ipc/v2"
-	"github.com/op/go-logging"
+
 	"net"
 	"net/url"
 )
 
-func ClientSetupUDP(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string, clientHandler ClientHandlerUDP, log *logging.Logger) bool {
+func ClientSetupUDP(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string, clientHandler ClientHandlerUDP) bool {
 	// Launch each of the client listeners.
 	for _, name := range names {
 		udpAddr, err := net.ResolveUDPAddr("udp", socksAddr)
@@ -49,7 +49,7 @@ func ClientSetupUDP(socksAddr string, target string, ptClientProxy *url.URL, nam
 
 		log.Infof("%s - registered listener", name)
 
-		go clientHandler(target, name, options, ln, ptClientProxy, log)
+		go clientHandler(target, name, options, ln, ptClientProxy)
 	}
 
 	return true

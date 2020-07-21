@@ -36,13 +36,13 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes"
 	"github.com/OperatorFoundation/shapeshifter-ipc/v2"
-	"github.com/op/go-logging"
+
 	"golang.org/x/net/proxy"
 	"net"
 	"net/url"
 )
 
-func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, options string, log *logging.Logger) (launched bool) {
+func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, options string) (launched bool) {
 	// Launch each of the client listeners.
 	for _, name := range names {
 		ln, err := net.Listen("tcp", socksAddr)
@@ -51,7 +51,7 @@ func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, optio
 			continue
 		}
 
-		go clientAcceptLoop(name, ln, ptClientProxy, options, log)
+		go clientAcceptLoop(name, ln, ptClientProxy, options)
 		pt.Cmethod(name, socks5.Version(), ln.Addr())
 
 		log.Infof("%s - registered listener: %s", name, ln.Addr())
@@ -63,7 +63,7 @@ func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, optio
 	return
 }
 
-func clientAcceptLoop(name string, ln net.Listener, proxyURI *url.URL, options string, log *logging.Logger) {
+func clientAcceptLoop(name string, ln net.Listener, proxyURI *url.URL, options string) {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
@@ -74,11 +74,11 @@ func clientAcceptLoop(name string, ln net.Listener, proxyURI *url.URL, options s
 			}
 			continue
 		}
-		go clientHandler(name, conn, proxyURI, options, log)
+		go clientHandler(name, conn, proxyURI, options)
 	}
 }
 
-func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string, log *logging.Logger) {
+func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string) {
 	var needOptions = options == ""
 
 	// Read the client's SOCKS handshake.
@@ -92,7 +92,7 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 	var dialer proxy.Dialer = proxy.Direct
 
 	// Deal with arguments.
-	transport, argsToDialerErr := pt_extras.ArgsToDialer(socksReq.Target, name, options, dialer, log)
+	transport, argsToDialerErr := pt_extras.ArgsToDialer(socksReq.Target, name, options, dialer)
 	if argsToDialerErr != nil {
 		log.Errorf("Error creating a transport with the provided options: %s", options)
 		log.Errorf("Error: %s", argsToDialerErr)
@@ -124,7 +124,7 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 	}
 
 	if err = modes.CopyLoop(conn, remote); err != nil {
-		log.Warningf("%s(%s) - closed connection: %s", name, addrStr, commonLog.ElideError(err))
+		log.Errorf("%s(%s) - closed connection: %s", name, addrStr, commonLog.ElideError(err))
 	} else {
 		log.Infof("%s(%s) - closed connection", name, addrStr)
 	}
