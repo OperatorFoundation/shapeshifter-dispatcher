@@ -44,7 +44,7 @@ func validateTransports(transport *string, transports *string) error {
 		return errors.New("you must specify either --transport or --transports")
 	}
 
-	if transports != nil && transport != nil {
+	if *transports != "" && *transport != "" {
 		return errors.New("you cannot specify both --transport and --transports")
 	}
 
