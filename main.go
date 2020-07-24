@@ -127,6 +127,7 @@ func main() {
 	// Additional command line flags inherited from obfs4proxy
 	showVer := flag.Bool("showVersion", false, "Print version and exit")
 	logLevelStr := flag.String("logLevel", "ERROR", "Log level (ERROR/WARN/INFO/DEBUG)")
+	ipcLogLevelStr := flag.String("ipcLogLevel", "NONE", "IPC Log level (ERROR/WARN/INFO/DEBUG/NONE)")
 	enableLogging := flag.Bool("enableLogging", false, "Log to TOR_PT_STATE_LOCATION/"+dispatcherLogFile)
 
 	// Additional command line flags added to shapeshifter-dispatcher
@@ -149,6 +150,13 @@ func main() {
 		golog.Fatalf("[ERROR]: %s - failed to set log level: %s", execName, err)
 	}
 
+	ipcLogLevel, ipcLogLevelError := validateIPCLogLevel(*ipcLogLevelStr)
+	if ipcLogLevelError != nil {
+		println(ipcLogLevel)
+		log.Errorf("could not validate IPC log level %s", ipcLogLevelError)
+		return
+	}
+
 	// Determine if this is a client or server, initialize the common state.
 	launched := false
 	isClient, err := checkIsClient(*clientMode, *serverMode)
@@ -163,7 +171,7 @@ func main() {
 	if *options != "" && *optionsFile != "" {
 		golog.Fatal("cannot specify -options and -optionsFile at the same time")
 	}
-	if err = log.Init(*enableLogging, path.Join(stateDir, dispatcherLogFile)); err != nil {
+	if err = log.Init(*enableLogging, path.Join(stateDir, dispatcherLogFile), ipcLogLevel); err != nil {
 		println("stateDir:", stateDir)
 		println("--> Error: ", err.Error())
 		golog.Fatalf("--> [ERROR]: %s - failed to initialize logging", execName)

@@ -52,14 +52,18 @@ const (
 
 	// LevelDebug is the DEBUG log level, (NOTICE/ERROR/WARN/INFO/DEBUG).
 	LevelDebug
+
+	//LevelNone is the level where nothing is logged, (NONE)
+	LevelNone
 )
 
 var logLevel = LevelInfo
+var ipcLogLevel = LevelNone
 var enableLogging bool
 var unsafeLogging bool
 
 // Init initializes logging with the given path, and log safety options.
-func Init(enable bool, logFilePath string) error {
+func Init(enable bool, logFilePath string, ipcLog int) error {
 	if enable {
 		f, err := os.OpenFile(logFilePath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0600)
 		if err != nil {
@@ -70,6 +74,7 @@ func Init(enable bool, logFilePath string) error {
 		log.SetOutput(ioutil.Discard)
 	}
 	enableLogging = enable
+	ipcLogLevel = ipcLog
 	return nil
 }
 
@@ -91,6 +96,25 @@ func SetLogLevel(logLevelStr string) error {
 	return nil
 }
 
+func ipcLogMessage(logLevel int, message string) {
+	var logLevelStr string
+	switch logLevel {
+	case LevelNone:
+		logLevelStr = "NONE"
+	case LevelError:
+		logLevelStr = "ERROR"
+	case LevelWarn:
+		logLevelStr = "WARN"
+	case LevelInfo:
+		logLevelStr = "INFO"
+	case LevelDebug:
+		logLevelStr = "DEBUG"
+	default:
+		return
+	}
+	println("LOG "+logLevelStr+" "+message)
+}
+
 // Noticef logs the given format string/arguments at the NOTICE log level.
 // Unless logging is disabled, Noticef logs are always emitted.
 func Noticef(format string, a ...interface{}) {
@@ -106,6 +130,10 @@ func Errorf(format string, a ...interface{}) {
 		msg := fmt.Sprintf(format, a...)
 		log.Print("[ERROR]: " + msg)
 	}
+	if ipcLogLevel != LevelNone && ipcLogLevel >= LevelError {
+		msg := fmt.Sprintf(format, a...)
+		ipcLogMessage(LevelError, msg)
+	}
 }
 
 // Warnf logs the given format string/arguments at the WARN log level.
@@ -113,6 +141,10 @@ func Warnf(format string, a ...interface{}) {
 	if enableLogging && logLevel >= LevelWarn {
 		msg := fmt.Sprintf(format, a...)
 		log.Print("[WARN]: " + msg)
+	}
+	if ipcLogLevel != LevelNone && ipcLogLevel >= LevelWarn {
+		msg := fmt.Sprintf(format, a...)
+		ipcLogMessage(LevelWarn, msg)
 	}
 }
 
@@ -122,6 +154,10 @@ func Infof(format string, a ...interface{}) {
 		msg := fmt.Sprintf(format, a...)
 		log.Print("[INFO]: " + msg)
 	}
+	if ipcLogLevel != LevelNone && ipcLogLevel >= LevelInfo {
+		msg := fmt.Sprintf(format, a...)
+		ipcLogMessage(LevelInfo, msg)
+	}
 }
 
 // Debugf logs the given format string/arguments at the DEBUG log level.
@@ -129,6 +165,10 @@ func Debugf(format string, a ...interface{}) {
 	if enableLogging && logLevel >= LevelDebug {
 		msg := fmt.Sprintf(format, a...)
 		log.Print("[DEBUG]: " + msg)
+	}
+	if ipcLogLevel != LevelNone && ipcLogLevel >= LevelDebug {
+		msg := fmt.Sprintf(format, a...)
+		ipcLogMessage(LevelDebug, msg)
 	}
 }
 
