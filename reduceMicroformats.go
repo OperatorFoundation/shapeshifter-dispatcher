@@ -40,7 +40,7 @@ import "errors"
 //set transparent or udp to nil
 
 func validateTransports(transport *string, transports *string) error {
-	if transports == nil && transport == nil {
+	if *transports == "" && *transport == "" {
 		return errors.New("you must specify either --transport or --transports")
 	}
 
@@ -52,19 +52,19 @@ func validateTransports(transport *string, transports *string) error {
 }
 
 func validateServerBindAddr(transport *string, serverBindHost *string, serverBindPort *string, serverBindAddr *string) error {
-	if serverBindHost == nil && serverBindAddr == nil {
+	if *serverBindHost == "" && *serverBindAddr == "" {
 		return errors.New("you must specify either --bindhost or --bindaddr")
 	}
 
-	if serverBindHost != nil && serverBindAddr != nil {
+	if *serverBindHost != "" && *serverBindAddr != "" {
 		return errors.New("you cannot specify both --bindhost and --bindaddr")
 	}
 
-	if (serverBindHost != nil && serverBindPort == nil) || (serverBindHost == nil && serverBindPort != nil) {
+	if (*serverBindHost != "" && *serverBindPort == "") || (*serverBindHost == "" && *serverBindPort != "") {
 		return errors.New("you must specify both --bindhost and --bindport (or use --bindaddr)")
 	}
 
-	if serverBindHost != nil && transport == nil {
+	if *serverBindHost != "" && *transport == "" {
 		return errors.New("you must specify --transport when you use --bindhost")
 	}
 
@@ -72,15 +72,15 @@ func validateServerBindAddr(transport *string, serverBindHost *string, serverBin
 }
 
 func validateProxyListenAddr(proxyListenHost *string, proxyListenPort *string, proxyListenAddr *string) error {
-	if proxyListenHost == nil && proxyListenAddr == nil {
+	if *proxyListenHost == "" && *proxyListenAddr == "" {
 		return errors.New("you must specify either --proxylistenhost or --proxylistenaddr")
 	}
 
-	if proxyListenHost != nil && proxyListenAddr != nil {
+	if *proxyListenHost != "" && *proxyListenAddr != "" {
 		return errors.New("you cannot specify both --proxylistenhost and --proxylistenaddr")
 	}
 
-	if (proxyListenHost != nil && proxyListenPort == nil) || (proxyListenHost == nil && proxyListenPort != nil) {
+	if (*proxyListenHost != "" && *proxyListenPort == "") || (*proxyListenHost == "" && *proxyListenPort != "") {
 		return errors.New("you must specify both --proxylistenhost and --proxylistenport (or use --proxylistenaddr)")
 	}
 
@@ -88,15 +88,15 @@ func validateProxyListenAddr(proxyListenHost *string, proxyListenPort *string, p
 }
 
 func validatetarget(targetHost *string, targetPort *string, targetAddr *string) error {
-	if targetHost == nil && targetAddr == nil {
+	if *targetHost == "" && *targetAddr == "" {
 		return errors.New("you must specify either --targethost or --target")
 	}
 
-	if targetHost != nil && targetAddr != nil {
+	if *targetHost != "" && *targetAddr != "" {
 		return errors.New("you cannot specify both --targethost and --target")
 	}
 
-	if (targetHost != nil && targetPort == nil) || (targetHost == nil && targetPort != nil) {
+	if (*targetHost != "" && *targetPort == "") || (*targetHost == "" && *targetPort != "") {
 		return errors.New("you must specify both --targethost and --targetport (or use --target)")
 	}
 
@@ -104,15 +104,15 @@ func validatetarget(targetHost *string, targetPort *string, targetAddr *string) 
 }
 
 func validatetargetSocks5(targetHost *string, targetPort *string, targetAddr *string) error {
-	if targetHost != nil {
+	if *targetHost != "" {
 		return errors.New("you cannot specify --targethost in socks5 mode")
 	}
 
-	if targetPort != nil {
+	if *targetPort != "" {
 		return errors.New("you cannot specify --targetport in socks5 mode")
 	}
 
-	if targetAddr != nil {
+	if *targetAddr != "" {
 		return errors.New("you cannot specify --target in socks5 mode")
 	}
 
@@ -120,15 +120,15 @@ func validatetargetSocks5(targetHost *string, targetPort *string, targetAddr *st
 }
 
 func validateMode(mode *string, transparent *bool, udp *bool) error {
-	if *mode != "" && transparent != nil {
+	if *mode != "" && *transparent != false {
 		return errors.New("cannot specify --mode and --transparent at the same time")
 	}
 
-	if mode != nil && udp != nil {
+	if *mode != "" && *udp != false {
 		return errors.New("cannot specify --mode and --udp at the same time")
 	}
 
-	if mode != nil {
+	if *mode != "" {
 		switch *mode {
 		case "socks5":
 			return nil
