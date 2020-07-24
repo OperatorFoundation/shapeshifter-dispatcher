@@ -30,6 +30,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
@@ -188,13 +189,21 @@ func main() {
 		return
 	}
 
+	if *transport != "" && *transportsList == "" {
+		transportsList = transport
+	}
+
 	modeValidationError := validateMode(modeName, transparent, udp)
 	if modeValidationError != nil {
 		log.Errorf("could not validate: %s", modeValidationError)
 		return
 	}
 
-	mode := determineMode(*transparent, *udp)
+	mode, modeError := determineMode(*modeName, *transparent, *udp)
+	if modeError != nil {
+		log.Errorf("invalid mode name %s", *modeName)
+		return
+	}
 
 	if isClient {
 		proxyListenValidationError := validateProxyListenAddr(proxyListenHost, proxyListnePort, socksAddr)
@@ -203,17 +212,27 @@ func main() {
 			return
 		}
 
+		if *proxyListenHost != "" && *proxyListnePort != "" && *socksAddr == "" {
+			newSocksAddr := *proxyListenHost+":"+*proxyListnePort
+			bindAddr = &newSocksAddr
+		}
+
 		if mode == socks5 {
 			targetValidationError := validatetargetSocks5(targetHost, targetPort, target)
 			if targetValidationError != nil {
 				log.Errorf("could not validate: %s",targetValidationError)
 				return
 			}
+
 		} else {
 			targetValidationError := validatetarget(targetHost, targetPort, target)
 			if targetValidationError != nil {
 				log.Errorf("could not validate: %s",targetValidationError)
 				return
+			}
+			if *targetHost != "" && *targetPort != "" && *target == "" {
+				newTarget := *targetHost+":"+*targetPort
+				bindAddr = &newTarget
 			}
 		}
 
@@ -222,6 +241,11 @@ func main() {
 		if serverBindValidationError != nil {
 			log.Errorf("could not validate: %s",serverBindValidationError)
 			return
+		}
+
+		if *transport != "" && *serverBindHost != "" && *serverBindPort != "" && *bindAddr == "" {
+			newBindAddr := *transport+"-"+*serverBindHost+":"+*serverBindPort
+			bindAddr = &newBindAddr
 		}
 
 		switch mode {
@@ -332,21 +356,35 @@ func main() {
 	}
 }
 
-func determineMode(isTransparent bool, isUDP bool) int {
+func determineMode(mode string, isTransparent bool, isUDP bool) (int, error) {
+	if mode != "" {
+		switch mode {
+		case "socks5":
+			return socks5, nil
+		case "transparent-TCP":
+			return transparentTCP, nil
+		case "transparent-UDP":
+			return transparentUDP, nil
+		case "STUN":
+			return stunUDP, nil
+		default:
+			return -1, errors.New("invalid mode")
+		}
+	}
 	if isTransparent && isUDP {
 		log.Infof("initializing transparent proxy")
 		log.Infof("initializing UDP transparent proxy")
-		return transparentUDP
+		return transparentUDP, nil
 	} else if isTransparent {
 		log.Infof("initializing transparent proxy")
 		log.Infof("initializing TCP transparent proxy")
-		return transparentTCP
+		return transparentTCP, nil
 	} else if isUDP {
 		log.Infof("initializing STUN UDP proxy")
-		return stunUDP
+		return stunUDP, nil
 	} else {
 		log.Infof("initializing PT 2.1 socks5 proxy")
-		return socks5
+		return socks5, nil
 	}
 }
 
