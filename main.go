@@ -103,7 +103,7 @@ func main() {
 	targetHost := flag.String("targethost", "", "Specify transport server destination address port")
 	targetPort := flag.String("targetport", "", "Specify transport server destination address host")
 	proxyListenHost := flag.String("proxylistenhost", "", "Specify the bind address for the local SOCKS server host provided by the client")
-	proxyListnePort := flag.String("proxylistenport", "", "Specify the bind address for the local SOCKS server port provided by the client")
+	proxyListenPort := flag.String("proxylistenport", "", "Specify the bind address for the local SOCKS server port provided by the client")
 	modeName := flag.String("mode", "", "Specify which mode is being used: transparent-TCP, transparent-UDP, socks5, or STUN")
 
 	// PT 2.1 specification, 3.3.1.2. Pluggable PT Client Configuration Parameters
@@ -121,7 +121,7 @@ func main() {
 	authcookie := flag.String("authcookie", "", "Specify an authentication cookie, for use in authenticating with the Extended OR Port")
 
 	// Experimental flags under consideration for PT 2.1
-	socksAddr := flag.String("proxylistenaddr", "127.0.0.1:0", "Specify the bind address for the local SOCKS server provided by the client")
+	socksAddr := flag.String("proxylistenaddr", "", "Specify the bind address for the local SOCKS server provided by the client")
 	optionsFile := flag.String("optionsFile", "", "store all the options in a single file")
 
 	// Additional command line flags inherited from obfs4proxy
@@ -206,15 +206,22 @@ func main() {
 	}
 
 	if isClient {
-		proxyListenValidationError := validateProxyListenAddr(proxyListenHost, proxyListnePort, socksAddr)
+		proxyListenValidationError := validateProxyListenAddr(proxyListenHost, proxyListenPort, socksAddr)
 		if proxyListenValidationError != nil {
 			log.Errorf("could not validate: %s", proxyListenValidationError)
+			log.Infof("proxylistenhost: %s", *proxyListenHost)
+			log.Infof("proxylistenport: %s", *proxyListenPort)
+			log.Infof("proxylistenaddr: %s", *socksAddr)
 			return
 		}
 
-		if *proxyListenHost != "" && *proxyListnePort != "" && *socksAddr == "" {
-			newSocksAddr := *proxyListenHost+":"+*proxyListnePort
-			bindAddr = &newSocksAddr
+		if *proxyListenHost != "" && *proxyListenPort != "" && *socksAddr == "" {
+			newSocksAddr := *proxyListenHost+":"+*proxyListenPort
+			socksAddr = &newSocksAddr
+		}
+
+		if *socksAddr == "" {
+			*socksAddr = "127.0.0.1:0"
 		}
 
 		if mode == socks5 {

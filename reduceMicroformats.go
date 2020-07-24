@@ -24,7 +24,10 @@
 
 package main
 
-import "errors"
+import (
+	"errors"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
+)
 
 //This is for proposal no.9
 //serverBindPort := flag.String("bindport", "", "Specify the bind address port for transparent client")
@@ -77,6 +80,9 @@ func validateProxyListenAddr(proxyListenHost *string, proxyListenPort *string, p
 	}
 
 	if *proxyListenHost != "" && *proxyListenAddr != "" {
+		log.Infof("proxylistenhost: %s", *proxyListenHost)
+		log.Infof("proxylistenport: %s", *proxyListenPort)
+		log.Infof("proxylistenaddr: %s", *proxyListenAddr)
 		return errors.New("you cannot specify both --proxylistenhost and --proxylistenaddr")
 	}
 
