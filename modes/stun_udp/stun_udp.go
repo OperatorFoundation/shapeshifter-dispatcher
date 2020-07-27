@@ -32,7 +32,6 @@ package stun_udp
 import (
 	"fmt"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes"
-	"github.com/kataras/golog"
 	common "github.com/willscott/goturn/common"
 	"io"
 	golog "log"
@@ -46,7 +45,7 @@ import (
 )
 
 func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) bool {
-	return modes.ClientSetupUDP(socksAddr, target, ptClientProxy, names, options, clientHandler, log)
+	return modes.ClientSetupUDP(socksAddr, target, ptClientProxy, names, options, clientHandler)
 }
 
 func clientHandler(target string, name string, options string, conn *net.UDPConn, proxyURI *url.URL) {
@@ -94,7 +93,7 @@ func clientHandler(target string, name string, options string, conn *net.UDPConn
 
 			fmt.Println("Opening connection to ", target)
 
-			modes.OpenConnection(&tracker, addr.String(), target, name, options, proxyURI, log)
+			modes.OpenConnection(&tracker, addr.String(), target, name, options, proxyURI)
 
 			// Drop the packet.
 			fmt.Println("recv: Open")

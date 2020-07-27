@@ -49,7 +49,7 @@ func ClientSetupTCP(socksAddr string, target string, ptClientProxy *url.URL, nam
 			continue
 		}
 
-		go clientAcceptLoop(target, name, options, ln, ptClientProxy, clientHandler, log)
+		go clientAcceptLoop(target, name, options, ln, ptClientProxy, clientHandler)
 		log.Infof("%s - registered listener: %s", name, ln.Addr())
 		launched = true
 	}
@@ -66,11 +66,11 @@ func clientAcceptLoop(target string, name string, options string, ln net.Listene
 				log.Errorf("Fatal listener error: %s", err.Error())
 				return
 			}
-			log.Warningf("Failed to accept connection: %s", err.Error())
+			golog.Warnf("Failed to accept connection: %s", err.Error())
 			continue
 		}
 
-		go clientHandler(target, name, options, conn, proxyURI, log)
+		go clientHandler(target, name, options, conn, proxyURI)
 	}
 }
 

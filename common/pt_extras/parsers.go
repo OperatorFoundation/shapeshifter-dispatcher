@@ -28,14 +28,12 @@ import (
 	"encoding/json"
 	"errors"
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	Optimizer "github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v3"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v3"
 	"github.com/kataras/golog"
 	"golang.org/x/net/proxy"
 	"net"
-
 
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v3"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v3"
@@ -45,13 +43,13 @@ import (
 func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) (Optimizer.TransportDialer, error) {
 	switch name {
 	case "obfs2":
-		transport := obfs2.New(target, dialer, log)
+		transport := obfs2.New(target, dialer, nil)
 		return transport, nil
 	case "obfs4":
 		//refactor starts here
 		transport, err := transports.ParseArgsObfs4(args, target, dialer)
 		if err != nil {
-			log.Errorf("Could not parse options %s", err.Error())
+			golog.Errorf("Could not parse options %s", err.Error())
 			return nil, err
 		} else {
 			return transport, nil
@@ -59,7 +57,7 @@ func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) 
 	case "shadow":
 		transport, err := transports.ParseArgsShadow(args, target)
 		if err != nil {
-			log.Errorf("Could not parse options %s", err.Error())
+			golog.Errorf("Could not parse options %s", err.Error())
 			return nil, err
 		} else {
 			return transport, nil
@@ -67,7 +65,7 @@ func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) 
 	case "Optimizer":
 		transport, err := transports.ParseArgsOptimizer(args, dialer)
 		if err != nil {
-			log.Errorf("Could not parse options %s", err.Error())
+			golog.Errorf("Could not parse options %s", err.Error())
 			return nil, err
 		} else {
 			return transport, nil
@@ -75,7 +73,7 @@ func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) 
 	case "Dust":
 		transport, err := transports.ParseArgsDust(args, target, dialer)
 		if err != nil {
-			log.Errorf("Could not parse options %s", err.Error())
+			golog.Errorf("Could not parse options %s", err.Error())
 			return nil, err
 		} else {
 			return transport, nil
@@ -83,7 +81,7 @@ func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) 
 	case "meeklite":
 		transport, err := transports.ParseArgsMeeklite(args, target, dialer)
 		if err != nil {
-			log.Errorf("Could not parse options %s", err.Error())
+			golog.Errorf("Could not parse options %s", err.Error())
 			return nil, err
 		} else {
 			return transport, nil
@@ -91,14 +89,14 @@ func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) 
 	case "Replicant":
 		transport, err := transports.ParseArgsReplicantClient(args, target, dialer)
 		if err != nil {
-			log.Errorf("Could not parse options %s", err.Error())
+			golog.Errorf("Could not parse options %s", err.Error())
 			return nil, err
 		} else {
 			return transport, nil
 		}
 
 	default:
-		log.Errorf("Unknown transport: %s", name)
+		golog.Errorf("Unknown transport: %s", name)
 		return nil, errors.New("unknown transport")
 	}
 }
@@ -110,7 +108,7 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 
 	args, argsErr := options2.ParseServerOptions(options)
 	if argsErr != nil {
-		log.Errorf("Error parsing transport options: %s", options)
+		golog.Errorf("Error parsing transport options: %s", options)
 		return nil, errors.New("error parsing transport options")
 	}
 
@@ -121,7 +119,7 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 	case "obfs4":
 		transport, err := obfs4.NewObfs4Server(stateDir)
 		if err != nil {
-			log.Errorf("Can't start obfs4 transport: %v", err)
+			golog.Errorf("Can't start obfs4 transport: %v", err)
 			return nil, errors.New("can't start obfs4 transport")
 		}
 		listen = transport.Listen
@@ -156,7 +154,7 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 
 		shargsByte, err:= json.Marshal(shargs)
 		if err != nil {
-			log.Errorf("could not coerce meeklite Url to string")
+			golog.Errorf("could not coerce meeklite Url to string")
 		}
 		shargsString := string(shargsByte)
 		config, err := transports.ParseArgsMeekliteServer(shargsString)

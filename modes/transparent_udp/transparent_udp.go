@@ -38,13 +38,12 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-ipc/v2"
 	"github.com/kataras/golog"
 	"io"
-	golog "log"
 	"net"
 	"net/url"
 )
 
 func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) bool {
-	return modes.ClientSetupUDP(socksAddr, target, ptClientProxy, names, options, clientHandler, log)
+	return modes.ClientSetupUDP(socksAddr, target, ptClientProxy, names, options, clientHandler)
 }
 
 func clientHandler(target string, name string, options string, conn *net.UDPConn, proxyURI *url.URL) {
@@ -101,7 +100,7 @@ func clientHandler(target string, name string, options string, conn *net.UDPConn
 			// There is not an open transport connection and a connection attempt is not in progress.
 			// Open a transport connection.
 
-			modes.OpenConnection(&tracker, addr.String(), target, name, options, proxyURI, log)
+			modes.OpenConnection(&tracker, addr.String(), target, name, options, proxyURI)
 
 			// Drop the packet.
 		}

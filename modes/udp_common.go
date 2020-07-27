@@ -25,10 +25,9 @@ SOFTWARE.
 package modes
 
 import (
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
+	"github.com/OperatorFoundation/obfs4/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	pt "github.com/OperatorFoundation/shapeshifter-ipc/v2"
-	"github.com/kataras/golog"
 	"net"
 	"net/url"
 )
@@ -49,7 +48,7 @@ func ClientSetupUDP(socksAddr string, target string, ptClientProxy *url.URL, nam
 
 		log.Infof("%s - registered listener", name)
 
-		go clientHandler(target, name, options, ln, ptClientProxy, log)
+		go clientHandler(target, name, options, ln, ptClientProxy)
 	}
 
 	return true

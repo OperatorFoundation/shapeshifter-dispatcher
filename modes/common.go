@@ -29,7 +29,6 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	pt "github.com/OperatorFoundation/shapeshifter-ipc/v2"
-	"github.com/kataras/golog"
 	"golang.org/x/net/proxy"
 	"net"
 	"net/url"
@@ -55,7 +54,7 @@ func OpenConnection(tracker *ConnTracker, addr string, target string, name strin
 	newConn := NewConnState()
 	(*tracker)[addr] = newConn
 
-	go dialConn(tracker, addr, target, name, options, proxyURI, log)
+	go dialConn(tracker, addr, target, name, options, proxyURI)
 }
 
 func dialConn(tracker *ConnTracker, addr string, target string, name string, options string, proxyURI *url.URL) {
@@ -78,7 +77,7 @@ func dialConn(tracker *ConnTracker, addr string, target string, name string, opt
 	fmt.Println("Dialing....")
 
 	// Deal with arguments.
-	transport, argsToDialerErr := pt_extras.ArgsToDialer(target, name, options, dialer, log)
+	transport, argsToDialerErr := pt_extras.ArgsToDialer(target, name, options, dialer)
 	if argsToDialerErr != nil {
 		log.Errorf("Error creating a transport with the provided options: %s", options)
 		log.Errorf("Error: %s", argsToDialerErr)
