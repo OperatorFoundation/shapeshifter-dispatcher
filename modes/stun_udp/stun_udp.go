@@ -32,7 +32,7 @@ package stun_udp
 import (
 	"fmt"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes"
-	"github.com/op/go-logging"
+	"github.com/kataras/golog"
 	common "github.com/willscott/goturn/common"
 	"io"
 	golog "log"
@@ -45,11 +45,11 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-ipc/v2"
 )
 
-func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string, log *logging.Logger) bool {
+func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) bool {
 	return modes.ClientSetupUDP(socksAddr, target, ptClientProxy, names, options, clientHandler, log)
 }
 
-func clientHandler(target string, name string, options string, conn *net.UDPConn, proxyURI *url.URL, log *logging.Logger) {
+func clientHandler(target string, name string, options string, conn *net.UDPConn, proxyURI *url.URL) {
 
 	//defers are never called due to infinite loop
 

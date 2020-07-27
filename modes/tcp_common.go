@@ -29,7 +29,7 @@ import (
 	"fmt"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	pt "github.com/OperatorFoundation/shapeshifter-ipc/v2"
-	"github.com/op/go-logging"
+	"github.com/kataras/golog"
 	"io"
 	"net"
 	"net/url"
@@ -39,7 +39,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 )
 
-func ClientSetupTCP(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string, clientHandler ClientHandlerTCP, log *logging.Logger) (launched bool) {
+func ClientSetupTCP(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string, clientHandler ClientHandlerTCP) (launched bool) {
 	// Launch each of the client listeners.
 	for _, name := range names {
 		ln, err := net.Listen("tcp", socksAddr)
@@ -57,7 +57,7 @@ func ClientSetupTCP(socksAddr string, target string, ptClientProxy *url.URL, nam
 	return
 }
 
-func clientAcceptLoop(target string, name string, options string, ln net.Listener, proxyURI *url.URL, clientHandler ClientHandlerTCP, log *logging.Logger) {
+func clientAcceptLoop(target string, name string, options string, ln net.Listener, proxyURI *url.URL, clientHandler ClientHandlerTCP) {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {

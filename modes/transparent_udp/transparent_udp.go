@@ -36,18 +36,18 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes"
 	"github.com/OperatorFoundation/shapeshifter-ipc/v2"
-	"github.com/op/go-logging"
+	"github.com/kataras/golog"
 	"io"
 	golog "log"
 	"net"
 	"net/url"
 )
 
-func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string, log *logging.Logger) bool {
+func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) bool {
 	return modes.ClientSetupUDP(socksAddr, target, ptClientProxy, names, options, clientHandler, log)
 }
 
-func clientHandler(target string, name string, options string, conn *net.UDPConn, proxyURI *url.URL, log *logging.Logger) {
+func clientHandler(target string, name string, options string, conn *net.UDPConn, proxyURI *url.URL) {
 	var length16 uint16
 
 	tracker := make(modes.ConnTracker)

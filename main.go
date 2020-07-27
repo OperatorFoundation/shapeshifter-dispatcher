@@ -32,10 +32,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/op/go-logging"
+	"github.com/kataras/golog"
 	"io"
 	"io/ioutil"
-	golog "log"
 	"net/url"
 	"os"
 	"path"
@@ -149,24 +148,20 @@ func main() {
 		os.Exit(0)
 	}
 
-	var log = logging.MustGetLogger("shapeshifter-dispatcher")
 	logPath := path.Join(stateDir, dispatcherLogFile)
 	logFile, logFileErr := os.OpenFile(logPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 	if logFileErr != nil {
 		println("could open logFile")
 	}
 
-	backend := logging.NewLogBackend(logFile, "", 0)
-	backendLeveled := logging.AddModuleLevel(backend)
+	golog.SetOutput(logFile)
+
 	if enableLogging != nil {
-		level, levelErr := logging.LogLevel(*logLevelStr)
-		if levelErr != nil {
-			log.Errorf("could not set log level: %s", levelErr)
-		} else {
-			backendLeveled.SetLevel(level, "")
-		}
+		lowerCaseLogLevelStr := strings.ToLower(*logLevelStr)
+		golog.SetLevel(lowerCaseLogLevelStr)
+
 	} else {
-		backendLeveled.SetLevel(logging.CRITICAL, "")
+		golog.SetLevel("fatal")
 	}
 	// Determine if this is a client or server, initialize the common state.
 	launched := false
@@ -186,135 +181,135 @@ func main() {
 		fmt.Println("checking for optionsFile")
 		_, err := os.Stat(*optionsFile)
 		if err != nil {
-			log.Errorf("optionsFile does not exist with error %s %s", *optionsFile, err.Error())
+			golog.Errorf("optionsFile does not exist with error %s %s", *optionsFile, err.Error())
 		} else {
 			contents, readErr := ioutil.ReadFile(*optionsFile)
 			if readErr != nil {
-				log.Errorf("could not open optionsFile: %s", *optionsFile)
+				golog.Errorf("could not open optionsFile: %s", *optionsFile)
 			} else {
 				*options = string(contents)
 			}
 		}
 	}
 
-	mode := determineMode(*transparent, *udp, log)
+	mode := determineMode(*transparent, *udp)
 
 	if isClient {
 		switch mode {
 		case socks5:
 			if *target != "" {
-				log.Errorf("-target option cannot be used in socks5 mode")
+				golog.Errorf("-target option cannot be used in socks5 mode")
 				return
 			}
 		case transparentTCP:
 			if *target == "" {
-				log.Errorf("%s - transparent mode requires a target", execName)
+				golog.Errorf("%s - transparent mode requires a target", execName)
 				return
 			}
 		case transparentUDP:
 			if *target == "" {
-				log.Errorf("%s - transparent mode requires a target", execName)
+				golog.Errorf("%s - transparent mode requires a target", execName)
 				return
 			}
 		case stunUDP:
 			if *target == "" {
-				log.Errorf("%s - STUN mode requires a target", execName)
+				golog.Errorf("%s - STUN mode requires a target", execName)
 				return
 			}
 		default:
-			log.Errorf("unsupported mode %d", mode)
+			golog.Errorf("unsupported mode %d", mode)
 			return
 		}
 	} else {
 		switch mode {
 		case socks5:
 			if *bindAddr != "" {
-				log.Errorf("-bindaddr option cannot be used in socks5 mode")
+				golog.Errorf("-bindaddr option cannot be used in socks5 mode")
 				return
 			}
 		case transparentTCP:
 			if *bindAddr == "" {
-				log.Errorf("%s - transparent mode requires a bindaddr", execName)
+				golog.Errorf("%s - transparent mode requires a bindaddr", execName)
 				return
 			}
 		case transparentUDP:
 			if *bindAddr == "" {
-				log.Errorf("%s - transparent mode requires a bindaddr", execName)
+				golog.Errorf("%s - transparent mode requires a bindaddr", execName)
 				return
 			}
 		case stunUDP:
 			if *bindAddr == "" {
-				log.Errorf("%s - STUN mode requires a bindaddr", execName)
+				golog.Errorf("%s - STUN mode requires a bindaddr", execName)
 				return
 			}
 		default:
-			log.Errorf("unsupported mode %d", mode)
+			golog.Errorf("unsupported mode %d", mode)
 			return
 		}
 	}
 
 	// Finished validation of command line arguments
 
-	log.Noticef("%s - launched", getVersion())
+	golog.Infof("%s - launched", getVersion())
 
 	if isClient {
-		log.Infof("%s - initializing client transport listeners", execName)
+		golog.Infof("%s - initializing client transport listeners", execName)
 
 		switch mode {
 		case socks5:
-			log.Infof("%s - initializing client transport listeners", execName)
-			ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy, log)
+			golog.Infof("%s - initializing client transport listeners", execName)
+			ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
 			if nameErr != nil {
-				log.Errorf("must specify -version and -transports")
+				golog.Errorf("must specify -version and -transports")
 				return
 			}
-			launched = pt_socks5.ClientSetup(*socksAddr, ptClientProxy, names, *options, log)
+			launched = pt_socks5.ClientSetup(*socksAddr, ptClientProxy, names, *options)
 		case transparentTCP:
-			ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy, log)
+			ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
 			if nameErr != nil {
-				log.Errorf("must specify -version and -transports")
+				golog.Errorf("must specify -version and -transports")
 				return
 			}
-			launched = transparent_tcp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options, log)
+			launched = transparent_tcp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options)
 		case transparentUDP:
-			ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy, log)
+			ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
 			if nameErr != nil {
-				log.Errorf("must specify -version and -transports")
+				golog.Errorf("must specify -version and -transports")
 				return
 			}
-			launched = transparent_udp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options, log)
+			launched = transparent_udp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options)
 		case stunUDP:
-			ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy, log)
+			ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
 			if nameErr != nil {
-				log.Errorf("must specify -version and -transports")
+				golog.Errorf("must specify -version and -transports")
 				return
 			}
-			launched = stun_udp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options, log)
+			launched = stun_udp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options)
 		default:
-			log.Errorf("unsupported mode %d", mode)
+			golog.Errorf("unsupported mode %d", mode)
 		}
 	} else {
-		log.Infof("initializing server transport listeners")
+		golog.Infof("initializing server transport listeners")
 
 		switch mode {
 		case socks5:
-			log.Infof("%s - initializing server transport listeners", execName)
-			ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie, log)
+			golog.Infof("%s - initializing server transport listeners", execName)
+			ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
 			launched = pt_socks5.ServerSetup(ptServerInfo, stateDir, *options)
 		case transparentTCP:
-			log.Infof("%s - initializing server transport listeners", execName)
-			ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie, log)
+			golog.Infof("%s - initializing server transport listeners", execName)
+			ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
 			launched = transparent_tcp.ServerSetup(ptServerInfo, stateDir, *options)
 		case transparentUDP:
 			// launched = transparent_udp.ServerSetup(termMon, *bindAddr, *target)
 
-			ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie, log)
+			ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
 			launched = transparent_udp.ServerSetup(ptServerInfo, stateDir, *options)
 		case stunUDP:
-			ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie, log)
+			ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
 			launched = stun_udp.ServerSetup(ptServerInfo, stateDir, *options)
 		default:
-			log.Errorf("unsupported mode %d", mode)
+			golog.Errorf("unsupported mode %d", mode)
 		}
 	}
 
@@ -324,7 +319,7 @@ func main() {
 		os.Exit(-1)
 	}
 
-	log.Infof("%s - accepting connections", execName)
+	golog.Infof("%s - accepting connections", execName)
 
 	if *exitOnStdinClose || ptShouldExitOnStdinClose() {
 		_, _ = io.Copy(ioutil.Discard, os.Stdin)
@@ -334,20 +329,20 @@ func main() {
 	}
 }
 
-func determineMode(isTransparent bool, isUDP bool, log *logging.Logger) int {
+func determineMode(isTransparent bool, isUDP bool) int {
 	if isTransparent && isUDP {
-		log.Infof("initializing transparent proxy")
-		log.Infof("initializing UDP transparent proxy")
+		golog.Infof("initializing transparent proxy")
+		golog.Infof("initializing UDP transparent proxy")
 		return transparentUDP
 	} else if isTransparent {
-		log.Infof("initializing transparent proxy")
-		log.Infof("initializing TCP transparent proxy")
+		golog.Infof("initializing transparent proxy")
+		golog.Infof("initializing TCP transparent proxy")
 		return transparentTCP
 	} else if isUDP {
-		log.Infof("initializing STUN UDP proxy")
+		golog.Infof("initializing STUN UDP proxy")
 		return stunUDP
 	} else {
-		log.Infof("initializing PT 2.1 socks5 proxy")
+		golog.Infof("initializing PT 2.1 socks5 proxy")
 		return socks5
 	}
 }
@@ -375,12 +370,12 @@ func makeStateDir(statePath string) (string, error) {
 	return pt.MakeStateDir()
 }
 
-func getClientNames(ptversion *string, transportsList *string, proxy *string, log *logging.Logger) (clientProxy *url.URL, names []string, retErr error) {
+func getClientNames(ptversion *string, transportsList *string, proxy *string) (clientProxy *url.URL, names []string, retErr error) {
 	var ptClientInfo pt.ClientInfo
 	var err error
 
 	if ptversion == nil || transportsList == nil {
-		log.Infof("Falling back to environment variables for ptversion/transports.")
+		golog.Infof("Falling back to environment variables for ptversion/transports.")
 		ptClientInfo, err = pt.ClientSetup(transports.Transports())
 		if err != nil {
 			return nil, nil, err
@@ -403,22 +398,22 @@ func getClientNames(ptversion *string, transportsList *string, proxy *string, lo
 	return ptClientProxy, ptClientInfo.MethodNames, nil
 }
 
-func getServerInfo(bindaddrList *string, options *string, transportList *string, orport *string, extorport *string, authcookie *string, log *logging.Logger) pt.ServerInfo {
+func getServerInfo(bindaddrList *string, options *string, transportList *string, orport *string, extorport *string, authcookie *string) pt.ServerInfo {
 	var ptServerInfo pt.ServerInfo
 	var err error
 	var bindaddrs []pt.Bindaddr
 
-	bindaddrs, err = getServerBindaddrs(bindaddrList, options, transportList, log)
+	bindaddrs, err = getServerBindaddrs(bindaddrList, options, transportList)
 	if err != nil {
-		log.Errorf(err.Error())
-		log.Errorf("Error parsing bindaddrs %q %q %q", *bindaddrList, *options, *transportList)
+		golog.Errorf(err.Error())
+		golog.Errorf("Error parsing bindaddrs %q %q %q", *bindaddrList, *options, *transportList)
 		return ptServerInfo
 	}
 
 	ptServerInfo = pt.ServerInfo{Bindaddrs: bindaddrs}
 	ptServerInfo.OrAddr, err = pt.ResolveAddr(*orport)
 	if err != nil {
-		log.Errorf("Error resolving OR address %q %q", *orport, err)
+		golog.Errorf("Error resolving OR address %q %q", *orport, err)
 		return ptServerInfo
 	}
 
@@ -431,13 +426,13 @@ func getServerInfo(bindaddrList *string, options *string, transportList *string,
 	if extorport != nil && *extorport != "" {
 		ptServerInfo.ExtendedOrAddr, err = pt.ResolveAddr(*extorport)
 		if err != nil {
-			log.Errorf("Error resolving Extended OR address %q %q", *extorport, err)
+			golog.Errorf("Error resolving Extended OR address %q %q", *extorport, err)
 			return ptServerInfo
 		}
 	} else {
 		ptServerInfo.ExtendedOrAddr, err = pt.ResolveAddr(pt.Getenv("TOR_PT_EXTENDED_SERVER_PORT"))
 		if err != nil {
-			log.Errorf("Error resolving Extended OR address %q", err)
+			golog.Errorf("Error resolving Extended OR address %q", err)
 			return ptServerInfo
 		}
 	}
@@ -448,7 +443,7 @@ func getServerInfo(bindaddrList *string, options *string, transportList *string,
 // Return an array of Bindaddrs, being the contents of TOR_PT_SERVER_BINDADDR
 // with keys filtered by TOR_PT_SERVER_TRANSPORTS. Transport-specific options
 // from TOR_PT_SERVER_TRANSPORT_OPTIONS are assigned to the Options member.
-func getServerBindaddrs(bindaddrList *string, options *string, transports *string, log *logging.Logger) ([]pt.Bindaddr, error) {
+func getServerBindaddrs(bindaddrList *string, options *string, transports *string) ([]pt.Bindaddr, error) {
 	var result []pt.Bindaddr
 	var serverTransportOptions string
 	var serverBindaddr string
@@ -462,7 +457,7 @@ func getServerBindaddrs(bindaddrList *string, options *string, transports *strin
 		if serverTransportOptions != "" {
 			optionsMap, err = pt.ParsePT2ServerParameters(serverTransportOptions)
 			if err != nil {
-				log.Errorf("Error parsing options map %q %q", serverTransportOptions, err)
+				golog.Errorf("Error parsing options map %q %q", serverTransportOptions, err)
 				return nil, fmt.Errorf("TOR_PT_SERVER_TRANSPORT_OPTIONS: %q: %s", serverTransportOptions, err.Error())
 			}
 		}
@@ -471,7 +466,7 @@ func getServerBindaddrs(bindaddrList *string, options *string, transports *strin
 		if serverTransportOptions != "" {
 			optionsMap, err = pt.ParsePT2ServerParameters(serverTransportOptions)
 			if err != nil {
-				log.Errorf("Error parsing options map %q %q", serverTransportOptions, err)
+				golog.Errorf("Error parsing options map %q %q", serverTransportOptions, err)
 				return nil, fmt.Errorf("TOR_PT_SERVER_TRANSPORT_OPTIONS: %q: %s", serverTransportOptions, err.Error())
 			}
 		}
@@ -514,7 +509,7 @@ func getServerBindaddrs(bindaddrList *string, options *string, transports *strin
 	}
 	result = pt.FilterBindaddrs(result, strings.Split(serverTransports, ","))
 	if len(result) == 0 {
-		log.Errorf("no valid bindaddrs")
+		golog.Errorf("no valid bindaddrs")
 	}
 	return result, nil
 }

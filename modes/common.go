@@ -29,7 +29,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	pt "github.com/OperatorFoundation/shapeshifter-ipc/v2"
-	"github.com/op/go-logging"
+	"github.com/kataras/golog"
 	"golang.org/x/net/proxy"
 	"net"
 	"net/url"
@@ -42,23 +42,23 @@ type ConnState struct {
 
 type ConnTracker map[string]ConnState
 
-type ClientHandlerTCP func(target string, name string, options string, conn net.Conn, proxyURI *url.URL, log *logging.Logger)
+type ClientHandlerTCP func(target string, name string, options string, conn net.Conn, proxyURI *url.URL)
 
-type ClientHandlerUDP func(target string, name string, options string, conn *net.UDPConn, proxyURI *url.URL, log *logging.Logger)
+type ClientHandlerUDP func(target string, name string, options string, conn *net.UDPConn, proxyURI *url.URL)
 type ServerHandler func(name string, remote net.Conn, info *pt.ServerInfo)
 
 func NewConnState() ConnState {
 	return ConnState{nil, true}
 }
 
-func OpenConnection(tracker *ConnTracker, addr string, target string, name string, options string, proxyURI *url.URL, log *logging.Logger) {
+func OpenConnection(tracker *ConnTracker, addr string, target string, name string, options string, proxyURI *url.URL) {
 	newConn := NewConnState()
 	(*tracker)[addr] = newConn
 
 	go dialConn(tracker, addr, target, name, options, proxyURI, log)
 }
 
-func dialConn(tracker *ConnTracker, addr string, target string, name string, options string, proxyURI *url.URL, log *logging.Logger) {
+func dialConn(tracker *ConnTracker, addr string, target string, name string, options string, proxyURI *url.URL) {
 	// Obtain the proxy dialer if any, and create the outgoing TCP connection.
 	var dialer proxy.Dialer
 	dialer = proxy.Direct

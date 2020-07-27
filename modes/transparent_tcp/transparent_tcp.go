@@ -36,17 +36,17 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes"
 	"github.com/OperatorFoundation/shapeshifter-ipc/v2"
-	"github.com/op/go-logging"
+	"github.com/kataras/golog"
 	"golang.org/x/net/proxy"
 	"net"
 	"net/url"
 )
 
-func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string, log *logging.Logger) (launched bool) {
+func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) (launched bool) {
 	return modes.ClientSetupTCP(socksAddr, target, ptClientProxy, names, options, clientHandler, log)
 }
 
-func clientHandler(target string, name string, options string, conn net.Conn, proxyURI *url.URL, log *logging.Logger) {
+func clientHandler(target string, name string, options string, conn net.Conn, proxyURI *url.URL) {
 	var dialer proxy.Dialer
 	dialer = proxy.Direct
 	if proxyURI != nil {

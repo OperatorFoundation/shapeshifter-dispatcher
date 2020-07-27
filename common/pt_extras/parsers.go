@@ -32,7 +32,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	Optimizer "github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v3"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v3"
-	"github.com/op/go-logging"
+	"github.com/kataras/golog"
 	"golang.org/x/net/proxy"
 	"net"
 
@@ -42,7 +42,7 @@ import (
 )
 
 // target is the server address string
-func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer, log *logging.Logger) (Optimizer.TransportDialer, error) {
+func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) (Optimizer.TransportDialer, error) {
 	switch name {
 	case "obfs2":
 		transport := obfs2.New(target, dialer, log)

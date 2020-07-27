@@ -36,13 +36,13 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes"
 	"github.com/OperatorFoundation/shapeshifter-ipc/v2"
-	"github.com/op/go-logging"
+	"github.com/kataras/golog"
 	"golang.org/x/net/proxy"
 	"net"
 	"net/url"
 )
 
-func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, options string, log *logging.Logger) (launched bool) {
+func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, options string) (launched bool) {
 	// Launch each of the client listeners.
 	for _, name := range names {
 		ln, err := net.Listen("tcp", socksAddr)
@@ -63,7 +63,7 @@ func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, optio
 	return
 }
 
-func clientAcceptLoop(name string, ln net.Listener, proxyURI *url.URL, options string, log *logging.Logger) {
+func clientAcceptLoop(name string, ln net.Listener, proxyURI *url.URL, options string) {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
@@ -78,7 +78,7 @@ func clientAcceptLoop(name string, ln net.Listener, proxyURI *url.URL, options s
 	}
 }
 
-func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string, log *logging.Logger) {
+func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string) {
 	var needOptions = options == ""
 
 	// Read the client's SOCKS handshake.
