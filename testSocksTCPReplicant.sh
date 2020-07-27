@@ -12,7 +12,7 @@ nc -l 3333 >$FILENAME &
 
 # Run the transport server
 export TOR_PT_SERVER_BINDADDR=Replicant-127.0.0.1:2222
-./shapeshifter-dispatcher -server -state state -orport 127.0.0.1:3333 -transports Replicant -optionsFile ReplicantServerConfig1.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -server -state state -target 127.0.0.1:3333 -transports Replicant -optionsFile ReplicantServerConfig1.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 

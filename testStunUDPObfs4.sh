@@ -19,7 +19,7 @@ else
 fi
 
 # Run the transport server
-./shapeshifter-dispatcher -udp -server -state "$STATEPATH" -orport 127.0.0.1:3333 -transports obfs4 -bindaddr obfs4-127.0.0.1:2222 -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -udp -server -state "$STATEPATH" -target 127.0.0.1:3333 -transports obfs4 -bindaddr obfs4-127.0.0.1:2222 -logLevel DEBUG -enableLogging &
 
 sleep 1
 

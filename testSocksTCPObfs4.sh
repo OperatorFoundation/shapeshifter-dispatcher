@@ -20,7 +20,7 @@ fi
 
 # Run the transport server
 export TOR_PT_SERVER_BINDADDR=obfs4-127.0.0.1:2222
-./shapeshifter-dispatcher -server -state "$STATEPATH" -orport 127.0.0.1:3333 -transports obfs4 -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -server -state "$STATEPATH" -target 127.0.0.1:3333 -transports obfs4 -logLevel DEBUG -enableLogging &
 
 sleep 1
 

@@ -11,14 +11,13 @@ rm $FILENAME
 nc -l 3333 >$FILENAME &
 
 # Run the transport server
-export TOR_PT_SERVER_BINDADDR=dust-127.0.0.1:2222
-./shapeshifter-dispatcher -server -state state -orport 127.0.0.1:3333 -transports dust -optionsFile dustServer.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -server -state state -target 127.0.0.1:3333 -bindaddr dust-127.0.0.1:2222 -transports dust -optionsFile dustServer.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
 # Run the transport client
-export TOR_PT_ORPORT=127.0.0.1:2222
-./shapeshifter-dispatcher -client -state state -transports dust -proxylistenaddr 127.0.0.1:1443 -optionsFile dustClient.json -logLevel DEBUG -enableLogging &
+
+./shapeshifter-dispatcher -client -state state -target 127.0.0.1:2222 -transports dust -proxylistenaddr 127.0.0.1:1443 -optionsFile dustClient.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 

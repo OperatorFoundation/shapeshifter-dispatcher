@@ -111,7 +111,7 @@ func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 
 func CopyLoop(a net.Conn, b net.Conn) error {
 	println("--> Entering copy loop.")
-	// Note: b is always the pt connection.  a is the SOCKS/ORPort connection.
+	// Note: b is always the pt connection.  a is the SOCKS/target connection.
 	errChan := make(chan error, 2)
 
 	var wg sync.WaitGroup

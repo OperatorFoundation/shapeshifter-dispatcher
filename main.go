@@ -30,6 +30,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/kataras/golog"
@@ -91,7 +92,6 @@ func main() {
 	statePath := flag.String("state", "state", "Specify the directory to use to store state information required by the transports")
 	exitOnStdinClose := flag.Bool("exit-on-stdin-close", false, "Set to true to force the dispatcher to close when the stdin pipe is closed")
 
-	// NOTE: -transports is parsed as a common command line flag that overrides either TOR_PT_SERVER_TRANSPORTS or TOR_PT_CLIENT_TRANSPORTS
 	transportsList := flag.String("transports", "", "Specify transports to enable")
 
 	//This is for proposal no.9
@@ -109,7 +109,6 @@ func main() {
 	//modeName := flag.String("mode", "socks5", "Specify which mode is being used: transparent-TCP, transparent-UDP, socks5, or STUN")
 	//set transparent or udp to nil
 
-
 	// PT 2.1 specification, 3.3.1.2. Pluggable PT Client Configuration Parameters
 	proxy := flag.String("proxy", "", "Specify an HTTP or SOCKS4a proxy that the PT needs to use to reach the Internet")
 
@@ -120,7 +119,6 @@ func main() {
 	}
 
 	bindAddr := flag.String("bindaddr", "", "Specify the bind address for transparent server")
-	orport := flag.String("orport", "", "Specify the address the server should forward traffic to in host:port format")
 	extorport := flag.String("extorport", "", "Specify the address of a server implementing the Extended OR Port protocol, which is used for per-connection metadata")
 	authcookie := flag.String("authcookie", "", "Specify an authentication cookie, for use in authenticating with the Extended OR Port")
 
@@ -131,7 +129,7 @@ func main() {
 	// Additional command line flags inherited from obfs4proxy
 	showVer := flag.Bool("showVersion", false, "Print version and exit")
 	logLevelStr := flag.String("logLevel", "ERROR", "Log level (ERROR/WARN/INFO/DEBUG)")
-	enableLogging := flag.Bool("enableLogging", false, "Log to TOR_PT_STATE_LOCATION/"+dispatcherLogFile)
+	enableLogging := flag.Bool("enableLogging", false, "Log to [state]/"+dispatcherLogFile)
 
 	// Additional command line flags added to shapeshifter-dispatcher
 	clientMode := flag.Bool("client", false, "Enable client mode")
@@ -172,7 +170,7 @@ func main() {
 	}
 	if stateDir, err = makeStateDir(*statePath); err != nil {
 		flag.Usage()
-		golog.Fatalf("[ERROR]: %s - No state directory: Use --state or TOR_PT_STATE_LOCATION environment variable", execName)
+		golog.Fatalf("[ERROR]: %s - No state directory: Use --state", execName)
 	}
 	if *options != "" && *optionsFile != "" {
 		golog.Fatal("cannot specify -options and -optionsFile at the same time")
@@ -223,8 +221,8 @@ func main() {
 	} else {
 		switch mode {
 		case socks5:
-			if *bindAddr != "" {
-				golog.Errorf("-bindaddr option cannot be used in socks5 mode")
+			if *bindAddr == "" {
+				golog.Errorf("-%s - socks5 mode requires a bindaddr", execName)
 				return
 			}
 		case transparentTCP:
@@ -294,19 +292,19 @@ func main() {
 		switch mode {
 		case socks5:
 			golog.Infof("%s - initializing server transport listeners", execName)
-			ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
+			ptServerInfo := getServerInfo(bindAddr, options, transportsList, target, extorport, authcookie)
 			launched = pt_socks5.ServerSetup(ptServerInfo, stateDir, *options)
 		case transparentTCP:
 			golog.Infof("%s - initializing server transport listeners", execName)
-			ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
+			ptServerInfo := getServerInfo(bindAddr, options, transportsList, target, extorport, authcookie)
 			launched = transparent_tcp.ServerSetup(ptServerInfo, stateDir, *options)
 		case transparentUDP:
 			// launched = transparent_udp.ServerSetup(termMon, *bindAddr, *target)
 
-			ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
+			ptServerInfo := getServerInfo(bindAddr, options, transportsList, target, extorport, authcookie)
 			launched = transparent_udp.ServerSetup(ptServerInfo, stateDir, *options)
 		case stunUDP:
-			ptServerInfo := getServerInfo(bindAddr, options, transportsList, orport, extorport, authcookie)
+			ptServerInfo := getServerInfo(bindAddr, options, transportsList, target, extorport, authcookie)
 			launched = stun_udp.ServerSetup(ptServerInfo, stateDir, *options)
 		default:
 			golog.Errorf("unsupported mode %d", mode)
@@ -321,7 +319,7 @@ func main() {
 
 	golog.Infof("%s - accepting connections", execName)
 
-	if *exitOnStdinClose || ptShouldExitOnStdinClose() {
+	if *exitOnStdinClose {
 		_, _ = io.Copy(ioutil.Discard, os.Stdin)
 		os.Exit(-1)
 	} else {
@@ -347,17 +345,13 @@ func determineMode(isTransparent bool, isUDP bool) int {
 	}
 }
 
-func ptShouldExitOnStdinClose() bool {
-	return os.Getenv("TOR_PT_EXIT_ON_STDIN_CLOSE") == "1"
-}
-
 func checkIsClient(client bool, server bool) (bool, error) {
 	if client {
 		return true, nil
 	} else if server {
 		return false, nil
 	} else {
-		return pt_extras.PtIsClient()
+		return true, nil
 	}
 }
 
@@ -398,7 +392,7 @@ func getClientNames(ptversion *string, transportsList *string, proxy *string) (c
 	return ptClientProxy, ptClientInfo.MethodNames, nil
 }
 
-func getServerInfo(bindaddrList *string, options *string, transportList *string, orport *string, extorport *string, authcookie *string) pt.ServerInfo {
+func getServerInfo(bindaddrList *string, options *string, transportList *string, target *string, extorport *string, authcookie *string) pt.ServerInfo {
 	var ptServerInfo pt.ServerInfo
 	var err error
 	var bindaddrs []pt.Bindaddr
@@ -411,28 +405,20 @@ func getServerInfo(bindaddrList *string, options *string, transportList *string,
 	}
 
 	ptServerInfo = pt.ServerInfo{Bindaddrs: bindaddrs}
-	ptServerInfo.OrAddr, err = pt.ResolveAddr(*orport)
+	ptServerInfo.OrAddr, err = pt.ResolveAddr(*target)
 	if err != nil {
-		golog.Errorf("Error resolving OR address %q %q", *orport, err)
+		golog.Errorf("Error resolving OR address %q %q", *target, err)
 		return ptServerInfo
 	}
 
-	if authcookie != nil {
+	if *authcookie != "" {
 		ptServerInfo.AuthCookiePath = *authcookie
-	} else {
-		ptServerInfo.AuthCookiePath = pt.Getenv("TOR_PT_AUTH_COOKIE_FILE")
 	}
 
-	if extorport != nil && *extorport != "" {
+	if *extorport != "" {
 		ptServerInfo.ExtendedOrAddr, err = pt.ResolveAddr(*extorport)
 		if err != nil {
 			golog.Errorf("Error resolving Extended OR address %q %q", *extorport, err)
-			return ptServerInfo
-		}
-	} else {
-		ptServerInfo.ExtendedOrAddr, err = pt.ResolveAddr(pt.Getenv("TOR_PT_EXTENDED_SERVER_PORT"))
-		if err != nil {
-			golog.Errorf("Error resolving Extended OR address %q", err)
 			return ptServerInfo
 		}
 	}
@@ -440,70 +426,51 @@ func getServerInfo(bindaddrList *string, options *string, transportList *string,
 	return ptServerInfo
 }
 
-// Return an array of Bindaddrs, being the contents of TOR_PT_SERVER_BINDADDR
-// with keys filtered by TOR_PT_SERVER_TRANSPORTS. Transport-specific options
-// from TOR_PT_SERVER_TRANSPORT_OPTIONS are assigned to the Options member.
+// Return an array of Bindaddrs.
 func getServerBindaddrs(bindaddrList *string, options *string, transports *string) ([]pt.Bindaddr, error) {
 	var result []pt.Bindaddr
 	var serverTransportOptions string
 	var serverBindaddr string
 	var serverTransports string
 	var optionsMap map[string]map[string]interface{}
-	var err error
+	var optionsError error
 
 	// Parse the list of server transport options.
-	if options == nil {
-		serverTransportOptions = pt.Getenv("TOR_PT_SERVER_TRANSPORT_OPTIONS")
-		if serverTransportOptions != "" {
-			optionsMap, err = pt.ParsePT2ServerParameters(serverTransportOptions)
-			if err != nil {
-				golog.Errorf("Error parsing options map %q %q", serverTransportOptions, err)
-				return nil, fmt.Errorf("TOR_PT_SERVER_TRANSPORT_OPTIONS: %q: %s", serverTransportOptions, err.Error())
-			}
-		}
-	} else {
+	if *options != "" {
 		serverTransportOptions = *options
 		if serverTransportOptions != "" {
-			optionsMap, err = pt.ParsePT2ServerParameters(serverTransportOptions)
-			if err != nil {
-				golog.Errorf("Error parsing options map %q %q", serverTransportOptions, err)
-				return nil, fmt.Errorf("TOR_PT_SERVER_TRANSPORT_OPTIONS: %q: %s", serverTransportOptions, err.Error())
+			optionsMap, optionsError = pt.ParsePT2ServerParameters(serverTransportOptions)
+			if optionsError != nil {
+				golog.Errorf("Error parsing options map %q %q", serverTransportOptions, optionsError)
+				return nil, fmt.Errorf("-options: %q: %s", serverTransportOptions, optionsError.Error())
 			}
 		}
 	}
 
 	// Get the list of all requested bindaddrs.
-	if *bindaddrList == "" {
-		serverBindaddr, err = pt.GetenvRequired("TOR_PT_SERVER_BINDADDR")
-		if err != nil {
-			return nil, err
-		}
-	} else {
+	if *bindaddrList != "" {
 		serverBindaddr = *bindaddrList
 	}
+
 	for _, spec := range strings.Split(serverBindaddr, ",") {
 		var bindaddr pt.Bindaddr
 
 		parts := strings.SplitN(spec, "-", 2)
 		if len(parts) != 2 {
-			return nil, fmt.Errorf("TOR_PT_SERVER_BINDADDR: %q: doesn't contain \"-\"", spec)
+			return nil, fmt.Errorf("-bindaddr: %q: doesn't contain \"-\"", spec)
 		}
 		bindaddr.MethodName = parts[0]
 		addr, err := pt.ResolveAddr(parts[1])
 		if err != nil {
-			return nil, fmt.Errorf("TOR_PT_SERVER_BINDADDR: %q: %s", spec, err.Error())
+			return nil, fmt.Errorf("-bindaddr: %q: %s", spec, err.Error())
 		}
 		bindaddr.Addr = addr
 		bindaddr.Options = optionsMap[bindaddr.MethodName]
 		result = append(result, bindaddr)
 	}
 
-	// Filter by TOR_PT_SERVER_TRANSPORTS.
 	if transports == nil {
-		serverTransports, err = pt.GetenvRequired("TOR_PT_SERVER_TRANSPORTS")
-		if err != nil {
-			return nil, err
-		}
+		return nil, errors.New("must specify -transport or -transports in server mode")
 	} else {
 		serverTransports = *transports
 	}

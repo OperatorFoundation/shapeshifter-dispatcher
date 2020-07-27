@@ -11,7 +11,7 @@ rm $FILENAME
 nc -l 3333 >$FILENAME &
 
 # Run the transport server
-./shapeshifter-dispatcher -transparent -server -state state -orport 127.0.0.1:3333 -transports dust -bindaddr dust-127.0.0.1:2222 -optionsFile dustServer.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports dust -bindaddr dust-127.0.0.1:2222 -optionsFile dustServer.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 

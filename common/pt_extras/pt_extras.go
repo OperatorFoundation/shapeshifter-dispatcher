@@ -32,7 +32,6 @@ import (
 	"fmt"
 	"net"
 	"net/url"
-	"os"
 	"strconv"
 
 	"github.com/OperatorFoundation/shapeshifter-ipc/v2"
@@ -40,12 +39,6 @@ import (
 
 // This file contains things that probably should be in goptlib but are not
 // yet or are not finalized.
-
-func ptEnvError(msg string) error {
-	line := []byte(fmt.Sprintf("ENV-ERROR %s\n", msg))
-	_, _ = pt.Stdout.Write(line)
-	return errors.New(msg)
-}
 
 func ptProxyError(msg string) error {
 	line := []byte(fmt.Sprintf("PROXY-ERROR %s\n", msg))
@@ -58,26 +51,13 @@ func PtProxyDone() {
 	_, _ = pt.Stdout.Write(line)
 }
 
-func PtIsClient() (bool, error) {
-	clientEnv := os.Getenv("TOR_PT_CLIENT_TRANSPORTS")
-	serverEnv := os.Getenv("TOR_PT_SERVER_TRANSPORTS")
-	if clientEnv != "" && serverEnv != "" {
-		return false, ptEnvError("TOR_PT_[CLIENT,SERVER]_TRANSPORTS both set")
-	} else if clientEnv != "" {
-		return true, nil
-	} else if serverEnv != "" {
-		return false, nil
-	}
-	return false, errors.New("not launched as a managed transport")
-}
-
 func PtGetProxy(proxy *string) (*url.URL, error) {
 	var specString string
 
 	if proxy != nil {
 		specString = *proxy
 	} else {
-		specString = os.Getenv("TOR_PT_PROXY")
+		return nil, errors.New("no proxy specified")
 	}
 	if specString == "" {
 		return nil, nil
@@ -87,7 +67,6 @@ func PtGetProxy(proxy *string) (*url.URL, error) {
 		return nil, ptProxyError(fmt.Sprintf("failed to parse proxy config: %s", err))
 	}
 
-	// Validate the TOR_PT_PROXY uri.
 	if !spec.IsAbs() {
 		return nil, ptProxyError("proxy URI is relative, must be absolute")
 	}

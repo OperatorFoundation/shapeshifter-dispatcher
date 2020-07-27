@@ -11,7 +11,7 @@ rm $FILENAME
 nc -l -u 3333 >$FILENAME &
 
 # Run the transport server
-./shapeshifter-dispatcher -transparent -udp -server -state state -orport 127.0.0.1:3333 -transports obfs2 -bindaddr obfs2-127.0.0.1:2222 -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -transparent -udp -server -state state -target 127.0.0.1:3333 -transports obfs2 -bindaddr obfs2-127.0.0.1:2222 -logLevel DEBUG -enableLogging &
 
 sleep 1
 
