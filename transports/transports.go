@@ -41,6 +41,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v3"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v3"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v3"
+	"github.com/op/go-logging"
 	"golang.org/x/net/proxy"
 )
 
@@ -80,7 +81,7 @@ func ParseArgsShadow(args string, target string) (*shadow.Transport, error) {
 	if jsonError != nil {
 		return nil, errors.New("shadow options json decoding error")
 	}
-	transport := shadow.NewTransport(config.Password, config.CipherName, target)
+	transport := shadow.NewTransport(config.Password, config.CipherName, target, &logging.Logger{})
 
 	return &transport, nil
 }
@@ -354,7 +355,7 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 		}
 		return shadowTransport, nil
 	case "obfs2":
-		obfs2Transport := obfs2.New(PartialConfig.Address, dialer)
+		obfs2Transport := obfs2.New(PartialConfig.Address, dialer, &logging.Logger{})
 		return obfs2Transport, nil
 	case "obfs4":
 		obfs4Transport, parseErr := ParseArgsObfs4(jsonConfigString, PartialConfig.Address, dialer)
