@@ -175,6 +175,13 @@ func main() {
 		}
 	}
 
+	emptyString := ""
+	validationError := validatetarget(isClient, &emptyString, &emptyString, target)
+	if validationError != nil {
+		golog.Error(validationError)
+		return
+	}
+
 	mode := determineMode(*transparent, *udp)
 
 	if isClient {
