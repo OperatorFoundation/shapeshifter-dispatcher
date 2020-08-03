@@ -44,11 +44,11 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-ipc/v2"
 )
 
-func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) bool {
-	return modes.ClientSetupUDP(socksAddr, target, ptClientProxy, names, options, clientHandler)
+func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, options string) bool {
+	return modes.ClientSetupUDP(socksAddr, ptClientProxy, names, options, clientHandler)
 }
 
-func clientHandler(target string, name string, options string, conn *net.UDPConn, proxyURI *url.URL) {
+func clientHandler(name string, options string, conn *net.UDPConn, proxyURI *url.URL) {
 
 	//defers are never called due to infinite loop
 
@@ -91,9 +91,9 @@ func clientHandler(target string, name string, options string, conn *net.UDPConn
 			// There is not an open transport connection and a connection attempt is not in progress.
 			// Open a transport connection.
 
-			fmt.Println("Opening connection to ", target)
+			fmt.Println("Opening connection to ")
 
-			modes.OpenConnection(&tracker, addr.String(), target, name, options, proxyURI)
+			modes.OpenConnection(&tracker, addr.String(), name, options, proxyURI)
 
 			// Drop the packet.
 			fmt.Println("recv: Open")

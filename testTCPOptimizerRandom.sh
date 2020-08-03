@@ -17,7 +17,7 @@ nc -l 3333 >$FILENAME &
 sleep 5
 
 # Run the transport client
-./shapeshifter-dispatcher -transparent -client -state state -target 127.0.0.1:2222 -transports Optimizer -proxylistenaddr 127.0.0.1:1443 -optionsFile OptimizerRandom.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -transparent -client -state state -transports Optimizer -proxylistenaddr 127.0.0.1:1443 -optionsFile OptimizerRandom.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 

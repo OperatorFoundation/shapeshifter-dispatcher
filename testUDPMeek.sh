@@ -16,7 +16,7 @@ nc -l -u 3333 >$FILENAME &
 sleep 1
 
 # Run the transport client
-./shapeshifter-dispatcher -transparent -udp -client -state state -target 127.0.0.1:2222 -transports meeklite -proxylistenaddr 127.0.0.1:1443 -optionsFile meek.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -transparent -udp -client -state state -transports meeklite -proxylistenaddr 127.0.0.1:1443 -optionsFile meek.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 

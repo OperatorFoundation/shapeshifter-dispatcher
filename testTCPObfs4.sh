@@ -31,7 +31,7 @@ echo "$OS"
 echo "{\"cert\": \"$CERT\", \"iat-mode\": \"0\"}" >obfs4.json
 
 # Run the transport client
-./shapeshifter-dispatcher -transparent -client -state "$STATEPATH" -target 127.0.0.1:2222 -transports obfs4 -proxylistenaddr 127.0.0.1:1443 -optionsFile obfs4.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -transparent -client -state "$STATEPATH" -transports obfs4 -proxylistenaddr 127.0.0.1:1443 -optionsFile obfs4.json -logLevel DEBUG -enableLogging &
 
 sleep 5
 

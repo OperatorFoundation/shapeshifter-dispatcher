@@ -11,13 +11,11 @@ rm $FILENAME
 nc -l 3333 >$FILENAME &
 
 # Run the transport server
-export TOR_PT_SERVER_BINDADDR=shadow-127.0.0.1:2222
-./shapeshifter-dispatcher -server -state state -target 127.0.0.1:3333 -transports shadow -optionsFile shadowServer.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -server -state state -target 127.0.0.1:3333 -bindaddr 127.0.0.1:2222 -transports shadow -optionsFile shadowServer.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
 # Run the transport client
-export TOR_PT_ORPORT=127.0.0.1:2222
 ./shapeshifter-dispatcher -client -state state -transports shadow -proxylistenaddr 127.0.0.1:1443 -optionsFile shadowClient.json -logLevel DEBUG -enableLogging &
 
 sleep 1

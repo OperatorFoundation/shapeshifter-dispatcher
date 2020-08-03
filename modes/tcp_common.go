@@ -39,7 +39,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 )
 
-func ClientSetupTCP(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string, clientHandler ClientHandlerTCP) (launched bool) {
+func ClientSetupTCP(socksAddr string, ptClientProxy *url.URL, names []string, options string, clientHandler ClientHandlerTCP) (launched bool) {
 	// Launch each of the client listeners.
 	for _, name := range names {
 		ln, err := net.Listen("tcp", socksAddr)
@@ -49,7 +49,7 @@ func ClientSetupTCP(socksAddr string, target string, ptClientProxy *url.URL, nam
 			continue
 		}
 
-		go clientAcceptLoop(target, name, options, ln, ptClientProxy, clientHandler)
+		go clientAcceptLoop(name, options, ln, ptClientProxy, clientHandler)
 		log.Infof("%s - registered listener: %s", name, ln.Addr())
 		launched = true
 	}
@@ -57,7 +57,7 @@ func ClientSetupTCP(socksAddr string, target string, ptClientProxy *url.URL, nam
 	return
 }
 
-func clientAcceptLoop(target string, name string, options string, ln net.Listener, proxyURI *url.URL, clientHandler ClientHandlerTCP) {
+func clientAcceptLoop(name string, options string, ln net.Listener, proxyURI *url.URL, clientHandler ClientHandlerTCP) {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
@@ -70,7 +70,7 @@ func clientAcceptLoop(target string, name string, options string, ln net.Listene
 			continue
 		}
 
-		go clientHandler(target, name, options, conn, proxyURI)
+		go clientHandler(name, options, conn, proxyURI)
 	}
 }
 

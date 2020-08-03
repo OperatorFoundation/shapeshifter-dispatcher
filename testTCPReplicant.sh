@@ -16,7 +16,7 @@ nc -l 3333 >$FILENAME &
 sleep 1
 
 # Run the transport client
-./shapeshifter-dispatcher -transparent -client -state state -target 127.0.0.1:2222 -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ReplicantClientConfig1.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -transparent -client -state state -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ReplicantClientConfig1.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 

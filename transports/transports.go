@@ -40,7 +40,6 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v3"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v3"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v3"
-	log "github.com/kataras/golog"
 	"golang.org/x/net/proxy"
 )
 
@@ -49,7 +48,19 @@ func Transports() []string {
 	return []string{"obfs2", "shadow", "Dust", "meeklite", "Replicant", "obfs4", "Optimizer"}
 }
 
-func ParseArgsObfs4(args string, target string, dialer proxy.Dialer) (*obfs4.TransportClient, error) {
+func ParseArgsObfs2(args string) (*obfs2.OptimizerTransport, error) {
+	var config obfs2.Config
+	bytes := []byte(args)
+	jsonError := json.Unmarshal(bytes, &config)
+	if jsonError != nil {
+		return nil, errors.New("shadow options json decoding error")
+	}
+	transport := obfs2.New(config.Address, proxy.Direct)
+
+	return transport, nil
+}
+
+func ParseArgsObfs4(args string, dialer proxy.Dialer) (*obfs4.TransportClient, error) {
 	var config obfs4.Config
 
 	bytes := []byte(args)
@@ -66,27 +77,27 @@ func ParseArgsObfs4(args string, target string, dialer proxy.Dialer) (*obfs4.Tra
 	transport := obfs4.TransportClient{
 		CertString: config.CertString,
 		IatMode:    iatMode,
-		Address:    target,
+		Address:    config.Address,
 		Dialer:     dialer,
 	}
 
 	return &transport, nil
 }
 
-func ParseArgsShadow(args string, target string) (*shadow.Transport, error) {
-	var config shadow.Config
+func ParseArgsShadow(args string) (*shadow.Transport, error) {
+	var config shadow.ClientConfig
 	bytes := []byte(args)
 	jsonError := json.Unmarshal(bytes, &config)
 	if jsonError != nil {
 		return nil, errors.New("shadow options json decoding error")
 	}
-	transport := shadow.NewTransport(config.Password, config.CipherName, target, &log.Logger{})
+	transport := shadow.NewTransport(config.Password, config.CipherName, config.Address)
 
 	return &transport, nil
 }
 
-func ParseArgsShadowServer(args string) (*shadow.Config, error) {
-	var config shadow.Config
+func ParseArgsShadowServer(args string) (*shadow.ServerConfig, error) {
+	var config shadow.ServerConfig
 
 	bytes := []byte(args)
 	jsonError := json.Unmarshal(bytes, &config)
@@ -97,7 +108,7 @@ func ParseArgsShadowServer(args string) (*shadow.Config, error) {
 	return &config, nil
 }
 
-func ParseArgsDust(args string, target string, dialer proxy.Dialer) (*Dust.Transport, error) {
+func ParseArgsDust(args string, dialer proxy.Dialer) (*Dust.Transport, error) {
 	var config Dust.Config
 
 	bytes := []byte(args)
@@ -108,26 +119,11 @@ func ParseArgsDust(args string, target string, dialer proxy.Dialer) (*Dust.Trans
 
 	transport := Dust.Transport{
 		ServerPublic: config.ServerPublic,
-		Address:      target,
+		Address:      config.Address,
 		Dialer:       dialer,
 	}
 
 	return &transport, nil
-}
-
-func CreateDefaultReplicantClient(target string, dialer proxy.Dialer) *replicant.TransportClient {
-	config := replicant.ClientConfig{
-		Toneburst: nil,
-		Polish:    nil,
-	}
-
-	transport := replicant.TransportClient{
-		Config:  config,
-		Address: target,
-		Dialer:  dialer,
-	}
-
-	return &transport
 }
 
 func CreateDefaultReplicantServer() replicant.ServerConfig {
@@ -139,16 +135,12 @@ func CreateDefaultReplicantServer() replicant.ServerConfig {
 	return config
 }
 
-func ParseArgsReplicantClient(args string, target string, dialer proxy.Dialer) (*replicant.TransportClient, error) {
+func ParseArgsReplicantClient(args string, dialer proxy.Dialer) (*replicant.TransportClient, error) {
 	var config *replicant.ClientConfig
 
-	type replicantJsonConfig struct {
-		Config string
-	}
-	var ReplicantConfig replicantJsonConfig
+	var ReplicantConfig replicant.ClientJSONConfig
 	if args == "" {
-		transport := CreateDefaultReplicantClient(target, dialer)
-		return transport, nil
+		return  nil, errors.New("must specify transport options when using replicant")
 	}
 	argsBytes := []byte(args)
 	unmarshalError := json.Unmarshal(argsBytes, &ReplicantConfig)
@@ -161,14 +153,9 @@ func ParseArgsReplicantClient(args string, target string, dialer proxy.Dialer) (
 		return nil, errors.New("could not parse config")
 	}
 
-	configJSON, jsonMarshallError := json.Marshal(config)
-	if jsonMarshallError == nil {
-		log.Debugf("REPLICANT CONFIG\n", string(configJSON))
-	}
-
 	transport := replicant.TransportClient{
 		Config:  *config,
-		Address: target,
+		Address: (*config).Address,
 		Dialer:  dialer,
 	}
 
@@ -201,7 +188,7 @@ func ParseArgsReplicantServer(args string) (*replicant.ServerConfig, error) {
 	return config, nil
 }
 
-func ParseArgsMeeklite(args string, target string, dialer proxy.Dialer) (*meeklite.Transport, error) {
+func ParseArgsMeeklite(args string, dialer proxy.Dialer) (*meeklite.Transport, error) {
 	var config meeklite.Config
 
 	bytes := []byte(args)
@@ -213,7 +200,6 @@ func ParseArgsMeeklite(args string, target string, dialer proxy.Dialer) (*meekli
 	transport := meeklite.Transport{
 		URL:     config.URL,
 		Front:   config.Front,
-		Address: target,
 		Dialer:  dialer,
 	}
 
@@ -314,7 +300,6 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 	var config map[string]interface{}
 
 	type PartialOptimizerConfig struct {
-		Address string `json:"address"`
 		Name    string `json:"name"`
 	}
 	jsonString, MarshalErr := json.Marshal(otc)
@@ -348,34 +333,37 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 	jsonConfigString := string(jsonConfigBytes)
 	switch PartialConfig.Name {
 	case "shadow":
-		shadowTransport, parseErr := ParseArgsShadow(jsonConfigString, PartialConfig.Address)
+		shadowTransport, parseErr := ParseArgsShadow(jsonConfigString)
 		if parseErr != nil {
 			return nil, errors.New("could not parse shadow Args")
 		}
 		return shadowTransport, nil
 	case "obfs2":
-		obfs2Transport := obfs2.New(PartialConfig.Address, dialer, &log.Logger{})
+		obfs2Transport, parseErr := ParseArgsObfs2(jsonConfigString)
+		if parseErr != nil {
+			return nil, errors.New("could not parse obfs2 Args")
+		}
 		return obfs2Transport, nil
 	case "obfs4":
-		obfs4Transport, parseErr := ParseArgsObfs4(jsonConfigString, PartialConfig.Address, dialer)
+		obfs4Transport, parseErr := ParseArgsObfs4(jsonConfigString, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse obfs4 Args")
 		}
 		return obfs4Transport, nil
 	case "meeklite":
-		meekliteTransport, parseErr := ParseArgsMeeklite(jsonConfigString, PartialConfig.Address, dialer)
+		meekliteTransport, parseErr := ParseArgsMeeklite(jsonConfigString, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse meeklite Args")
 		}
 		return meekliteTransport, nil
 	case "Dust":
-		DustTransport, parseErr := ParseArgsDust(jsonConfigString, PartialConfig.Address, dialer)
+		DustTransport, parseErr := ParseArgsDust(jsonConfigString, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse dust Args")
 		}
 		return DustTransport, nil
 	case "Replicant":
-		replicantTransport, parseErr := ParseArgsReplicantClient(jsonConfigString, PartialConfig.Address, dialer)
+		replicantTransport, parseErr := ParseArgsReplicantClient(jsonConfigString, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse replicant Args")
 		}

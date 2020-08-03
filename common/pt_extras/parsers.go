@@ -40,14 +40,18 @@ import (
 )
 
 // target is the server address string
-func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) (Optimizer.TransportDialer, error) {
+func ArgsToDialer(name string, args string, dialer proxy.Dialer) (Optimizer.TransportDialer, error) {
 	switch name {
 	case "obfs2":
-		transport := obfs2.New(target, dialer, nil)
+		transport, obfs2Error := transports.ParseArgsObfs2(args)
+		if obfs2Error != nil {
+			golog.Errorf("Could not parse options %s", obfs2Error.Error())
+			return nil, obfs2Error
+		}
 		return transport, nil
 	case "obfs4":
 		//refactor starts here
-		transport, err := transports.ParseArgsObfs4(args, target, dialer)
+		transport, err := transports.ParseArgsObfs4(args, dialer)
 		if err != nil {
 			golog.Errorf("Could not parse options %s", err.Error())
 			return nil, err
@@ -55,7 +59,7 @@ func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) 
 			return transport, nil
 		}
 	case "shadow":
-		transport, err := transports.ParseArgsShadow(args, target)
+		transport, err := transports.ParseArgsShadow(args)
 		if err != nil {
 			golog.Errorf("Could not parse options %s", err.Error())
 			return nil, err
@@ -71,7 +75,7 @@ func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) 
 			return transport, nil
 		}
 	case "Dust":
-		transport, err := transports.ParseArgsDust(args, target, dialer)
+		transport, err := transports.ParseArgsDust(args, dialer)
 		if err != nil {
 			golog.Errorf("Could not parse options %s", err.Error())
 			return nil, err
@@ -79,7 +83,7 @@ func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) 
 			return transport, nil
 		}
 	case "meeklite":
-		transport, err := transports.ParseArgsMeeklite(args, target, dialer)
+		transport, err := transports.ParseArgsMeeklite(args, dialer)
 		if err != nil {
 			golog.Errorf("Could not parse options %s", err.Error())
 			return nil, err
@@ -87,7 +91,7 @@ func ArgsToDialer(target string, name string, args string, dialer proxy.Dialer) 
 			return transport, nil
 		}
 	case "Replicant":
-		transport, err := transports.ParseArgsReplicantClient(args, target, dialer)
+		transport, err := transports.ParseArgsReplicantClient(args, dialer)
 		if err != nil {
 			golog.Errorf("Could not parse options %s", err.Error())
 			return nil, err

@@ -32,7 +32,7 @@ import (
 	"net/url"
 )
 
-func ClientSetupUDP(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string, clientHandler ClientHandlerUDP) bool {
+func ClientSetupUDP(socksAddr string, ptClientProxy *url.URL, names []string, options string, clientHandler ClientHandlerUDP) bool {
 	// Launch each of the client listeners.
 	for _, name := range names {
 		udpAddr, err := net.ResolveUDPAddr("udp", socksAddr)
@@ -48,7 +48,7 @@ func ClientSetupUDP(socksAddr string, target string, ptClientProxy *url.URL, nam
 
 		log.Infof("%s - registered listener", name)
 
-		go clientHandler(target, name, options, ln, ptClientProxy)
+		go clientHandler(name, options, ln, ptClientProxy)
 	}
 
 	return true

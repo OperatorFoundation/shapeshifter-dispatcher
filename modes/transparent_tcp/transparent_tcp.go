@@ -42,11 +42,11 @@ import (
 	"net/url"
 )
 
-func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) (launched bool) {
-	return modes.ClientSetupTCP(socksAddr, target, ptClientProxy, names, options, clientHandler)
+func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, options string) (launched bool) {
+	return modes.ClientSetupTCP(socksAddr, ptClientProxy, names, options, clientHandler)
 }
 
-func clientHandler(target string, name string, options string, conn net.Conn, proxyURI *url.URL) {
+func clientHandler(name string, options string, conn net.Conn, proxyURI *url.URL) {
 	var dialer proxy.Dialer
 	dialer = proxy.Direct
 	if proxyURI != nil {
@@ -56,13 +56,13 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 			// This should basically never happen, since config protocol
 			// verifies this.
 			fmt.Println("-> failed to obtain dialer", proxyURI, proxy.Direct)
-			log.Errorf("(%s) - failed to obtain proxy dialer: %s", target, commonLog.ElideError(err))
+			log.Errorf("(%s) - failed to obtain proxy dialer: %s", commonLog.ElideError(err))
 			return
 		}
 	}
 
 	// Deal with arguments.
-	transport, argsToDialerErr := pt_extras.ArgsToDialer(target, name, options, dialer)
+	transport, argsToDialerErr := pt_extras.ArgsToDialer(name, options, dialer)
 	if argsToDialerErr != nil {
 		log.Errorf("Error creating a transport with the provided options: %v", options)
 		log.Errorf("Error: %v", argsToDialerErr.Error())
@@ -71,7 +71,7 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 		return
 	}
 
-	fmt.Println("Dialing ", target)
+	fmt.Println("Dialing ")
 	remote, dialErr := transport.Dial()
 	if dialErr != nil {
 		println("--> Unable to dial transport server: ", dialErr.Error())
@@ -92,11 +92,11 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 	}
 
 	if err := modes.CopyLoop(conn, remote); err != nil {
-		golog.Warnf("%s(%s) - closed connection: %s", name, target, commonLog.ElideError(err))
-		println("%s(%s) - closed connection: %s", name, target, commonLog.ElideError(err))
+		golog.Warnf("%s(%s) - closed connection: %s", name, commonLog.ElideError(err))
+		println("%s(%s) - closed connection: %s", name, commonLog.ElideError(err))
 	} else {
-		log.Infof("%s(%s) - closed connection", name, target)
-		println("%s(%s) - closed connection", name, target)
+		log.Infof("%s(%s) - closed connection", name)
+		println("%s(%s) - closed connection", name)
 	}
 }
 

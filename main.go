@@ -94,21 +94,6 @@ func main() {
 
 	transportsList := flag.String("transports", "", "Specify transports to enable")
 
-	//This is for proposal no.9
-	//transport := flag.String("transport", "", "Specify a single transport to enable")
-	//copy old code
-	//clientBindPort := flag.String("bindport", "", "Specify the bind address port for transparent client")
-	//clientBindHost := flag.String("bindhost", "", "Specify the bind address host for transparent client")
-	//bindhost:bindport
-	//serverBindPort := flag.String("bindport", "", "Specify the bind address port for transparent server")
-	//serverBindHost := flag.String("bindhost", "", "Specify the bind address host for transparent server")
-	//targetHost := flag.String("targethost", "", "Specify transport server destination address port")
-	//targetPort := flag.String("targetport", "", "Specify transport server destination address host")
-	//proxyListenHost := flag.String("proxylistenhost", "", "Specify the bind address for the local SOCKS server host provided by the client")
-	//proxyListnePort := flag.String("proxylistenport", "", "Specify the bind address for the local SOCKS server port provided by the client")
-	//modeName := flag.String("mode", "socks5", "Specify which mode is being used: transparent-TCP, transparent-UDP, socks5, or STUN")
-	//set transparent or udp to nil
-
 	// PT 2.1 specification, 3.3.1.2. Pluggable PT Client Configuration Parameters
 	proxy := flag.String("proxy", "", "Specify an HTTP or SOCKS4a proxy that the PT needs to use to reach the Internet")
 
@@ -193,29 +178,8 @@ func main() {
 	mode := determineMode(*transparent, *udp)
 
 	if isClient {
-		switch mode {
-		case socks5:
-			if *target != "" {
-				golog.Errorf("-target option cannot be used in socks5 mode")
-				return
-			}
-		case transparentTCP:
-			if *target == "" {
-				golog.Errorf("%s - transparent mode requires a target", execName)
-				return
-			}
-		case transparentUDP:
-			if *target == "" {
-				golog.Errorf("%s - transparent mode requires a target", execName)
-				return
-			}
-		case stunUDP:
-			if *target == "" {
-				golog.Errorf("%s - STUN mode requires a target", execName)
-				return
-			}
-		default:
-			golog.Errorf("unsupported mode %d", mode)
+		if *target != "" {
+			golog.Error("cannot use -target in client mode")
 			return
 		}
 	} else {
@@ -268,21 +232,21 @@ func main() {
 				golog.Errorf("must specify -version and -transports")
 				return
 			}
-			launched = transparent_tcp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options)
+			launched = transparent_tcp.ClientSetup(*socksAddr, ptClientProxy, names, *options)
 		case transparentUDP:
 			ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
 			if nameErr != nil {
 				golog.Errorf("must specify -version and -transports")
 				return
 			}
-			launched = transparent_udp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options)
+			launched = transparent_udp.ClientSetup(*socksAddr, ptClientProxy, names, *options)
 		case stunUDP:
 			ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
 			if nameErr != nil {
 				golog.Errorf("must specify -version and -transports")
 				return
 			}
-			launched = stun_udp.ClientSetup(*socksAddr, *target, ptClientProxy, names, *options)
+			launched = stun_udp.ClientSetup(*socksAddr, ptClientProxy, names, *options)
 		default:
 			golog.Errorf("unsupported mode %d", mode)
 		}
