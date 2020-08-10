@@ -185,38 +185,18 @@ func main() {
 	mode := determineMode(*transparent, *udp)
 
 	if isClient {
-		if *target != "" {
-			golog.Error("cannot use -target in client mode")
+		proxyValidationError := validateProxyListenAddr(&emptyString, &emptyString, socksAddr)
+		if proxyValidationError != nil {
+			golog.Error(proxyValidationError)
 			return
 		}
 	} else {
-		switch mode {
-		case socks5:
-			if *bindAddr == "" {
-				golog.Errorf("-%s - socks5 mode requires a bindaddr", execName)
-				return
-			}
-		case transparentTCP:
-			if *bindAddr == "" {
-				golog.Errorf("%s - transparent mode requires a bindaddr", execName)
-				return
-			}
-		case transparentUDP:
-			if *bindAddr == "" {
-				golog.Errorf("%s - transparent mode requires a bindaddr", execName)
-				return
-			}
-		case stunUDP:
-			if *bindAddr == "" {
-				golog.Errorf("%s - STUN mode requires a bindaddr", execName)
-				return
-			}
-		default:
-			golog.Errorf("unsupported mode %d", mode)
+		bindAddrValidationError := validateServerBindAddr(&emptyString, &emptyString, &emptyString, bindAddr)
+		if bindAddrValidationError != nil {
+			golog.Error(bindAddrValidationError)
 			return
 		}
 	}
-
 	// Finished validation of command line arguments
 
 	golog.Infof("%s - launched", getVersion())
