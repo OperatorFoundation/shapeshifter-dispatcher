@@ -2,7 +2,7 @@
 # An alternative way to run this test is to run each command in its own terminal. Each netcat instance can be used to type content which should appear in the other.
 FILENAME=testUDPOptimizerFirstOutput.txt
 # Update and build code
-go get -u github.com/OperatorFoundation/shapeshifter-dispatcher
+go build
 
 # remove text from the output file
 rm $FILENAME

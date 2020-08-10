@@ -2,7 +2,7 @@
 # An alternative way to run this test is to run each command in its own terminal. Each netcat instance can be used to type content which should appear in the other.
 FILENAME=testUDPReplicantOutput.txt
 # Update and build code
-go get -u github.com/OperatorFoundation/shapeshifter-dispatcher
+go build
 
 # remove text from the output file
 rm $FILENAME
@@ -11,12 +11,12 @@ rm $FILENAME
 nc -l -u 3333 >$FILENAME &
 
 # Run the transport server
-./shapeshifter-dispatcher -transparent -udp -server -state state -target 127.0.0.1:3333 -transports Replicant -bindaddr Replicant-127.0.0.1:2222 -optionsFile ReplicantServerConfig1.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -transparent -udp -server -state state -target 127.0.0.1:3333 -transports Replicant -bindaddr Replicant-127.0.0.1:2222 -optionsFile ReplicantServerConfigV3.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
 # Run the transport client
-./shapeshifter-dispatcher -transparent -udp -client -state state -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ReplicantClientConfig1.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -transparent -udp -client -state state -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ReplicantClientConfigV3.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 

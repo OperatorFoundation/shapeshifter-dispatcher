@@ -3,7 +3,7 @@
 FILENAME=testUDPObfs4Output.txt
 OS=$(uname)
 # Update and build code
-go get -u github.com/OperatorFoundation/shapeshifter-dispatcher
+go build
 
 # remove text from the output file
 rm $FILENAME
@@ -28,7 +28,7 @@ CERT=${CERTSTRING:5}
 echo "$STATEPATH"
 echo "$CERT"
 echo "$OS"
-echo "{\"cert\": \"$CERT\", \"iat-mode\": \"0\"}" >obfs4.json
+go echo "{\"cert\": \"$CERT\", \"iat-mode\": \"0\", \"address\": \"127.0.0.1:2222\"}" >obfs4.json
 
 # Run the transport client
 ./shapeshifter-dispatcher -transparent -udp -client -state "$STATEPATH" -transports obfs4 -proxylistenaddr 127.0.0.1:1443 -optionsFile obfs4.json -logLevel DEBUG -enableLogging &
