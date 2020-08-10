@@ -53,7 +53,7 @@ func ParseArgsObfs2(args string) (*obfs2.OptimizerTransport, error) {
 	bytes := []byte(args)
 	jsonError := json.Unmarshal(bytes, &config)
 	if jsonError != nil {
-		return nil, errors.New("shadow options json decoding error")
+		return nil, errors.New("obfs2 options json decoding error")
 	}
 	transport := obfs2.New(config.Address, proxy.Direct)
 

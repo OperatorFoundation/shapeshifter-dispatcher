@@ -1,1 +1,5 @@
-{"url": "https://transport-canary-meek.appspot.com/", "front": "www.google.com"}
+{
+  "url": "https://transport-canary-meek.appspot.com/",
+  "front": "www.google.com",
+  "address": "127.0.0.1:2222"
+}
