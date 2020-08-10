@@ -28,6 +28,7 @@ import (
 	"github.com/OperatorFoundation/obfs4/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	pt "github.com/OperatorFoundation/shapeshifter-ipc/v2"
+	"github.com/kataras/golog"
 	"net"
 	"net/url"
 )
@@ -37,16 +38,16 @@ func ClientSetupUDP(socksAddr string, ptClientProxy *url.URL, names []string, op
 	for _, name := range names {
 		udpAddr, err := net.ResolveUDPAddr("udp", socksAddr)
 		if err != nil {
-			log.Errorf("Error resolving address %s", socksAddr)
+			golog.Errorf("Error resolving address %s", socksAddr)
 		}
 
 		ln, err := net.ListenUDP("udp", udpAddr)
 		if err != nil {
-			log.Errorf("failed to listen %s %s", name, err.Error())
+			golog.Errorf("failed to listen %s %s", name, err.Error())
 			continue
 		}
 
-		log.Infof("%s - registered listener", name)
+		golog.Infof("%s - registered listener", name)
 
 		go clientHandler(name, options, ln, ptClientProxy)
 	}
@@ -72,11 +73,11 @@ func ServerSetupUDP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 				if LnError != nil {
 					continue
 				}
-				log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
+				golog.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
 				ServerAcceptLoop(name, transportLn, &ptServerInfo, serverHandler)
 				transportLnErr := transportLn.Close()
 				if transportLnErr != nil {
-					log.Errorf("Listener close error: %s", transportLnErr.Error())
+					golog.Errorf("Listener close error: %s", transportLnErr.Error())
 				}
 			}
 		}()

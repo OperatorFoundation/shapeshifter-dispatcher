@@ -56,7 +56,7 @@ func clientHandler(name string, options string, conn net.Conn, proxyURI *url.URL
 			// This should basically never happen, since config protocol
 			// verifies this.
 			fmt.Println("-> failed to obtain dialer", proxyURI, proxy.Direct)
-			log.Errorf("(%s) - failed to obtain proxy dialer: %s", commonLog.ElideError(err))
+			golog.Errorf("(%s) - failed to obtain proxy dialer: %s", commonLog.ElideError(err))
 			return
 		}
 	}
@@ -64,8 +64,8 @@ func clientHandler(name string, options string, conn net.Conn, proxyURI *url.URL
 	// Deal with arguments.
 	transport, argsToDialerErr := pt_extras.ArgsToDialer(name, options, dialer)
 	if argsToDialerErr != nil {
-		log.Errorf("Error creating a transport with the provided options: %v", options)
-		log.Errorf("Error: %v", argsToDialerErr.Error())
+		golog.Errorf("Error creating a transport with the provided options: %v", options)
+		golog.Errorf("Error: %v", argsToDialerErr.Error())
 		println("-> Error creating a transport with the provided options: ", options)
 		println("-> Error: ", argsToDialerErr.Error())
 		return
@@ -77,25 +77,25 @@ func clientHandler(name string, options string, conn net.Conn, proxyURI *url.URL
 		println("--> Unable to dial transport server: ", dialErr.Error())
 		println("-> Name: ", name)
 		println("-> Options: ", options)
-		log.Errorf("--> Unable to dial transport server: %v", dialErr.Error())
+		golog.Errorf("--> Unable to dial transport server: %v", dialErr.Error())
 		return
 	}
 
 	if conn == nil {
 		println("--> Application connection is nil")
-		log.Errorf("%s - closed connection. Application connection is nil", name)
+		golog.Errorf("%s - closed connection. Application connection is nil", name)
 	}
 
 	if remote == nil {
 		println("--> Transport server connection is nil.")
-		log.Errorf("%s - closed connection. Transport server connection is nil", name)
+		golog.Errorf("%s - closed connection. Transport server connection is nil", name)
 	}
 
 	if err := modes.CopyLoop(conn, remote); err != nil {
 		golog.Warnf("%s(%s) - closed connection: %s", name, commonLog.ElideError(err))
 		println("%s(%s) - closed connection: %s", name, commonLog.ElideError(err))
 	} else {
-		log.Infof("%s(%s) - closed connection", name)
+		golog.Infof("%s(%s) - closed connection", name)
 		println("%s(%s) - closed connection", name)
 	}
 }
@@ -108,14 +108,14 @@ func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 	// Connect to the orport.
 	orConn, err := pt.DialOr(info, remote.RemoteAddr().String(), name)
 	if err != nil {
-		log.Errorf("%s - failed to connect to ORPort: %s", name, log.ElideError(err))
+		golog.Errorf("%s - failed to connect to ORPort: %s", name, log.ElideError(err))
 		return
 	}
 
 	if err = modes.CopyLoop(orConn, remote); err != nil {
-		log.Warnf("%s - closed connection: %s", name, log.ElideError(err))
+		golog.Warnf("%s - closed connection: %s", name, log.ElideError(err))
 	} else {
-		log.Infof("%s - closed connection", name)
+		golog.Infof("%s - closed connection", name)
 	}
 }
 

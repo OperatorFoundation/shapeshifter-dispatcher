@@ -114,7 +114,7 @@ func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 
 	addrStr := log.ElideAddr(remote.RemoteAddr().String())
 	fmt.Println("### handling", name)
-	log.Infof("%s(%s) - new connection", name, addrStr)
+	golog.Infof("%s(%s) - new connection", name, addrStr)
 
 	serverAddr, err := net.ResolveUDPAddr("udp", info.OrAddr.String())
 	if err != nil {

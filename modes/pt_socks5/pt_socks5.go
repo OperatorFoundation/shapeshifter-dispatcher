@@ -54,7 +54,7 @@ func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, optio
 		go clientAcceptLoop(name, ln, ptClientProxy, options)
 		pt.Cmethod(name, socks5.Version(), ln.Addr())
 
-		log.Infof("%s - registered listener: %s", name, ln.Addr())
+		golog.Infof("%s - registered listener: %s", name, ln.Addr())
 
 		launched = true
 	}
@@ -68,7 +68,7 @@ func clientAcceptLoop(name string, ln net.Listener, proxyURI *url.URL, options s
 		conn, err := ln.Accept()
 		if err != nil {
 			if e, ok := err.(net.Error); ok && !e.Temporary() {
-				log.Errorf("serverAcceptLoop failed")
+				golog.Errorf("serverAcceptLoop failed")
 				_ = ln.Close()
 				return
 			}
@@ -84,7 +84,7 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 	// Read the client's SOCKS handshake.
 	socksReq, err := socks5.Handshake(conn, needOptions)
 	if err != nil {
-		log.Errorf("%s - client failed socks handshake: %s", name, err)
+		golog.Errorf("%s - client failed socks handshake: %s", name, err)
 		return
 	}
 	addrStr := commonLog.ElideAddr(socksReq.Target)
@@ -95,8 +95,8 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 
 	transport, argsToDialerErr := pt_extras.ArgsToDialer(name, options, dialer)
 	if argsToDialerErr != nil {
-		log.Errorf("Error creating a transport with the provided options: %s", options)
-		log.Errorf("Error: %s", argsToDialerErr)
+		golog.Errorf("Error creating a transport with the provided options: %s", options)
+		golog.Errorf("Error: %s", argsToDialerErr)
 		return
 	}
 	// Obtain the proxy dialer if any, and create the outgoing TCP connection.
@@ -106,7 +106,7 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 		if proxyErr != nil {
 			// This should basically never happen, since config protocol
 			// verifies this.
-			log.Errorf("%s(%s) - failed to obtain proxy dialer: %s", name, addrStr, commonLog.ElideError(err))
+			golog.Errorf("%s(%s) - failed to obtain proxy dialer: %s", name, addrStr, commonLog.ElideError(err))
 			_ = socksReq.Reply(socks5.ReplyGeneralFailure)
 			return
 		}
@@ -114,20 +114,20 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 
 	remote, err2 := transport.Dial()
 	if err2 != nil {
-		log.Errorf("%s(%s) - outgoing connection failed: %s", name, addrStr, commonLog.ElideError(err2))
+		golog.Errorf("%s(%s) - outgoing connection failed: %s", name, addrStr, commonLog.ElideError(err2))
 		_ = socksReq.Reply(socks5.ErrorToReplyCode(err2))
 		return
 	}
 	err = socksReq.Reply(socks5.ReplySucceeded)
 	if err != nil {
-		log.Errorf("%s(%s) - SOCKS reply failed: %s", name, addrStr, commonLog.ElideError(err))
+		golog.Errorf("%s(%s) - SOCKS reply failed: %s", name, addrStr, commonLog.ElideError(err))
 		return
 	}
 
 	if err = modes.CopyLoop(conn, remote); err != nil {
 		golog.Warnf("%s(%s) - closed connection: %s", name, addrStr, commonLog.ElideError(err))
 	} else {
-		log.Infof("%s(%s) - closed connection", name, addrStr)
+		golog.Infof("%s(%s) - closed connection", name, addrStr)
 	}
 
 	return
@@ -149,11 +149,11 @@ func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (l
 				if LnError != nil {
 					continue
 				}
-				log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
+				golog.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
 				modes.ServerAcceptLoop(name, transportLn, &ptServerInfo, serverHandler)
 				transportLnErr := transportLn.Close()
 				if transportLnErr != nil {
-					log.Errorf("Listener close error: %s", transportLnErr.Error())
+					golog.Errorf("Listener close error: %s", transportLnErr.Error())
 				}
 			}
 		}()
@@ -168,19 +168,19 @@ func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (l
 func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 
 	addrStr := log.ElideAddr(remote.RemoteAddr().String())
-	log.Infof("%s(%s) - new connection", name, addrStr)
+	golog.Infof("%s(%s) - new connection", name, addrStr)
 
 	// Connect to the orport.
 	orConn, err := pt.DialOr(info, remote.RemoteAddr().String(), name)
 	if err != nil {
-		log.Errorf("%s(%s) - failed to connect to ORPort: %s", name, addrStr, log.ElideError(err))
+		golog.Errorf("%s(%s) - failed to connect to ORPort: %s", name, addrStr, log.ElideError(err))
 		return
 	}
 
 	if err = modes.CopyLoop(orConn, remote); err != nil {
-		log.Warnf("%s(%s) - closed connection: %s", name, addrStr, log.ElideError(err))
+		golog.Warnf("%s(%s) - closed connection: %s", name, addrStr, log.ElideError(err))
 	} else {
-		log.Infof("%s(%s) - closed connection", name, addrStr)
+		golog.Infof("%s(%s) - closed connection", name, addrStr)
 	}
 
 	return

@@ -26,7 +26,7 @@ package main
 
 import (
 	"errors"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
+	"github.com/kataras/golog"
 )
 
 //This is for proposal no.9
@@ -80,9 +80,9 @@ func validateProxyListenAddr(proxyListenHost *string, proxyListenPort *string, p
 	}
 
 	if *proxyListenHost != "" && *proxyListenAddr != "" {
-		log.Infof("proxylistenhost: %s", *proxyListenHost)
-		log.Infof("proxylistenport: %s", *proxyListenPort)
-		log.Infof("proxylistenaddr: %s", *proxyListenAddr)
+		golog.Infof("proxylistenhost: %s", *proxyListenHost)
+		golog.Infof("proxylistenport: %s", *proxyListenPort)
+		golog.Infof("proxylistenaddr: %s", *proxyListenAddr)
 		return errors.New("you cannot specify both --proxylistenhost and --proxylistenaddr")
 	}
 

@@ -34,6 +34,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	pt "github.com/OperatorFoundation/shapeshifter-ipc/v2"
 	"github.com/kataras/golog"
 	"io"
@@ -177,11 +178,6 @@ func main() {
 	if *options != "" && *optionsFile != "" {
 		golog.Fatal("cannot specify -options and -optionsFile at the same time")
 	}
-	if err = log.Init(*enableLogging, path.Join(stateDir, dispatcherLogFile), ipcLogLevel); err != nil {
-		println("stateDir:", stateDir)
-		println("--> Error: ", err.Error())
-		golog.Fatalf("--> [ERROR]: %s - failed to initialize logging", execName)
-	}
 	if *optionsFile != "" {
 		fmt.Println("checking for optionsFile")
 		_, err := os.Stat(*optionsFile)
@@ -246,7 +242,7 @@ func main() {
 			}
 
 		} else {
-			targetValidationError := validatetarget(targetHost, targetPort, target)
+			targetValidationError := validatetarget(isClient, targetHost, targetPort, target)
 			if targetValidationError != nil {
 				golog.Errorf("could not validate: %s",targetValidationError)
 				return
