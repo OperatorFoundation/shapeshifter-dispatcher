@@ -99,9 +99,7 @@ func clientHandler(name string, options string, conn *net.UDPConn, proxyURI *url
 		} else {
 			// There is not an open transport connection and a connection attempt is not in progress.
 			// Open a transport connection.
-
 			modes.OpenConnection(&tracker, addr.String(), name, options, proxyURI)
-
 			// Drop the packet.
 		}
 	}

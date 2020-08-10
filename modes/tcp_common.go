@@ -39,6 +39,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 )
 
+
 func ClientSetupTCP(socksAddr string, ptClientProxy *url.URL, names []string, options string, clientHandler ClientHandlerTCP) (launched bool) {
 	// Launch each of the client listeners.
 	for _, name := range names {
@@ -58,19 +59,18 @@ func ClientSetupTCP(socksAddr string, ptClientProxy *url.URL, names []string, op
 }
 
 func clientAcceptLoop(name string, options string, ln net.Listener, proxyURI *url.URL, clientHandler ClientHandlerTCP) {
-	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			if e, ok := err.(net.Error); ok && !e.Temporary() {
-				fmt.Fprintf(os.Stderr, "Fatal listener error: %s", err.Error());
-				log.Errorf("Fatal listener error: %s", err.Error())
-				return
+		for {
+			conn, err := ln.Accept()
+			if err != nil {
+				if e, ok := err.(net.Error); ok && !e.Temporary() {
+					fmt.Fprintf(os.Stderr, "Fatal listener error: %s", err.Error())
+					log.Errorf("Fatal listener error: %s", err.Error())
+					return
+				}
+				golog.Warnf("Failed to accept connection: %s", err.Error())
+				continue
 			}
-			golog.Warnf("Failed to accept connection: %s", err.Error())
-			continue
-		}
-
-		go clientHandler(name, options, conn, proxyURI)
+			go clientHandler(name, options, conn, proxyURI)
 	}
 }
 

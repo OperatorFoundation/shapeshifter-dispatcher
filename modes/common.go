@@ -45,6 +45,7 @@ type ConnTracker map[string]ConnState
 type ClientHandlerTCP func(name string, options string, conn net.Conn, proxyURI *url.URL)
 
 type ClientHandlerUDP func(name string, options string, conn *net.UDPConn, proxyURI *url.URL)
+
 type ServerHandler func(name string, remote net.Conn, info *pt.ServerInfo)
 
 func NewConnState() ConnState {
@@ -79,6 +80,7 @@ func dialConn(tracker *ConnTracker, addr string, name string, options string, pr
 
 	// Deal with arguments.
 	transport, argsToDialerErr := pt_extras.ArgsToDialer(name, options, dialer)
+
 	if argsToDialerErr != nil {
 		log.Errorf("Error creating a transport with the provided options: %s", options)
 		log.Errorf("Error: %s", argsToDialerErr)

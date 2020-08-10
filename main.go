@@ -33,6 +33,8 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	pt "github.com/OperatorFoundation/shapeshifter-ipc/v2"
 	"github.com/kataras/golog"
 	"io"
 	"io/ioutil"
@@ -40,10 +42,6 @@ import (
 	"os"
 	"path"
 	"strings"
-
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
-	"github.com/OperatorFoundation/shapeshifter-ipc/v2"
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/pt_socks5"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/stun_udp"
@@ -94,6 +92,17 @@ func main() {
 
 	transportsList := flag.String("transports", "", "Specify transports to enable")
 
+	//This is for proposal no.9
+	transport := flag.String("transport", "", "Specify a single transport to enable")
+	//copy old code
+	serverBindPort := flag.String("bindport", "", "Specify the bind address port for transparent server")
+	serverBindHost := flag.String("bindhost", "", "Specify the bind address host for transparent server")
+	targetHost := flag.String("targethost", "", "Specify transport server destination address port")
+	targetPort := flag.String("targetport", "", "Specify transport server destination address host")
+	proxyListenHost := flag.String("proxylistenhost", "", "Specify the bind address for the local SOCKS server host provided by the client")
+	proxyListenPort := flag.String("proxylistenport", "", "Specify the bind address for the local SOCKS server port provided by the client")
+	modeName := flag.String("mode", "", "Specify which mode is being used: transparent-TCP, transparent-UDP, socks5, or STUN")
+
 	// PT 2.1 specification, 3.3.1.2. Pluggable PT Client Configuration Parameters
 	proxy := flag.String("proxy", "", "Specify an HTTP or SOCKS4a proxy that the PT needs to use to reach the Internet")
 
@@ -108,13 +117,14 @@ func main() {
 	authcookie := flag.String("authcookie", "", "Specify an authentication cookie, for use in authenticating with the Extended OR Port")
 
 	// Experimental flags under consideration for PT 2.1
-	socksAddr := flag.String("proxylistenaddr", "127.0.0.1:0", "Specify the bind address for the local SOCKS server provided by the client")
+	socksAddr := flag.String("proxylistenaddr", "", "Specify the bind address for the local SOCKS server provided by the client")
 	optionsFile := flag.String("optionsFile", "", "store all the options in a single file")
 
 	// Additional command line flags inherited from obfs4proxy
 	showVer := flag.Bool("showVersion", false, "Print version and exit")
 	logLevelStr := flag.String("logLevel", "ERROR", "Log level (ERROR/WARN/INFO/DEBUG)")
 	enableLogging := flag.Bool("enableLogging", false, "Log to [state]/"+dispatcherLogFile)
+	ipcLogLevelStr := flag.String("ipcLogLevel", "NONE", "IPC Log level (ERROR/WARN/INFO/DEBUG/NONE)")
 
 	// Additional command line flags added to shapeshifter-dispatcher
 	clientMode := flag.Bool("client", false, "Enable client mode")
@@ -142,10 +152,17 @@ func main() {
 	if enableLogging != nil {
 		lowerCaseLogLevelStr := strings.ToLower(*logLevelStr)
 		golog.SetLevel(lowerCaseLogLevelStr)
-
 	} else {
 		golog.SetLevel("fatal")
 	}
+
+	ipcLogLevel, ipcLogLevelError := validateIPCLogLevel(*ipcLogLevelStr)
+	if ipcLogLevelError != nil {
+		println(ipcLogLevel)
+		golog.Errorf("could not validate IPC log level %s", ipcLogLevelError)
+		return
+	}
+
 	// Determine if this is a client or server, initialize the common state.
 	launched := false
 	isClient, err := checkIsClient(*clientMode, *serverMode)
@@ -159,6 +176,11 @@ func main() {
 	}
 	if *options != "" && *optionsFile != "" {
 		golog.Fatal("cannot specify -options and -optionsFile at the same time")
+	}
+	if err = log.Init(*enableLogging, path.Join(stateDir, dispatcherLogFile), ipcLogLevel); err != nil {
+		println("stateDir:", stateDir)
+		println("--> Error: ", err.Error())
+		golog.Fatalf("--> [ERROR]: %s - failed to initialize logging", execName)
 	}
 	if *optionsFile != "" {
 		fmt.Println("checking for optionsFile")
@@ -175,26 +197,76 @@ func main() {
 		}
 	}
 
-	emptyString := ""
-	validationError := validatetarget(isClient, &emptyString, &emptyString, target)
-	if validationError != nil {
-		golog.Error(validationError)
+	transportValidationError := validateTransports(transport, transportsList)
+	if transportValidationError != nil {
+		golog.Errorf("could not validate: %s", transportValidationError)
 		return
 	}
 
-	mode := determineMode(*transparent, *udp)
+	if *transport != "" && *transportsList == "" {
+		transportsList = transport
+	}
+
+	modeValidationError := validateMode(modeName, transparent, udp)
+	if modeValidationError != nil {
+		golog.Errorf("could not validate: %s", modeValidationError)
+		return
+	}
+
+	mode, modeError := determineMode(*modeName, *transparent, *udp)
+	if modeError != nil {
+		golog.Errorf("invalid mode name %s", *modeName)
+		return
+	}
 
 	if isClient {
-		proxyValidationError := validateProxyListenAddr(&emptyString, &emptyString, socksAddr)
-		if proxyValidationError != nil {
-			golog.Error(proxyValidationError)
+		proxyListenValidationError := validateProxyListenAddr(proxyListenHost, proxyListenPort, socksAddr)
+		if proxyListenValidationError != nil {
+			golog.Errorf("could not validate: %s", proxyListenValidationError)
+			golog.Infof("proxylistenhost: %s", *proxyListenHost)
+			golog.Infof("proxylistenport: %s", *proxyListenPort)
+			golog.Infof("proxylistenaddr: %s", *socksAddr)
 			return
 		}
+
+		if *proxyListenHost != "" && *proxyListenPort != "" && *socksAddr == "" {
+			newSocksAddr := *proxyListenHost+":"+*proxyListenPort
+			socksAddr = &newSocksAddr
+		}
+
+		if *socksAddr == "" {
+			*socksAddr = "127.0.0.1:0"
+		}
+
+		if mode == socks5 {
+			targetValidationError := validatetargetSocks5(targetHost, targetPort, target)
+			if targetValidationError != nil {
+				golog.Errorf("could not validate: %s",targetValidationError)
+				return
+			}
+
+		} else {
+			targetValidationError := validatetarget(targetHost, targetPort, target)
+			if targetValidationError != nil {
+				golog.Errorf("could not validate: %s",targetValidationError)
+				return
+			}
+			if *targetHost != "" && *targetPort != "" && *target == "" {
+				newTarget := *targetHost+":"+*targetPort
+				bindAddr = &newTarget
+			}
+		}
+
 	} else {
-		bindAddrValidationError := validateServerBindAddr(&emptyString, &emptyString, &emptyString, bindAddr)
-		if bindAddrValidationError != nil {
-			golog.Error(bindAddrValidationError)
+		serverBindValidationError := validateServerBindAddr(transport, serverBindHost, serverBindPort, bindAddr)
+		if serverBindValidationError != nil {
+			golog.Errorf("could not validate: %s",serverBindValidationError)
 			return
+		}
+
+		if *transport != "" && *serverBindHost != "" && *serverBindPort != "" && *bindAddr == "" {
+			newBindAddr := *transport+"-"+*serverBindHost+":"+*serverBindPort
+			bindAddr = &newBindAddr
 		}
 	}
 	// Finished validation of command line arguments
@@ -278,21 +350,35 @@ func main() {
 	}
 }
 
-func determineMode(isTransparent bool, isUDP bool) int {
+func determineMode(mode string, isTransparent bool, isUDP bool) (int, error) {
+	if mode != "" {
+		switch mode {
+		case "socks5":
+			return socks5, nil
+		case "transparent-TCP":
+			return transparentTCP, nil
+		case "transparent-UDP":
+			return transparentUDP, nil
+		case "STUN":
+			return stunUDP, nil
+		default:
+			return -1, errors.New("invalid mode")
+		}
+	}
 	if isTransparent && isUDP {
 		golog.Infof("initializing transparent proxy")
 		golog.Infof("initializing UDP transparent proxy")
-		return transparentUDP
+		return transparentUDP, nil
 	} else if isTransparent {
 		golog.Infof("initializing transparent proxy")
 		golog.Infof("initializing TCP transparent proxy")
-		return transparentTCP
+		return transparentTCP, nil
 	} else if isUDP {
 		golog.Infof("initializing STUN UDP proxy")
-		return stunUDP
+		return stunUDP, nil
 	} else {
 		golog.Infof("initializing PT 2.1 socks5 proxy")
-		return socks5
+		return socks5, nil
 	}
 }
 
@@ -376,7 +462,6 @@ func getServerInfo(bindaddrList *string, options *string, transportList *string,
 
 	return ptServerInfo
 }
-
 // Return an array of Bindaddrs.
 func getServerBindaddrs(bindaddrList *string, options *string, transports *string) ([]pt.Bindaddr, error) {
 	var result []pt.Bindaddr

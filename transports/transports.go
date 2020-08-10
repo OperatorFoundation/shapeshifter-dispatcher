@@ -40,6 +40,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v3"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v3"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v3"
+
 	"golang.org/x/net/proxy"
 )
 
@@ -294,7 +295,6 @@ func parseTransports(otcs []interface{}, dialer proxy.Dialer) ([]Optimizer.Trans
 	}
 	return transports, nil
 }
-
 
 func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer.TransportDialer, error) {
 	var config map[string]interface{}
