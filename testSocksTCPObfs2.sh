@@ -11,12 +11,12 @@ rm $FILENAME
 nc -l 3333 >$FILENAME &
 
 # Run the transport server
-./shapeshifter-dispatcher -server -state state -target 127.0.0.1:3333 -bindaddr 127.0.0.1:2222  -transports obfs2 -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -server -state state -target 127.0.0.1:3333 -bindaddr obfs2-127.0.0.1:2222  -transports obfs2 -logLevel DEBUG -enableLogging &
 
 sleep 1
 
 # Run the transport client
-./shapeshifter-dispatcher -client -state state -transports obfs2 -proxylistenaddr 127.0.0.1:1443 -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -client -state state -transports obfs2 -proxylistenaddr 127.0.0.1:1443 -optionsFile obfs2.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 

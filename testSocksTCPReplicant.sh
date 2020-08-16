@@ -11,7 +11,7 @@ rm $FILENAME
 nc -l 3333 >$FILENAME &
 
 # Run the transport server
-./shapeshifter-dispatcher -server -state state -target 127.0.0.1:3333 -bindaddr 127.0.0.1:2222 -transports Replicant -optionsFile ReplicantServerConfigV3.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -server -state state -target 127.0.0.1:3333 -transports Replicant -bindaddr Replicant-127.0.0.1:2222 -optionsFile ReplicantServerConfigV3.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 

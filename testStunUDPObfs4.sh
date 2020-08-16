@@ -28,7 +28,7 @@ CERT=${CERTSTRING:5}
 echo "$STATEPATH"
 echo "$CERT"
 echo "$OS"
-go echo "{\"cert\": \"$CERT\", \"iat-mode\": \"0\", \"address\": \"127.0.0.1:2222\"}" >obfs4.json
+echo "{\"cert\": \"$CERT\", \"iat-mode\": \"0\", \"address\": \"127.0.0.1:2222\"}" >obfs4.json
 
 # Run the transport client
 ./shapeshifter-dispatcher -udp -client -state "$STATEPATH" -transports obfs4 -proxylistenaddr 127.0.0.1:1443 -optionsFile obfs4.json -logLevel DEBUG -enableLogging &

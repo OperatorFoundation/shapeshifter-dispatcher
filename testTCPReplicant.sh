@@ -23,6 +23,7 @@ sleep 1
 # Run a demo application client with netcat
 go test -run TransparentTCP
 
+
 sleep 1
 
 OS=$(uname)

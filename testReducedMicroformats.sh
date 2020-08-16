@@ -62,7 +62,6 @@ killall shapeshifter-dispatcher
 # Test -mode socks5
 echo "* socks5"
 
-export TOR_PT_ORPORT=127.0.0.1:2222
 ./shapeshifter-dispatcher -mode socks5 -client -state state -transport shadow -proxylistenaddr 127.0.0.1:1443 -optionsFile shadowClient.json -logLevel DEBUG -enableLogging &
 
 sleep 1

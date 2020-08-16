@@ -16,7 +16,7 @@ nc -l -u 3333 >$FILENAME &
 sleep 1
 
 # Run the transport client
-./shapeshifter-dispatcher -udp -client -state state -transports obfs2 -proxylistenaddr 127.0.0.1:1443 -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -udp -client -state state -transports obfs2 -proxylistenaddr 127.0.0.1:1443 -optionsFile obfs2.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 

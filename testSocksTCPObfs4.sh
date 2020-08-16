@@ -19,7 +19,7 @@ else
 fi
 
 # Run the transport server
-./shapeshifter-dispatcher -server -state "$STATEPATH" -target 127.0.0.1:3333 -bindaddr 127.0.0.1:2222 -transports obfs4 -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -server -state "$STATEPATH" -target 127.0.0.1:3333 -bindaddr obfs4-127.0.0.1:2222 -transports obfs4 -logLevel DEBUG -enableLogging &
 
 sleep 1
 
@@ -28,7 +28,7 @@ CERT=${CERTSTRING:5}
 echo "$STATEPATH"
 echo "$CERT"
 echo "$OS"
-go echo "{\"cert\": \"$CERT\", \"iat-mode\": \"0\", \"address\": \"127.0.0.1:2222\"}" >obfs4.json
+echo "{\"cert\": \"$CERT\", \"iat-mode\": \"0\", \"address\": \"127.0.0.1:2222\"}" >obfs4.json
 
 # Run the transport client
 ./shapeshifter-dispatcher -client -state "$STATEPATH" -transports obfs4 -proxylistenaddr 127.0.0.1:1443 -optionsFile obfs4.json -logLevel DEBUG -enableLogging &

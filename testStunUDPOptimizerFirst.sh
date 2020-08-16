@@ -11,9 +11,9 @@ rm $FILENAME
 nc -l -u 3333 >$FILENAME &
 
 # Run the transport server
-./shapeshifter-dispatcher -udp -server -state state -orport 127.0.0.1:3333 -transports shadow -bindaddr -127.0.0.1:2222 -optionsFile shadowServer.json -logLevel DEBUG -enableLogging &
-./shapeshifter-dispatcher -udp -server -state state -orport 127.0.0.1:3333 -transports obfs2 -bindaddr obfs2-127.0.0.1:2223 -logLevel DEBUG -enableLogging &
-./shapeshifter-dispatcher -udp -server -state state -orport 127.0.0.1:3333 -transports Replicant -bindaddr Replicant-127.0.0.1:2224 -optionsFile ReplicantServerConfigV2.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -udp -server -state state -target 127.0.0.1:3333 -transports shadow -bindaddr shadow-127.0.0.1:2222 -optionsFile shadowServer.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -udp -server -state state -target 127.0.0.1:3333 -transports obfs2 -bindaddr obfs2-127.0.0.1:2223 -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -udp -server -state state -target 127.0.0.1:3333 -transports Replicant -bindaddr Replicant-127.0.0.1:2224 -optionsFile ReplicantServerConfigV2.json -logLevel DEBUG -enableLogging &
 
 sleep 5
 
