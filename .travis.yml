@@ -9,6 +9,8 @@ env:
 script:
   - go build -v
   - go test -v github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5
+  - ./testIPCLogLevel.sh
+  - ./testReducedMicroformats.sh
   #- ./testTCPDust.sh
   #- ./testTCPMeek.sh
   - ./testTCPObfs2.sh
