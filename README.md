@@ -20,7 +20,7 @@ If you are a tool developer working in the Go programming language, then you
 probably want to use the transports library directly in your application.
 <https://github.com/OperatorFoundation/shapeshifter-transports>
 
-If you want a end user that is trying to circumvent filtering on your network or
+If you want an end user that is trying to circumvent filtering on your network, or
 you are a developer that wants to add pluggable transports to an existing tool
 that is not written in the Go programming language, then you probably want the
 dispatcher. Please note that familiarity with executing programs on the command
@@ -100,7 +100,7 @@ Run without argument to get usage information:
 Shapeshifter dispatcher has several modes of operations. A common way to get started is with transparent TCP mode:
 
     ./shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports obfs2 -bindaddr obfs2-127.0.0.1:2222 -logLevel DEBUG -enableLogging &
-    ./shapeshifter-dispatcher -transparent -client -state state -target 127.0.0.1:2222 -transports obfs2 -proxylistenaddr 127.0.0.1:1443 -logLevel DEBUG -enableLogging &
+    ./shapeshifter-dispatcher -transparent -client -state state -transports obfs2 -proxylistenaddr 127.0.0.1:1443 -optionsFile obfs2.json -logLevel DEBUG -enableLogging &
 
 Use either -client or -server to place the proxy into client or server mode,
 respectively. Use -state to specify a directory to put transports state
@@ -142,7 +142,7 @@ For this example to work, you need an application server running. You can use ne
 
 Now launch the transport server, telling it where to find the application server:
 
-    ./shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports Replicant -bindaddr Replicant-127.0.0.1:2222 -logLevel DEBUG -enableLogging -optionsFile ReplicantServerConfigV3.json
+    ./shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports Replicant -bindaddr Replicant-127.0.0.1:2222 -optionsFile ReplicantServerConfigV3.json -logLevel DEBUG -enableLogging
 
 This runs the server in transparent TCP proxy mode. The directory "state" is used
 to hold transport state. The destination that the server will proxy to is
@@ -150,11 +150,11 @@ to hold transport state. The destination that the server will proxy to is
 2222. Logging is enabled and set to DEBUG level.
 To access the Log for debugging purposes, look at state/dispatcher.log
 
-To use Replicant, a config file is needed. A sample config file, ReplicantServerConfigV2.json, is provided purely for educational purposes and should not be used in actual production.
+To use Replicant, a config file is needed. A sample config file, ReplicantServerConfigV3.json, is provided purely for educational purposes and should not be used in actual production.
 
 ##### Client
 
-    ./shapeshifter-dispatcher -transparent -client -state state -target 127.0.0.1:2222  -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ReplicantClientConfigV2.json -logLevel DEBUG -enableLogging 
+    ./shapeshifter-dispatcher -transparent -client -state state -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ReplicantClientConfigV3.json -logLevel DEBUG -enableLogging 
 
 This runs the client in transparent TCP proxy mode. The directory "state" is
 used to hold transport state. The address of the server is specified as
@@ -163,7 +163,7 @@ command line above. For this demo to work, the dispatcher server needs to be
 running on this host and port. The Replicant transport is enabled and bound to the
 address 127.0.0.1 and the port 1443.
 
-To use Replicant, a config file is needed. A sample config file, ReplicantClientConfigV2.json, is provided purely for educational purposes and should not be used in actual production.
+To use Replicant, a config file is needed. A sample config file, ReplicantClientConfigV3.json, is provided purely for educational purposes and should not be used in actual production.
 
 Once the client is running, you can connect to the client address, which in this
 case is 127.0.0.1, port 1443. For instance, you can telnet to this address:
@@ -207,7 +207,7 @@ The cert parameter is what is needed for the dispatcher client.
 
 ##### Client
 
-    ./shapeshifter-dispatcher -transparent -client -state state -target 127.0.0.1:2222  -transports obfs4 -proxylistenaddr 127.0.0.1:1443 -optionsFile obfs4.json -logLevel DEBUG -enableLogging 
+    ./shapeshifter-dispatcher -transparent -client -state state -transports obfs4 -proxylistenaddr 127.0.0.1:1443 -optionsFile obfs4.json -logLevel DEBUG -enableLogging 
 
 This runs the client in transparent TCP proxy mode. The directory "state" is
 used to hold transport state. The address of the server is specified as
@@ -264,15 +264,11 @@ Here are example command lines to run the dispatcher in SOCKS5 mode with the Rep
 For this example to work, you need an application server running. You can use netcat to run a simple server on port 3333:
  
     nc -l 3333
-    
-For compatibility reasons, SOCKS5 mode uses an environment variable to specify the application server address instead of -bindaddr:
-
-    export TOR_PT_SERVER_BINDADDR=127.0.0.1:2222
 
 Now launch the transport server, telling it where to find the application server:
 
 
-    ./shapeshifter-dispatcher -server -state state -target 127.0.0.1:3333 -transports Replicant -logLevel DEBUG -enableLogging -optionsFile ReplicantServerConfigV3.json
+    ./shapeshifter-dispatcher -server -state state -target 127.0.0.1:3333 -transports Replicant -bindaddr Replicant-127.0.0.1:2222 -optionsFile ReplicantServerConfigV3.json -logLevel DEBUG -enableLogging
 
 This runs the server in the default mode, which is SOCKS5 mode. The directory "state" is used
 to hold transport state. The destination that the server will proxy to is 127.0.0.1, port 3333.
@@ -284,7 +280,7 @@ To use Replicant, a config file is needed. A sample config file, ReplicantServer
 
 ##### Client
 
-    ./shapeshifter-dispatcher -client -state state -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ReplicantClientConfigV2.json -logLevel DEBUG -enableLogging 
+    ./shapeshifter-dispatcher -client -state state -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ReplicantClientConfigV3.json -logLevel DEBUG -enableLogging 
 
 This runs the client in the default mode, which is SOCKS5 mode. The directory "state" is
 used to hold transport state. The Replicant transport is enabled and bound to the
