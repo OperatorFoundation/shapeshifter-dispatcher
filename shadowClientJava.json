@@ -1,0 +1,5 @@
+{
+  "password": "1234",
+  "cipherName": "CHACHA20-IETF-POLY1305",
+  "address": "[::1]:2222"
+}
