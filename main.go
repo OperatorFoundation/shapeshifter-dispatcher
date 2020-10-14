@@ -252,10 +252,12 @@ func main() {
 		}
 
 	} else {
-		serverBindValidationError := validateServerBindAddr(transport, serverBindHost, serverBindPort, bindAddr)
-		if serverBindValidationError != nil {
-			log.Errorf("could not validate: %s",serverBindValidationError)
-			return
+		if (mode != socks5) {
+			serverBindValidationError := validateServerBindAddr(transport, serverBindHost, serverBindPort, bindAddr)
+			if serverBindValidationError != nil {
+				log.Errorf("could not validate: %s",serverBindValidationError)
+				return
+			}
 		}
 
 		if *transport != "" && *serverBindHost != "" && *serverBindPort != "" && *bindAddr == "" {
