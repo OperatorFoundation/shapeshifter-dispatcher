@@ -6,12 +6,12 @@ OS=$(uname)
 go get -u github.com/OperatorFoundation/shapeshifter-dispatcher
 
 # remove text from the output file
-rm $FILENAME
+rm ${FILENAME}
 
 # Run a demo application server with netcat and write to the output file
-nc -l -u 3333 >$FILENAME &
+nc -l -u 3333 >${FILENAME} &
 
-if [ "$OS" = "Darwin" ]
+if [[ "$OS" = "Darwin" ]]
 then
   STATEPATH=$HOME/shapeshifter-dispatcher/stateDir
 else
@@ -42,14 +42,14 @@ sleep 1
 
 OS=$(uname)
 
-if [ "$OS" = "Darwin" ]
+if [[ "$OS" = "Darwin" ]]
 then
   FILESIZE=$(stat -f%z "$FILENAME")
 else
   FILESIZE=$(stat -c%s "$FILENAME")
 fi
 
-if [ "$FILESIZE" = "0" ]
+if [[ "$FILESIZE" = "0" ]]
 then
   echo "Test Failed"
   killall shapeshifter-dispatcher

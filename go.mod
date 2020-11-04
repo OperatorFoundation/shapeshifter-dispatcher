@@ -18,7 +18,8 @@ require (
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
 	github.com/shadowsocks/go-shadowsocks2 v0.1.3 // indirect
 	github.com/willscott/goturn v0.0.0-20170802220503-19f41278d0c9
-	golang.org/x/crypto v0.0.0-20201012173705-84dcc777aaee // indirect
-	golang.org/x/net v0.0.0-20201010224723-4f7140c49acb
-	golang.org/x/sys v0.0.0-20201013132646-2da7054afaeb // indirect
+	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
+	golang.org/x/net v0.0.0-20201029055024-942e2f445f3c
+	golang.org/x/sys v0.0.0-20201029080932-201ba4db2418 // indirect
+	golang.org/x/text v0.3.4 // indirect
 )
