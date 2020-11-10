@@ -9,15 +9,17 @@ go get -u github.com/OperatorFoundation/shapeshifter-dispatcher
 rm $FILENAME
 
 # Run a demo application server with netcat and write to the output file
-nc -l 3333 >$FILENAME &
-
+# nc -l 3333 >$FILENAME &
+nc -l 11940 >$FILENAME &
 # Run the transport server
-./shapeshifter-dispatcher -transparent -server -state state -orport 127.0.0.1:3333 -transports shadow -bindaddr shadow-127.0.0.1:2222 -optionsFile shadowServer.json -logLevel DEBUG -enableLogging &
+# ./shapeshifter-dispatcher -transparent -server -state state -orport 127.0.0.1:3333 -transports shadow -bindaddr shadow-127.0.0.1:2222 -optionsFile shadowServer.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -transparent -server -state state -orport 127.0.0.1:11940 -transports shadow -bindaddr shadow-127.0.0.1:1194 -optionsFile shadowServer.json json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
 # Run the transport client
-./shapeshifter-dispatcher -transparent -client -state state -target 127.0.0.1:2222 -transports shadow -proxylistenaddr 127.0.0.1:1443 -optionsFile shadowClient.json -logLevel DEBUG -enableLogging &
+# ./shapeshifter-dispatcher -transparent -client -state state -target 127.0.0.1:2222 -transports shadow -proxylistenaddr 127.0.0.1:1443 -optionsFile shadowClient.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -transparent -client -state state -target 127.0.0.1:1194 -transports shadow -proxylistenaddr 127.0.0.1:1443 -optionsFile shadowClient.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
