@@ -79,8 +79,8 @@ func main() {
 
 	flag.Usage = func() {
 		_, _ = fmt.Fprintf(os.Stderr, "shapeshifter-dispatcher is a PT v2.0 proxy supporting multiple transports and proxy modes\n\n")
-		_, _ = fmt.Fprintf(os.Stderr, "Usage:\n\t%s -client -state [statedir] -version 2 -transports [transport1,transport2,...]\n\n", os.Args[0])
-		_, _ = fmt.Fprintf(os.Stderr, "Example:\n\t%s -client -state state -version 2 -transports obfs2\n\n", os.Args[0])
+		_, _ = fmt.Fprintf(os.Stderr, "Usage:\n\t%s -client -state [statedir] -ptversion 2 -transports [transport1,transport2,...]\n\n", os.Args[0])
+		_, _ = fmt.Fprintf(os.Stderr, "Example:\n\t%s -client -state state -ptversion 2 -transports obfs2\n\n", os.Args[0])
 		_, _ = fmt.Fprintf(os.Stderr, "Flags:\n\n")
 		flag.PrintDefaults()
 	}
