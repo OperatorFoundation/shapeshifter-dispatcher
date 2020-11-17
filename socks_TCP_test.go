@@ -86,7 +86,7 @@ func TestSocksTCPReplicant(t *testing.T) {
 }
 
 func TestSocksTCPShadow(t *testing.T) {
-	negotiateError := negotiateSocks("shadowClient.json")
+	negotiateError := negotiateSocks("shadowClientChaCha.json")
 	if negotiateError != nil {
 		t.Fail()
 	}
