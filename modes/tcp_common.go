@@ -27,6 +27,7 @@ package modes
 import (
 	"errors"
 	"fmt"
+
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	pt "github.com/OperatorFoundation/shapeshifter-ipc/v2"
 
@@ -34,7 +35,6 @@ import (
 	"net"
 	"net/url"
 	"os"
-	"sync"
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 )
@@ -110,42 +110,37 @@ func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 }
 
 func CopyLoop(a net.Conn, b net.Conn) error {
-	println("--> Entering copy loop.")
-	// Note: b is always the pt connection.  a is the SOCKS/ORPort connection.
-	errChan := make(chan error, 2)
-
-	var wg sync.WaitGroup
-	wg.Add(2)
+	fmt.Println("--> Entering copy loop.")
 
 	if b == nil {
-		println("--> Copy loop has a nil connection (b).")
+		fmt.Fprintln(os.Stderr, "--> Copy loop has a nil connection (b).")
 		return errors.New("copy loop has a nil connection (b)")
 	}
 
 	if a == nil {
-		println("--> Copy loop has a nil connection (a).")
+		fmt.Fprintln(os.Stderr, "--> Copy loop has a nil connection (a).")
 		return errors.New("copy loop has a nil connection (a)")
 	}
 
+	// Note: b is always the pt connection.  a is the SOCKS/ORPort connection.
+	errChan := make(chan error)
+
 	go func() {
-		defer wg.Done()
 		_, err := io.Copy(b, a)
-		errChan <- err
-	}()
-	go func() {
-		defer wg.Done()
-		_, err := io.Copy(a, b)
+		if e := b.Close(); err == nil {
+			err = e
+		}
 		errChan <- err
 	}()
 
-	// Wait for both upstream and downstream to close.  Since one side
-	// terminating closes the other, the second error in the channel will be
-	// something like EINVAL (though io.Copy() will swallow EOF), so only the
-	// first error is returned.
-	wg.Wait()
-	if len(errChan) > 0 {
-		return <-errChan
+	_, err := io.Copy(a, b)
+	if e := a.Close(); err == nil {
+		err = e
 	}
 
-	return nil
+	// Wait for Copy(b, a) goroutine, prefer error from Copy(a, b) if any.
+	if e := <-errChan; err == nil {
+		err = e
+	}
+	return err
 }
