@@ -105,6 +105,7 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 }
 
 func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
+	defer remote.Close()
 	// Connect to the orport.
 	orConn, err := pt.DialOr(info, remote.RemoteAddr().String(), name)
 	if err != nil {
