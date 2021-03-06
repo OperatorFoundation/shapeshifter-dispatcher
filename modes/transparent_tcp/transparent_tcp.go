@@ -31,15 +31,18 @@ package transparent_tcp
 
 import (
 	"fmt"
+	"os"
+
 	"github.com/OperatorFoundation/obfs4/common/log"
 	commonLog "github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes"
-	"github.com/OperatorFoundation/shapeshifter-ipc/v2"
+	pt "github.com/OperatorFoundation/shapeshifter-ipc/v2"
 
-	"golang.org/x/net/proxy"
 	"net"
 	"net/url"
+
+	"golang.org/x/net/proxy"
 )
 
 func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names []string, options string) (launched bool) {
@@ -47,8 +50,14 @@ func ClientSetup(socksAddr string, target string, ptClientProxy *url.URL, names 
 }
 
 func clientHandler(target string, name string, options string, conn net.Conn, proxyURI *url.URL) {
-	var dialer proxy.Dialer
-	dialer = proxy.Direct
+	if conn == nil {
+		fmt.Fprintln(os.Stderr, "--> Application connection is nil")
+		log.Errorf("%s - closed connection. Application connection is nil", name)
+	} else {
+		defer conn.Close()
+	}
+
+	var dialer proxy.Dialer = proxy.Direct
 	if proxyURI != nil {
 		var err error
 		dialer, err = proxy.FromURL(proxyURI, proxy.Direct)
@@ -66,37 +75,31 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 	if argsToDialerErr != nil {
 		log.Errorf("Error creating a transport with the provided options: %v", options)
 		log.Errorf("Error: %v", argsToDialerErr.Error())
-		println("-> Error creating a transport with the provided options: ", options)
-		println("-> Error: ", argsToDialerErr.Error())
+		fmt.Fprintln(os.Stderr, "-> Error creating a transport with the provided options: ", options)
+		fmt.Fprintln(os.Stderr, "-> Error: ", argsToDialerErr.Error())
 		return
 	}
 
 	fmt.Println("Dialing ", target)
 	remote, dialErr := transport.Dial()
 	if dialErr != nil {
-		println("--> Unable to dial transport server: ", dialErr.Error())
-		println("-> Name: ", name)
-		println("-> Options: ", options)
+		fmt.Fprintln(os.Stderr, "--> Unable to dial transport server: ", dialErr.Error())
+		fmt.Fprintln(os.Stderr, "-> Name: ", name)
+		fmt.Fprintln(os.Stderr, "-> Options: ", options)
 		log.Errorf("--> Unable to dial transport server: %v", dialErr.Error())
 		return
 	}
-
-	if conn == nil {
-		println("--> Application connection is nil")
-		log.Errorf("%s - closed connection. Application connection is nil", name)
-	}
-
 	if remote == nil {
-		println("--> Transport server connection is nil.")
+		fmt.Fprintln(os.Stderr, "--> Transport server connection is nil.")
 		log.Errorf("%s - closed connection. Transport server connection is nil", name)
 	}
 
 	if err := modes.CopyLoop(conn, remote); err != nil {
 		log.Errorf("%s(%s) - closed connection: %s", name, target, commonLog.ElideError(err))
-		println("%s(%s) - closed connection: %s", name, target, commonLog.ElideError(err))
+		fmt.Fprintf(os.Stderr, "%s(%s) - closed connection: %s", name, target, commonLog.ElideError(err))
 	} else {
 		log.Infof("%s(%s) - closed connection", name, target)
-		println("%s(%s) - closed connection", name, target)
+		fmt.Fprintf(os.Stderr, "%s(%s) - closed connection", name, target)
 	}
 }
 
@@ -119,4 +122,3 @@ func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 		log.Infof("%s - closed connection", name)
 	}
 }
-
