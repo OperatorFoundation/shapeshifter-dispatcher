@@ -89,18 +89,18 @@ Go into that directory and build the command line executable:
 
 This will fetch the source code for shapeshifter-dispatcher, and all the
 dependencies, compile everything, and put the result in
-./shapeshifter-dispatcher.
+~/go/bin/shapeshifter-dispatcher.
 
 #### Running
 
 Run without argument to get usage information:
 
-    ./shapeshifter-dispatcher
+    ~/go/bin/shapeshifter-dispatcher
 
 Shapeshifter dispatcher has several modes of operations. A common way to get started is with transparent TCP mode:
 
-    ./shapeshifter-dispatcher -transparent -server -state state -orport 127.0.0.1:3333 -transports obfs2 -bindaddr obfs2-127.0.0.1:2222 -logLevel DEBUG -enableLogging &
-    ./shapeshifter-dispatcher -transparent -client -state state -target 127.0.0.1:2222 -transports obfs2 -proxylistenaddr 127.0.0.1:1443 -logLevel DEBUG -enableLogging &
+    ~/go/bin/shapeshifter-dispatcher -transparent -server -state state -orport 127.0.0.1:3333 -transports obfs2 -bindaddr obfs2-127.0.0.1:2222 -logLevel DEBUG -enableLogging &
+    ~/go/bin/shapeshifter-dispatcher -transparent -client -state state -target 127.0.0.1:2222 -transports obfs2 -proxylistenaddr 127.0.0.1:1443 -logLevel DEBUG -enableLogging &
 
 Use either -client or -server to place the proxy into client or server mode,
 respectively. Use -state to specify a directory to put transports state
@@ -142,7 +142,7 @@ For this example to work, you need an application server running. You can use ne
 
 Now launch the transport server, telling it where to find the application server:
 
-    ./shapeshifter-dispatcher -transparent -server -state state -orport 127.0.0.1:3333 -transports Replicant -bindaddr Replicant-127.0.0.1:2222 -logLevel DEBUG -enableLogging -optionsFile ReplicantServerConfigV2.json
+    ~/go/bin/shapeshifter-dispatcher -transparent -server -state state -orport 127.0.0.1:3333 -transports Replicant -bindaddr Replicant-127.0.0.1:2222 -logLevel DEBUG -enableLogging -optionsFile ../../ConfigFiles/ ReplicantServerConfigV2.json
 
 This runs the server in transparent TCP proxy mode. The directory "state" is used
 to hold transport state. The destination that the server will proxy to is
@@ -154,7 +154,7 @@ To use Replicant, a config file is needed. A sample config file, ReplicantServer
 
 ##### Client
 
-    ./shapeshifter-dispatcher -transparent -client -state state -target 127.0.0.1:2222  -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ReplicantClientConfigV2.json -logLevel DEBUG -enableLogging 
+    ~/go/bin/shapeshifter-dispatcher -transparent -client -state state -target 127.0.0.1:2222  -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ReplicantClientConfigV2.json -logLevel DEBUG -enableLogging 
 
 This runs the client in transparent TCP proxy mode. The directory "state" is
 used to hold transport state. The address of the server is specified as
@@ -187,7 +187,7 @@ For this example to work, you need an application server running. You can use ne
 
 Now launch the transport server, telling it where to find the application server:
 
-    ./shapeshifter-dispatcher -transparent -server -state state -orport 127.0.0.1:3333 -transports obfs4 -bindaddr obfs4-127.0.0.1:2222 -logLevel DEBUG -enableLogging
+    ~/go/bin/shapeshifter-dispatcher -transparent -server -state state -orport 127.0.0.1:3333 -transports obfs4 -bindaddr obfs4-127.0.0.1:2222 -logLevel DEBUG -enableLogging
 
 This runs the server in transparent TCP proxy mode. The directory "state" is used
 to hold transport state. The destination that the server will proxy to is
@@ -207,7 +207,7 @@ The cert parameter is what is needed for the dispatcher client.
 
 ##### Client
 
-    ./shapeshifter-dispatcher -transparent -client -state state -target 127.0.0.1:2222  -transports obfs4 -proxylistenaddr 127.0.0.1:1443 -optionsFile obfs4.json -logLevel DEBUG -enableLogging 
+    ~/go/bin/shapeshifter-dispatcher -transparent -client -state state -target 127.0.0.1:2222  -transports obfs4 -proxylistenaddr 127.0.0.1:1443 -optionsFile obfs4.json -logLevel DEBUG -enableLogging 
 
 This runs the client in transparent TCP proxy mode. The directory "state" is
 used to hold transport state. The address of the server is specified as
@@ -271,7 +271,7 @@ For compatibility reasons, SOCKS5 mode uses an environment variable to specify t
 
 Now launch the transport server, telling it where to find the application server:
 
-    ./shapeshifter-dispatcher -server -state state -orport 127.0.0.1:3333 -transports Replicant -logLevel DEBUG -enableLogging -optionsFile ReplicantServerConfigV2.json
+    ~/go/bin/shapeshifter-dispatcher -server -state state -orport 127.0.0.1:3333 -transports Replicant -logLevel DEBUG -enableLogging -optionsFile ReplicantServerConfigV2.json
 
 This runs the server in the default mode, which is SOCKS5 mode. The directory "state" is used
 to hold transport state. The destination that the server will proxy to is 127.0.0.1, port 3333.
@@ -283,7 +283,7 @@ To use Replicant, a config file is needed. A sample config file, ReplicantServer
 
 ##### Client
 
-    ./shapeshifter-dispatcher -client -state state -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ReplicantClientConfigV2.json -logLevel DEBUG -enableLogging 
+    ~/go/bin/shapeshifter-dispatcher -client -state state -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ReplicantClientConfigV2.json -logLevel DEBUG -enableLogging 
 
 This runs the client in the default mode, which is SOCKS5 mode. The directory "state" is
 used to hold transport state. The Replicant transport is enabled and bound to the

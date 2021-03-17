@@ -16,10 +16,10 @@ require (
 	github.com/dchest/siphash v1.2.2 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	github.com/riobard/go-bloom v0.0.0-20200614022211-cdc8013cb5b3 // indirect
-	github.com/shadowsocks/go-shadowsocks2 v0.1.3 // indirect
+	github.com/shadowsocks/go-shadowsocks2 v0.1.4 // indirect
 	github.com/willscott/goturn v0.0.0-20170802220503-19f41278d0c9
-	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
-	golang.org/x/net v0.0.0-20201110031124-69a78807bb2b
-	golang.org/x/sys v0.0.0-20201109165425-215b40eba54c // indirect
-	golang.org/x/text v0.3.4 // indirect
+	golang.org/x/crypto v0.0.0-20210314154223-e6e6c4f2bb5b // indirect
+	golang.org/x/net v0.0.0-20210316092652-d523dce5a7f4
+	golang.org/x/sys v0.0.0-20210316164454-77fc1eacc6aa // indirect
+	golang.org/x/text v0.3.5 // indirect
 )
