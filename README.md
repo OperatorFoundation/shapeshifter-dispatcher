@@ -267,7 +267,7 @@ For this example to work, you need an application server running. You can use ne
     
 For compatibility reasons, SOCKS5 mode uses an environment variable to specify the application server address instead of -bindaddr:
 
-    export TOR_PT_SERVER_BINDADDR=127.0.0.1:2222
+    export TOR_PT_SERVER_BINDADDR=Replicant-127.0.0.1:2222
 
 Now launch the transport server, telling it where to find the application server:
 
