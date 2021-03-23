@@ -9,6 +9,7 @@ env:
 script:
   - go build -v
   - go test -v github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5
+  - cd shTests/TransparentTCP
   #- ./testTCPDust.sh
   #- ./testTCPMeek.sh
   - ./testTCPObfs2.sh
@@ -20,6 +21,7 @@ script:
   - ./testTCPOptimizerTrack.sh
   - ./testTCPReplicant.sh
   - ./testTCPShadow.sh
+  - cd ../TransparentUDP
   #- ./testUDPDust.sh
   #- ./testUDPMeek.sh
   - ./testUDPObfs2.sh
@@ -31,6 +33,7 @@ script:
   - ./testUDPOptimizerTrack.sh
   - ./testUDPReplicant.sh
   - ./testUDPShadow.sh
+  - cd ../StunUDP
   #- ./testStunUDPDust.sh
   #- ./testStunUDPMeek.sh
   - ./testStunUDPObfs2.sh
@@ -42,3 +45,18 @@ script:
   - ./testStunUDPOptimizerTrack.sh
   - ./testStunUDPReplicant.sh
   - ./testStunUDPShadow.sh
+  - cd ../SocksTCP
+  #- ./testSocksTCPDust.sh
+  #- ./testSocksTCPMeek.sh
+  - ./testSocksTCPObfs2.sh
+  - ./testSocksTCPObfs4.sh
+  - ./testSocksTCPOptimizerFirst.sh
+  - ./testSocksTCPOptimizerMinimizeDialDuration.sh
+  - ./testSocksTCPOptimizerRandom.sh
+  - ./testSocksTCPOptimizerRotate.sh
+  - ./testSocksTCPOptimizerTrack.sh
+  - ./testSocksTCPReplicant.sh
+  - ./testSocksTCPShadow.sh
+  - cd ../Other
+  - ./testIPCLogLevel.sh
+  - ./testReducedMicroformats.sh
