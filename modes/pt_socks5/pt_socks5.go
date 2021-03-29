@@ -85,6 +85,7 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 	socksReq, err := socks5.Handshake(conn, needOptions)
 	if err != nil {
 		log.Errorf("%s - client failed socks handshake: %s", name, err)
+		conn.Close()
 		return
 	}
 	addrStr := commonLog.ElideAddr(socksReq.Target)
@@ -96,6 +97,7 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 	if argsToDialerErr != nil {
 		log.Errorf("Error creating a transport with the provided options: %s", options)
 		log.Errorf("Error: %s", argsToDialerErr)
+		conn.Close()
 		return
 	}
 	// Obtain the proxy dialer if any, and create the outgoing TCP connection.
@@ -107,6 +109,7 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 			// verifies this.
 			log.Errorf("%s(%s) - failed to obtain proxy dialer: %s", name, addrStr, commonLog.ElideError(err))
 			_ = socksReq.Reply(socks5.ReplyGeneralFailure)
+			conn.Close()
 			return
 		}
 	}
@@ -115,11 +118,13 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 	if err2 != nil {
 		log.Errorf("%s(%s) - outgoing connection failed: %s", name, addrStr, commonLog.ElideError(err2))
 		_ = socksReq.Reply(socks5.ErrorToReplyCode(err2))
+		conn.Close()
 		return
 	}
 	err = socksReq.Reply(socks5.ReplySucceeded)
 	if err != nil {
 		log.Errorf("%s(%s) - SOCKS reply failed: %s", name, addrStr, commonLog.ElideError(err))
+		conn.Close()
 		return
 	}
 
@@ -170,6 +175,7 @@ func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 	orConn, err := pt.DialOr(info, remote.RemoteAddr().String(), name)
 	if err != nil {
 		log.Errorf("%s(%s) - failed to connect to ORPort: %s", name, addrStr, log.ElideError(err))
+		remote.Close()
 		return
 	}
 

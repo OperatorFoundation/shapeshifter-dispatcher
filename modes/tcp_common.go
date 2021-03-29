@@ -108,38 +108,61 @@ func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 	return
 }
 
-func CopyLoop(a net.Conn, b net.Conn) error {
+func CopyLoop(client net.Conn, server net.Conn) error {
 	fmt.Println("--> Entering copy loop.")
 
-	if b == nil {
+	if server == nil {
 		fmt.Fprintln(os.Stderr, "--> Copy loop has a nil connection (b).")
 		return errors.New("copy loop has a nil connection (b)")
 	}
 
-	if a == nil {
+	if client == nil {
 		fmt.Fprintln(os.Stderr, "--> Copy loop has a nil connection (a).")
 		return errors.New("copy loop has a nil connection (a)")
 	}
 
 	// Note: b is always the pt connection.  a is the SOCKS/ORPort connection.
-	errChan := make(chan error)
+	okToCloseClientChannel := make(chan bool)
+	okToCloseServerChannel := make(chan bool)
+	copyErrorChannel := make(chan error)
 
-	go func() {
-		_, err := io.Copy(b, a)
-		if e := b.Close(); err == nil {
-			err = e
+	go CopyClientToServer(client, server, okToCloseClientChannel, copyErrorChannel)
+
+	go CopyServerToClient(client, server, okToCloseServerChannel, copyErrorChannel)
+
+	serverRunning := true
+	clientRunning := true
+	var copyError error
+
+	for clientRunning || serverRunning {
+		select {
+			case <- okToCloseClientChannel:
+				clientRunning = false
+			case <- okToCloseServerChannel:
+				serverRunning = false
+			case copyError = <-copyErrorChannel:
+				log.Errorf("Error while copying")
 		}
-		errChan <- err
-	}()
-
-	_, err := io.Copy(a, b)
-	if e := a.Close(); err == nil {
-		err = e
 	}
 
-	// Wait for Copy(b, a) goroutine, prefer error from Copy(a, b) if any.
-	if e := <-errChan; err == nil {
-		err = e
+	client.Close()
+	server.Close()
+
+	return copyError
+}
+
+func CopyClientToServer(client net.Conn, server net.Conn, okToCloseClient chan bool, errorChannel chan error) {
+	_, copyError := io.Copy(server, client)
+	okToCloseClient <- true
+	if copyError != nil {
+		errorChannel <- copyError
 	}
-	return err
+}
+
+func CopyServerToClient(client net.Conn, server net.Conn, okToCloseServer chan bool, errorChannel chan error) {
+	_, copyError := io.Copy(client, server)
+	okToCloseServer <- true
+	if copyError != nil {
+		errorChannel <- copyError
+	}
 }

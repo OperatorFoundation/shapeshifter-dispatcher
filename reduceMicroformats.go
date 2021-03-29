@@ -74,6 +74,14 @@ func validateServerBindAddr(transport *string, serverBindHost *string, serverBin
 	return nil
 }
 
+func validateSocksServerBindAddr(serverBindHost *string, serverBindPort *string, serverBindAddr *string) error {
+	if *serverBindHost != "" && *serverBindAddr != "" && *serverBindPort != "" {
+		return errors.New("you cannot specify --bindhost, --bindport, or --bindaddr in socks5 mode")
+	}
+
+	return nil
+}
+
 func validateProxyListenAddr(proxyListenHost *string, proxyListenPort *string, proxyListenAddr *string) error {
 	if *proxyListenHost == "" && *proxyListenAddr == "" {
 		return errors.New("you must specify either --proxylistenhost or --proxylistenaddr")

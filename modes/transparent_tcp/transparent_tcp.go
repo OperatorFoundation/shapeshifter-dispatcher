@@ -53,8 +53,7 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 	if conn == nil {
 		fmt.Fprintln(os.Stderr, "--> Application connection is nil")
 		log.Errorf("%s - closed connection. Application connection is nil", name)
-	} else {
-		defer conn.Close()
+		return
 	}
 
 	var dialer proxy.Dialer = proxy.Direct
@@ -66,6 +65,7 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 			// verifies this.
 			fmt.Println("-> failed to obtain dialer", proxyURI, proxy.Direct)
 			log.Errorf("(%s) - failed to obtain proxy dialer: %s", target, commonLog.ElideError(err))
+			conn.Close()
 			return
 		}
 	}
@@ -77,6 +77,7 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 		log.Errorf("Error: %v", argsToDialerErr.Error())
 		fmt.Fprintln(os.Stderr, "-> Error creating a transport with the provided options: ", options)
 		fmt.Fprintln(os.Stderr, "-> Error: ", argsToDialerErr.Error())
+		conn.Close()
 		return
 	}
 
@@ -87,11 +88,14 @@ func clientHandler(target string, name string, options string, conn net.Conn, pr
 		fmt.Fprintln(os.Stderr, "-> Name: ", name)
 		fmt.Fprintln(os.Stderr, "-> Options: ", options)
 		log.Errorf("--> Unable to dial transport server: %v", dialErr.Error())
+		conn.Close()
 		return
 	}
 	if remote == nil {
 		fmt.Fprintln(os.Stderr, "--> Transport server connection is nil.")
 		log.Errorf("%s - closed connection. Transport server connection is nil", name)
+		conn.Close()
+		return
 	}
 
 	if err := modes.CopyLoop(conn, remote); err != nil {
@@ -108,11 +112,11 @@ func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (l
 }
 
 func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
-	defer remote.Close()
 	// Connect to the orport.
 	orConn, err := pt.DialOr(info, remote.RemoteAddr().String(), name)
 	if err != nil {
 		log.Errorf("%s - failed to connect to ORPort: %s", name, log.ElideError(err))
+		remote.Close()
 		return
 	}
 

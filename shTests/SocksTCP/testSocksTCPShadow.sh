@@ -18,7 +18,7 @@ sleep 1
 
 # Run the transport client
 export TOR_PT_ORPORT=127.0.0.1:2222
-~/go/bin/shapeshifter-dispatcher -client -state state -transports shadow -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/shadowClient.json -logLevel DEBUG -enableLogging &
+~/go/bin/shapeshifter-dispatcher -client -state state -transports shadow -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/shadowClientChaCha.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 

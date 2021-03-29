@@ -57,6 +57,6 @@ script:
   - ./testSocksTCPOptimizerTrack.sh
   - ./testSocksTCPReplicant.sh
   - ./testSocksTCPShadow.sh
-  - cd ../Other
-  - ./testIPCLogLevel.sh
-  - ./testReducedMicroformats.sh
+  #- cd ../Other
+  #- ./testIPCLogLevel.sh
+  #- ./testReducedMicroformats.sh
