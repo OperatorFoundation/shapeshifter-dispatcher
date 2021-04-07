@@ -8,7 +8,7 @@ env:
 
 script:
   - go get -t
-  - mkdir /home/travis/go/bin/shapeshifter-dispatcher
+  - mkdir -p $HOME/go/bin/shapeshifter-dispatcher
   - cp $GOPATH/bin/shapeshifter-dispatcher /home/travis/go/bin/shapeshifter-dispatcher
   - go test -v github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5
   - cd shTests/TransparentTCP
