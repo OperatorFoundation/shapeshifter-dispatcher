@@ -16,7 +16,7 @@ nc -l -u 3333 >$FILENAME &
 sleep 1
 
 # Run the transport client
-~/go/bin/shapeshifter-dispatcher -transparent -udp -client -state state -target 127.0.0.1:2222 -transports shadow -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/shadowClient.json -logLevel DEBUG -enableLogging &
+~/go/bin/shapeshifter-dispatcher -transparent -udp -client -state state -target 127.0.0.1:2222 -transports shadow -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/shadowClientChaCha.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
