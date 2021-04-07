@@ -19,7 +19,7 @@ require (
 	github.com/shadowsocks/go-shadowsocks2 v0.1.4 // indirect
 	github.com/willscott/goturn v0.0.0-20170802220503-19f41278d0c9
 	golang.org/x/crypto v0.0.0-20210322153248-0c34fe9e7dc2 // indirect
-	golang.org/x/net v0.0.0-20210329181859-df645c7b52b1
+	golang.org/x/net v0.0.0-20210330142815-c8897c278d10
 	golang.org/x/sys v0.0.0-20210326220804-49726bf1d181 // indirect
 	golang.org/x/text v0.3.5 // indirect
 )
