@@ -7,7 +7,7 @@ env:
   - GOSUMDB=off
 
 script:
-  - go get
+  - go get -t
   - go test -v github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5
   - cd shTests/TransparentTCP
   #- ./testTCPDust.sh
