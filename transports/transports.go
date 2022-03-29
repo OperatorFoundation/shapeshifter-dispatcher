@@ -408,6 +408,12 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 			return nil, errors.New("could not parse replicant Args")
 		}
 		return replicantTransport, nil
+	case "StarBridge":
+		starbridgeTransport, parseErr := ParseArgsStarBridgeClient(jsonConfigString, PartialConfig.Address, dialer)
+		if parseErr != nil {
+			return nil, errors.New("could not parse starbridge Args")
+		}
+		return starbridgeTransport, nil
 	case "Optimizer":
 		optimizerTransport, parseErr := ParseArgsOptimizer(jsonConfigString, dialer)
 		if parseErr != nil {
