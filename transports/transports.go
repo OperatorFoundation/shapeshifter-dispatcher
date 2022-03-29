@@ -36,6 +36,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2"
 	Optimizer "github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2"
 	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/StarBridge/v2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2"
@@ -199,6 +200,34 @@ func ParseArgsReplicantServer(args string) (*replicant.ServerConfig, error) {
 	}
 
 	return config, nil
+}
+
+func ParseArgsStarBridgeClient(args string, target string, dialer proxy.Dialer) (*StarBridge.Transport, error) {
+	var config StarBridge.ClientConfig
+	bytes := []byte(args)
+	jsonError := json.Unmarshal(bytes, &config)
+	if jsonError != nil {
+		return nil, errors.New("starbridge options json decoding error")
+	}
+	transport := StarBridge.Transport{
+		Config:  config,
+		Address: target,
+		Dialer:  dialer,
+	}
+
+	return &transport, nil
+}
+
+func ParseArgsStarBridgeServer(args string) (*StarBridge.ServerConfig, error) {
+	var config StarBridge.ServerConfig
+
+	bytes := []byte(args)
+	jsonError := json.Unmarshal(bytes, &config)
+	if jsonError != nil {
+		return nil, errors.New("starbridge server options json decoding error")
+	}
+
+	return &config, nil
 }
 
 func ParseArgsMeeklite(args string, target string, dialer proxy.Dialer) (*meeklite.Transport, error) {

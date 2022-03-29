@@ -36,7 +36,6 @@ import (
 	"golang.org/x/net/proxy"
 	"net"
 
-
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2"
 	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2"
 )
@@ -132,11 +131,30 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 			return nil, errors.New("could not find Replicant options")
 		}
 
-		shargsBytes, err:= json.Marshal(shargs)
+		shargsBytes, err := json.Marshal(shargs)
 		shargsString := string(shargsBytes)
 		config, err := transports.ParseArgsReplicantServer(shargsString)
 		if err != nil {
 			return nil, errors.New("could not parse Replicant options")
+		}
+
+		//configJSONString, jsonMarshallError := json.Marshal(config)
+		//if jsonMarshallError == nil {
+		//	log.Debugf("REPLICANT CONFIG\n", string(configJSONString))
+		//}
+
+		return config.Listen, nil
+	case "StarBridge":
+		shargs, aok := args["StarBridge"]
+		if !aok {
+			return nil, errors.New("could not find StarBridge options")
+		}
+
+		shargsBytes, err := json.Marshal(shargs)
+		shargsString := string(shargsBytes)
+		config, err := transports.ParseArgsStarBridgeServer(shargsString)
+		if err != nil {
+			return nil, errors.New("could not parse StarBridge options")
 		}
 
 		//configJSONString, jsonMarshallError := json.Marshal(config)
@@ -152,7 +170,7 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 			return nil, errors.New("could not find meeklite options")
 		}
 
-		shargsByte, err:= json.Marshal(shargs)
+		shargsByte, err := json.Marshal(shargs)
 		if err != nil {
 			log.Errorf("could not coerce meeklite Url to string")
 		}
@@ -188,7 +206,7 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 			return nil, errors.New("could not find shadow options")
 		}
 
-		argsBytes, err:= json.Marshal(args)
+		argsBytes, err := json.Marshal(args)
 		argsString := string(argsBytes)
 		config, err := transports.ParseArgsShadowServer(argsString)
 		if err != nil {
