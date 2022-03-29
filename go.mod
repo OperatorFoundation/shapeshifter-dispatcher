@@ -7,15 +7,15 @@ require (
 	github.com/OperatorFoundation/monolith-go/monolith v1.0.7 // indirect
 	github.com/OperatorFoundation/obfs4 v1.0.0
 	github.com/OperatorFoundation/shapeshifter-ipc/v2 v2.0.0
-	github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2 v2.2.13
-	github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2.2.13
-	github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2 v2.2.13
-	github.com/OperatorFoundation/shapeshifter-transports/transports/StarBridge/v2 v2.2.13
-	github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2 v2.2.13
-	github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2 v2.2.13
-	github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2 v2.2.13
-	github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2 v2.2.13
-	github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2 v2.2.13
+	github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v2 v2.2.14
+	github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v2 v2.2.14
+	github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v2 v2.2.14
+	github.com/OperatorFoundation/shapeshifter-transports/transports/StarBridge/v2 v2.2.14
+	github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v2 v2.2.14
+	github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v2 v2.2.14
+	github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v2 v2.2.14
+	github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v2 v2.2.14
+	github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v2 v2.2.14
 	github.com/dchest/siphash v1.2.3 // indirect
 	github.com/deckarep/golang-set v1.8.0 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
