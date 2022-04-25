@@ -11,12 +11,12 @@ rm $FILENAME
 nc -l -u 3333 >$FILENAME &
 
 # Run the transport server
-./shapeshifter-dispatcher -transparent -udp -server -state state -target 127.0.0.1:3333 -transports dust -bindaddr dust-127.0.0.1:2222 -optionsFile dustServer.json -logLevel DEBUG -enableLogging &
+~/go/bin/shapeshifter-dispatcher -transparent -udp -server -state state -target 127.0.0.1:3333 -transports dust -bindaddr dust-127.0.0.1:2222 -optionsFile ../../ConfigFiles/dustServer.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
 # Run the transport client
-./shapeshifter-dispatcher -transparent -udp -client -state state -transports dust -proxylistenaddr 127.0.0.1:1443 -optionsFile dustClient.json -logLevel DEBUG -enableLogging &
+~/go/bin/shapeshifter-dispatcher -transparent -udp -client -state state -transports dust -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/dustClient.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 

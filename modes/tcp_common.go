@@ -27,6 +27,7 @@ package modes
 import (
 	"errors"
 	"fmt"
+
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	pt "github.com/OperatorFoundation/shapeshifter-ipc/v2"
 	"github.com/kataras/golog"
@@ -34,18 +35,16 @@ import (
 	"net"
 	"net/url"
 	"os"
-	"sync"
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 )
-
 
 func ClientSetupTCP(socksAddr string, ptClientProxy *url.URL, names []string, options string, clientHandler ClientHandlerTCP) (launched bool) {
 	// Launch each of the client listeners.
 	for _, name := range names {
 		ln, err := net.Listen("tcp", socksAddr)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "failed to listen %s %s", name, err.Error());
+			fmt.Fprintf(os.Stderr, "failed to listen %s %s", name, err.Error())
 			log.Errorf("failed to listen %s %s", name, err.Error())
 			continue
 		}
@@ -59,18 +58,18 @@ func ClientSetupTCP(socksAddr string, ptClientProxy *url.URL, names []string, op
 }
 
 func clientAcceptLoop(name string, options string, ln net.Listener, proxyURI *url.URL, clientHandler ClientHandlerTCP) {
-		for {
-			conn, err := ln.Accept()
-			if err != nil {
-				if e, ok := err.(net.Error); ok && !e.Temporary() {
-					fmt.Fprintf(os.Stderr, "Fatal listener error: %s", err.Error())
-					log.Errorf("Fatal listener error: %s", err.Error())
-					return
-				}
-				golog.Warnf("Failed to accept connection: %s", err.Error())
-				continue
+	for {
+		conn, err := ln.Accept()
+		if err != nil {
+			if e, ok := err.(net.Error); ok && !e.Temporary() {
+				fmt.Fprintf(os.Stderr, "Fatal listener error: %s", err.Error())
+				log.Errorf("Fatal listener error: %s", err.Error())
+				return
 			}
-			go clientHandler(name, options, conn, proxyURI)
+			golog.Warnf("Failed to accept connection: %s", err.Error())
+			continue
+		}
+		go clientHandler(name, options, conn, proxyURI)
 	}
 }
 
@@ -97,7 +96,7 @@ func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 				ServerAcceptLoop(name, transportLn, &ptServerInfo, serverHandler)
 				transportLnErr := transportLn.Close()
 				if transportLnErr != nil {
-					fmt.Fprintf(os.Stderr, "Listener close error: %s", transportLnErr.Error());
+					fmt.Fprintf(os.Stderr, "Listener close error: %s", transportLnErr.Error())
 					log.Errorf("Listener close error: %s", transportLnErr.Error())
 				}
 			}
@@ -109,43 +108,61 @@ func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 	return
 }
 
-func CopyLoop(a net.Conn, b net.Conn) error {
-	println("--> Entering copy loop.")
-	// Note: b is always the pt connection.  a is the SOCKS/target connection.
-	errChan := make(chan error, 2)
+func CopyLoop(client net.Conn, server net.Conn) error {
+	fmt.Println("--> Entering copy loop.")
 
-	var wg sync.WaitGroup
-	wg.Add(2)
-
-	if b == nil {
-		println("--> Copy loop has a nil connection (b).")
+	if server == nil {
+		fmt.Fprintln(os.Stderr, "--> Copy loop has a nil connection (b).")
 		return errors.New("copy loop has a nil connection (b)")
 	}
 
-	if a == nil {
-		println("--> Copy loop has a nil connection (a).")
+	if client == nil {
+		fmt.Fprintln(os.Stderr, "--> Copy loop has a nil connection (a).")
 		return errors.New("copy loop has a nil connection (a)")
 	}
 
-	go func() {
-		defer wg.Done()
-		_, err := io.Copy(b, a)
-		errChan <- err
-	}()
-	go func() {
-		defer wg.Done()
-		_, err := io.Copy(a, b)
-		errChan <- err
-	}()
+	// Note: b is always the pt connection.  a is the SOCKS/ORPort connection.
+	okToCloseClientChannel := make(chan bool)
+	okToCloseServerChannel := make(chan bool)
+	copyErrorChannel := make(chan error)
 
-	// Wait for both upstream and downstream to close.  Since one side
-	// terminating closes the other, the second error in the channel will be
-	// something like EINVAL (though io.Copy() will swallow EOF), so only the
-	// first error is returned.
-	wg.Wait()
-	if len(errChan) > 0 {
-		return <-errChan
+	go CopyClientToServer(client, server, okToCloseClientChannel, copyErrorChannel)
+
+	go CopyServerToClient(client, server, okToCloseServerChannel, copyErrorChannel)
+
+	serverRunning := true
+	clientRunning := true
+	var copyError error
+
+	for clientRunning || serverRunning {
+		select {
+		case <-okToCloseClientChannel:
+			clientRunning = false
+		case <-okToCloseServerChannel:
+			serverRunning = false
+		case copyError = <-copyErrorChannel:
+			log.Errorf("Error while copying")
+		}
 	}
 
-	return nil
+	client.Close()
+	server.Close()
+
+	return copyError
+}
+
+func CopyClientToServer(client net.Conn, server net.Conn, okToCloseClient chan bool, errorChannel chan error) {
+	_, copyError := io.Copy(server, client)
+	okToCloseClient <- true
+	if copyError != nil {
+		errorChannel <- copyError
+	}
+}
+
+func CopyServerToClient(client net.Conn, server net.Conn, okToCloseServer chan bool, errorChannel chan error) {
+	_, copyError := io.Copy(client, server)
+	okToCloseServer <- true
+	if copyError != nil {
+		errorChannel <- copyError
+	}
 }

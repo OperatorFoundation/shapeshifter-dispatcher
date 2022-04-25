@@ -1,16 +1,17 @@
 language: go
 
 go:
-  - 1.14.x
+  - 1.15.3
 
 env:
   - GOSUMDB=off
 
 script:
-  - go build -v
+  - go get -t
+  - mkdir -p $HOME/go/bin/
+  - cp $GOPATH/bin/shapeshifter-dispatcher /home/travis/go/bin/shapeshifter-dispatcher
   - go test -v github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5
-  - ./testIPCLogLevel.sh
-  - ./testReducedMicroformats.sh
+  - cd shTests/TransparentTCP
   #- ./testTCPDust.sh
   #- ./testTCPMeek.sh
   - ./testTCPObfs2.sh
@@ -22,6 +23,7 @@ script:
   - ./testTCPOptimizerTrack.sh
   - ./testTCPReplicant.sh
   - ./testTCPShadow.sh
+  - cd ../TransparentUDP
   #- ./testUDPDust.sh
   #- ./testUDPMeek.sh
   - ./testUDPObfs2.sh
@@ -33,6 +35,7 @@ script:
   - ./testUDPOptimizerTrack.sh
   - ./testUDPReplicant.sh
   - ./testUDPShadow.sh
+  - cd ../StunUDP
   #- ./testStunUDPDust.sh
   #- ./testStunUDPMeek.sh
   - ./testStunUDPObfs2.sh
@@ -44,6 +47,7 @@ script:
   - ./testStunUDPOptimizerTrack.sh
   - ./testStunUDPReplicant.sh
   - ./testStunUDPShadow.sh
+  - cd ../SocksTCP
   #- ./testSocksTCPDust.sh
   #- ./testSocksTCPMeek.sh
   - ./testSocksTCPObfs2.sh
@@ -55,3 +59,6 @@ script:
   - ./testSocksTCPOptimizerTrack.sh
   - ./testSocksTCPReplicant.sh
   - ./testSocksTCPShadow.sh
+  #- cd ../Other
+  #- ./testIPCLogLevel.sh
+  #- ./testReducedMicroformats.sh

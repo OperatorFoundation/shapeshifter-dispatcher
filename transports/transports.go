@@ -32,15 +32,8 @@ package transports
 import (
 	"encoding/json"
 	"errors"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v3"
 	Optimizer "github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v3"
 	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v3"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/meeklite/v3"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v3"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v3"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v3"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v3"
-
 	"golang.org/x/net/proxy"
 )
 
@@ -141,7 +134,7 @@ func ParseArgsReplicantClient(args string, dialer proxy.Dialer) (*replicant.Tran
 
 	var ReplicantConfig replicant.ClientJSONConfig
 	if args == "" {
-		return  nil, errors.New("must specify transport options when using replicant")
+		return nil, errors.New("must specify transport options when using replicant")
 	}
 	argsBytes := []byte(args)
 	unmarshalError := json.Unmarshal(argsBytes, &ReplicantConfig)
@@ -189,6 +182,34 @@ func ParseArgsReplicantServer(args string) (*replicant.ServerConfig, error) {
 	return config, nil
 }
 
+func ParseArgsStarBridgeClient(args string, target string, dialer proxy.Dialer) (*StarBridge.Transport, error) {
+	var config StarBridge.ClientConfig
+	bytes := []byte(args)
+	jsonError := json.Unmarshal(bytes, &config)
+	if jsonError != nil {
+		return nil, errors.New("starbridge options json decoding error")
+	}
+	transport := StarBridge.Transport{
+		Config:  config,
+		Address: target,
+		Dialer:  dialer,
+	}
+
+	return &transport, nil
+}
+
+func ParseArgsStarBridgeServer(args string) (*StarBridge.ServerConfig, error) {
+	var config StarBridge.ServerConfig
+
+	bytes := []byte(args)
+	jsonError := json.Unmarshal(bytes, &config)
+	if jsonError != nil {
+		return nil, errors.New("starbridge server options json decoding error")
+	}
+
+	return &config, nil
+}
+
 func ParseArgsMeeklite(args string, dialer proxy.Dialer) (*meeklite.Transport, error) {
 	var config meeklite.Config
 
@@ -199,9 +220,9 @@ func ParseArgsMeeklite(args string, dialer proxy.Dialer) (*meeklite.Transport, e
 	}
 
 	transport := meeklite.Transport{
-		URL:     config.URL,
-		Front:   config.Front,
-		Dialer:  dialer,
+		URL:    config.URL,
+		Front:  config.Front,
+		Dialer: dialer,
 	}
 
 	return &transport, nil
@@ -300,7 +321,7 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 	var config map[string]interface{}
 
 	type PartialOptimizerConfig struct {
-		Name    string `json:"name"`
+		Name string `json:"name"`
 	}
 	jsonString, MarshalErr := json.Marshal(otc)
 	if MarshalErr != nil {
@@ -368,6 +389,12 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 			return nil, errors.New("could not parse replicant Args")
 		}
 		return replicantTransport, nil
+	case "StarBridge":
+		starbridgeTransport, parseErr := ParseArgsStarBridgeClient(jsonConfigString, PartialConfig.Address, dialer)
+		if parseErr != nil {
+			return nil, errors.New("could not parse starbridge Args")
+		}
+		return starbridgeTransport, nil
 	case "Optimizer":
 		optimizerTransport, parseErr := ParseArgsOptimizer(jsonConfigString, dialer)
 		if parseErr != nil {

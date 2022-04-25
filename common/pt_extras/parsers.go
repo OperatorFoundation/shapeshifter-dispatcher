@@ -30,13 +30,9 @@ import (
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	Optimizer "github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v3"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/meekserver/v3"
 	"github.com/kataras/golog"
 	"golang.org/x/net/proxy"
 	"net"
-
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs2/v3"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/obfs4/v3"
 )
 
 // target is the server address string
@@ -98,6 +94,14 @@ func ArgsToDialer(name string, args string, dialer proxy.Dialer) (Optimizer.Tran
 		} else {
 			return transport, nil
 		}
+	case "StarBridge":
+		transport, err := transports.ParseArgsStarBridgeClient(args, target, dialer)
+		if err != nil {
+			log.Errorf("Could not parse options %s", err.Error())
+			return nil, err
+		} else {
+			return transport, nil
+		}
 
 	default:
 		golog.Errorf("Unknown transport: %s", name)
@@ -133,7 +137,7 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 			return nil, errors.New("could not find Replicant options")
 		}
 
-		shargsBytes, err:= json.Marshal(shargs)
+		shargsBytes, err := json.Marshal(shargs)
 		if err != nil {
 			return nil, errors.New("could not marshall json")
 		}
@@ -149,6 +153,20 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 		//}
 
 		return config.Listen, nil
+	case "StarBridge":
+		shargs, aok := args["StarBridge"]
+		if !aok {
+			return nil, errors.New("could not find StarBridge options")
+		}
+
+		shargsBytes, err := json.Marshal(shargs)
+		shargsString := string(shargsBytes)
+		config, err := transports.ParseArgsStarBridgeServer(shargsString)
+		if err != nil {
+			return nil, errors.New("could not parse StarBridge options")
+		}
+
+		return config.Listen, nil
 	// FIXME - meeklite parsing is incorrect
 	case "meekserver":
 		shargs, aok := args["meekserver"]
@@ -156,7 +174,7 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 			return nil, errors.New("could not find meeklite options")
 		}
 
-		shargsByte, err:= json.Marshal(shargs)
+		shargsByte, err := json.Marshal(shargs)
 		if err != nil {
 			golog.Errorf("could not coerce meeklite Url to string")
 		}
@@ -192,7 +210,7 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 			return nil, errors.New("could not find shadow options")
 		}
 
-		argsBytes, err:= json.Marshal(args)
+		argsBytes, err := json.Marshal(args)
 		argsString := string(argsBytes)
 		config, err := transports.ParseArgsShadowServer(argsString)
 		if err != nil {

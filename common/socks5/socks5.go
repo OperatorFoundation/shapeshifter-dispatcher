@@ -233,7 +233,7 @@ func (req *Request) NegotiateAuth(needOptions bool) (byte, error) {
 	if _, err = req.rw.Write(msg); err != nil {
 		return 0, err
 	}
-	println("this is the authentication method the socks server is sending:",msg)
+	println("this is the authentication method the socks server is sending: ", version, method)
 
 	return method, req.flushBuffers()
 }

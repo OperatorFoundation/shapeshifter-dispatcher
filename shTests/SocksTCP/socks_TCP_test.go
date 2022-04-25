@@ -16,77 +16,77 @@ const (
 )
 
 func TestSocksTCPDust(t *testing.T) {
-	negotiateError := negotiateSocks("dustClient.json")
+	negotiateError := negotiateSocks("../../ConfigFiles/dustClient.json")
 	if negotiateError != nil {
 		t.Fail()
 	}
 }
 
 func TestSocksTCPMeek(t *testing.T) {
-	negotiateError := negotiateSocks("meek.json")
+	negotiateError := negotiateSocks("../../ConfigFiles/meek.json")
 	if negotiateError != nil {
 		t.Fail()
 	}
 }
 
 func TestSocksTCPObfs2(t *testing.T) {
-	negotiateError := negotiateSocks("obfs2.json")
+	negotiateError := negotiateSocks("../../ConfigFiles/obfs2.json")
 	if negotiateError != nil {
 		t.Fail()
 	}
 }
 
 func TestSocksTCPObfs4(t *testing.T) {
-	negotiateError := negotiateSocks("obfs4.json")
+	negotiateError := negotiateSocks("../../ConfigFiles/obfs4.json")
 	if negotiateError != nil {
 		t.Fail()
 	}
 }
 
 func TestSocksTCPOptimizerFirst(t *testing.T) {
-	negotiateError := negotiateSocks("OptimizerFirst.json")
+	negotiateError := negotiateSocks("../../ConfigFiles/OptimizerFirst.json")
 	if negotiateError != nil {
 		t.Fail()
 	}
 }
 
 func TestSocksTCPOptimizerMinimizeDialDuration(t *testing.T) {
-	negotiateError := negotiateSocks("OptimizerMinimizeDialDuration.json")
+	negotiateError := negotiateSocks("../../ConfigFiles/OptimizerMinimizeDialDuration.json")
 	if negotiateError != nil {
 		t.Fail()
 	}
 }
 
 func TestSocksTCPOptimizerRandom(t *testing.T) {
-	negotiateError := negotiateSocks("OptimizerRandom.json")
+	negotiateError := negotiateSocks("../../ConfigFiles/OptimizerRandom.json")
 	if negotiateError != nil {
 		t.Fail()
 	}
 }
 
 func TestSocksTCPOptimizerRotate(t *testing.T) {
-	negotiateError := negotiateSocks("OptimizerRotate.json")
+	negotiateError := negotiateSocks("../../ConfigFiles/OptimizerRotate.json")
 	if negotiateError != nil {
 		t.Fail()
 	}
 }
 
 func TestSocksTCPOptimizerTrack(t *testing.T) {
-	negotiateError := negotiateSocks("OptimizerTrack.json")
+	negotiateError := negotiateSocks("../../ConfigFiles/OptimizerTrack.json")
 	if negotiateError != nil {
 		t.Fail()
 	}
 }
 
 func TestSocksTCPReplicant(t *testing.T) {
-	negotiateError := negotiateSocks("ReplicantClientConfigV3.json")
+	negotiateError := negotiateSocks("../../ConfigFiles/ReplicantClientConfigV3.json")
 	if negotiateError != nil {
 		t.Fail()
 	}
 }
 
 func TestSocksTCPShadow(t *testing.T) {
-	negotiateError := negotiateSocks("shadowClient.json")
+	negotiateError := negotiateSocks("../../ConfigFiles/shadowClientChaCha.json")
 	if negotiateError != nil {
 		t.Fail()
 	}

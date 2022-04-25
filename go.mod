@@ -3,6 +3,7 @@ module github.com/OperatorFoundation/shapeshifter-dispatcher
 go 1.12
 
 require (
+	github.com/OperatorFoundation/go-shadowsocks2 v1.0.0 // indirect
 	github.com/OperatorFoundation/obfs4 v1.0.0
 	github.com/OperatorFoundation/shapeshifter-ipc/v2 v2.0.0
 	github.com/OperatorFoundation/shapeshifter-transports/transports/Dust/v3 v3.0.12

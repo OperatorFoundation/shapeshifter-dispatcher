@@ -11,12 +11,12 @@ rm $FILENAME
 nc -l 3333 >$FILENAME &
 
 # Run the transport server
-./shapeshifter-dispatcher -server -state state -target 127.0.0.1:3333 -bindaddr meek-127.0.0.1:2222 -transports meekserver -optionsFile meek.json -logLevel DEBUG -enableLogging &
+~/go/bin/shapeshifter-dispatcher -server -state state -target 127.0.0.1:3333 -bindaddr meek-127.0.0.1:2222 -transports meekserver -optionsFile ../../ConfigFiles/meek.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
 # Run the transport client
-./shapeshifter-dispatcher -client -state state -transports meeklite -proxylistenaddr 127.0.0.1:1443 -optionsFile meek.json -logLevel DEBUG -enableLogging &
+~/go/bin/shapeshifter-dispatcher -client -state state -transports meeklite -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/meek.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 

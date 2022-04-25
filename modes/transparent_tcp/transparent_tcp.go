@@ -35,7 +35,6 @@ import (
 	commonLog "github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes"
-	"github.com/OperatorFoundation/shapeshifter-ipc/v2"
 	"github.com/kataras/golog"
 	"golang.org/x/net/proxy"
 	"net"
@@ -57,6 +56,7 @@ func clientHandler(name string, options string, conn net.Conn, proxyURI *url.URL
 			// verifies this.
 			fmt.Println("-> failed to obtain dialer", proxyURI, proxy.Direct)
 			golog.Errorf("(%s) - failed to obtain proxy dialer: %s", commonLog.ElideError(err))
+			conn.Close()
 			return
 		}
 	}
@@ -68,16 +68,8 @@ func clientHandler(name string, options string, conn net.Conn, proxyURI *url.URL
 		golog.Errorf("Error: %v", argsToDialerErr.Error())
 		println("-> Error creating a transport with the provided options: ", options)
 		println("-> Error: ", argsToDialerErr.Error())
-		return
-	}
+		conn.Close()
 
-	fmt.Println("Dialing ")
-	remote, dialErr := transport.Dial()
-	if dialErr != nil {
-		println("--> Unable to dial transport server: ", dialErr.Error())
-		println("-> Name: ", name)
-		println("-> Options: ", options)
-		golog.Errorf("--> Unable to dial transport server: %v", dialErr.Error())
 		return
 	}
 
@@ -86,9 +78,22 @@ func clientHandler(name string, options string, conn net.Conn, proxyURI *url.URL
 		golog.Errorf("%s - closed connection. Application connection is nil", name)
 	}
 
+	fmt.Println("Dialing ")
+	remote, dialErr := transport.Dial()
+	if dialErr != nil {
+
+		println("--> Unable to dial transport server: ", dialErr.Error())
+		println("-> Name: ", name)
+		println("-> Options: ", options)
+		golog.Errorf("--> Unable to dial transport server: %v", dialErr.Error())
+		conn.Close()
+		return
+	}
+
 	if remote == nil {
 		println("--> Transport server connection is nil.")
 		golog.Errorf("%s - closed connection. Transport server connection is nil", name)
+		conn.Close()
 	}
 
 	if err := modes.CopyLoop(conn, remote); err != nil {
@@ -109,6 +114,7 @@ func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 	orConn, err := pt.DialOr(info, remote.RemoteAddr().String(), name)
 	if err != nil {
 		golog.Errorf("%s - failed to connect to ORPort: %s", name, log.ElideError(err))
+		remote.Close()
 		return
 	}
 
@@ -118,4 +124,3 @@ func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 		golog.Infof("%s - closed connection", name)
 	}
 }
-

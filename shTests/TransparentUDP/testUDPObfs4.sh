@@ -6,12 +6,12 @@ OS=$(uname)
 go build
 
 # remove text from the output file
-rm $FILENAME
+rm ${FILENAME}
 
 # Run a demo application server with netcat and write to the output file
-nc -l -u 3333 >$FILENAME &
+nc -l -u 3333 >${FILENAME} &
 
-if [ "$OS" = "Darwin" ]
+if [[ "$OS" = "Darwin" ]]
 then
   STATEPATH=$HOME/shapeshifter-dispatcher/stateDir
 else
@@ -19,7 +19,7 @@ else
 fi
 
 # Run the transport server
-./shapeshifter-dispatcher -transparent -udp -server -state "$STATEPATH" -target 127.0.0.1:3333 -transports obfs4 -bindaddr obfs4-127.0.0.1:2222 -logLevel DEBUG -enableLogging &
+~/go/bin/shapeshifter-dispatcher -transparent -udp -server -state "$STATEPATH" -target 127.0.0.1:3333 -transports obfs4 -bindaddr obfs4-127.0.0.1:2222 -logLevel DEBUG -enableLogging &
 
 sleep 1
 
@@ -31,7 +31,7 @@ echo "$OS"
 echo "{\"cert\": \"$CERT\", \"iat-mode\": \"0\", \"address\": \"127.0.0.1:2222\"}" >obfs4.json
 
 # Run the transport client
-./shapeshifter-dispatcher -transparent -udp -client -state "$STATEPATH" -transports obfs4 -proxylistenaddr 127.0.0.1:1443 -optionsFile obfs4.json -logLevel DEBUG -enableLogging &
+~/go/bin/shapeshifter-dispatcher -transparent -udp -client -state "$STATEPATH" -transports obfs4 -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/obfs4.json -logLevel DEBUG -enableLogging &
 
 sleep 5
 
@@ -42,14 +42,14 @@ sleep 1
 
 OS=$(uname)
 
-if [ "$OS" = "Darwin" ]
+if [[ "$OS" = "Darwin" ]]
 then
   FILESIZE=$(stat -f%z "$FILENAME")
 else
   FILESIZE=$(stat -c%s "$FILENAME")
 fi
 
-if [ "$FILESIZE" = "0" ]
+if [[ "$FILESIZE" = "0" ]]
 then
   echo "Test Failed"
   killall shapeshifter-dispatcher

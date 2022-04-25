@@ -10,14 +10,14 @@ rm $FILENAME
 nc -l 3333 >$FILENAME &
 
 # Run the transport server
-./shapeshifter-dispatcher -server -state state -bindaddr shadow-127.0.0.1:2222 -target 127.0.0.1:3333 -transports shadow -optionsFile shadowServer.json -logLevel DEBUG -enableLogging &
-./shapeshifter-dispatcher -server -state state -bindaddr obfs2-127.0.0.1:2223 -target 127.0.0.1:3333 -transports obfs2 -logLevel DEBUG -enableLogging &
-./shapeshifter-dispatcher -server -state state -bindaddr Replicant-127.0.0.1:2224 -target 127.0.0.1:3333 -transports Replicant -optionsFile ReplicantServerConfigV3.json -logLevel DEBUG -enableLogging &
+~/go/bin/shapeshifter-dispatcher -server -state state -bindaddr shadow-127.0.0.1:2222 -target 127.0.0.1:3333 -transports shadow -optionsFile ../../ConfigFiles/shadowServer.json -logLevel DEBUG -enableLogging &
+~/go/bin/shapeshifter-dispatcher -server -state state -bindaddr obfs2-127.0.0.1:2223 -target 127.0.0.1:3333 -transports obfs2 -logLevel DEBUG -enableLogging &
+~/go/bin/shapeshifter-dispatcher -server -state state -bindaddr Replicant-127.0.0.1:2224 -target 127.0.0.1:3333 -transports Replicant -optionsFile ../../ConfigFiles/ReplicantServerConfigV3.json -logLevel DEBUG -enableLogging &
 
 sleep 5
 
 # Run the transport client
-./shapeshifter-dispatcher -client -state state -transports Optimizer -proxylistenaddr 127.0.0.1:1443 -optionsFile OptimizerRandom.json -logLevel DEBUG -enableLogging &
+~/go/bin/shapeshifter-dispatcher -client -state state -transports Optimizer -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/OptimizerRandom.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 

@@ -226,7 +226,7 @@ func main() {
 		}
 
 		if *proxyListenHost != "" && *proxyListenPort != "" && *socksAddr == "" {
-			newSocksAddr := *proxyListenHost+":"+*proxyListenPort
+			newSocksAddr := *proxyListenHost + ":" + *proxyListenPort
 			socksAddr = &newSocksAddr
 		}
 
@@ -237,32 +237,40 @@ func main() {
 		if mode == socks5 {
 			targetValidationError := validatetargetSocks5(targetHost, targetPort, target)
 			if targetValidationError != nil {
-				golog.Errorf("could not validate: %s",targetValidationError)
+				golog.Errorf("could not validate: %s", targetValidationError)
 				return
 			}
 
 		} else {
 			targetValidationError := validatetarget(isClient, targetHost, targetPort, target)
 			if targetValidationError != nil {
-				golog.Errorf("could not validate: %s",targetValidationError)
+				golog.Errorf("could not validate: %s", targetValidationError)
 				return
 			}
 			if *targetHost != "" && *targetPort != "" && *target == "" {
-				newTarget := *targetHost+":"+*targetPort
+				newTarget := *targetHost + ":" + *targetPort
 				bindAddr = &newTarget
 			}
 		}
 
 	} else {
-		serverBindValidationError := validateServerBindAddr(transport, serverBindHost, serverBindPort, bindAddr)
-		if serverBindValidationError != nil {
-			golog.Errorf("could not validate: %s",serverBindValidationError)
-			return
-		}
+		if mode == socks5 {
+			serverBindValidationError := validateSocksServerBindAddr(serverBindHost, serverBindPort, bindAddr)
+			if serverBindValidationError != nil {
+				golog.Errorf("could not validate: %s", serverBindValidationError)
+				return
+			}
+		} else {
+			serverBindValidationError := validateServerBindAddr(transport, serverBindHost, serverBindPort, bindAddr)
+			if serverBindValidationError != nil {
+				golog.Errorf("could not validate: %s", serverBindValidationError)
+				return
+			}
 
-		if *transport != "" && *serverBindHost != "" && *serverBindPort != "" && *bindAddr == "" {
-			newBindAddr := *transport+"-"+*serverBindHost+":"+*serverBindPort
-			bindAddr = &newBindAddr
+			if *transport != "" && *serverBindHost != "" && *serverBindPort != "" && *bindAddr == "" {
+				newBindAddr := *transport + "-" + *serverBindHost + ":" + *serverBindPort
+				bindAddr = &newBindAddr
+			}
 		}
 	}
 	// Finished validation of command line arguments
@@ -458,6 +466,7 @@ func getServerInfo(bindaddrList *string, options *string, transportList *string,
 
 	return ptServerInfo
 }
+
 // Return an array of Bindaddrs.
 func getServerBindaddrs(bindaddrList *string, options *string, transports *string) ([]pt.Bindaddr, error) {
 	var result []pt.Bindaddr
