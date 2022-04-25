@@ -165,11 +165,6 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 			return nil, errors.New("could not parse StarBridge options")
 		}
 
-		//configJSONString, jsonMarshallError := json.Marshal(config)
-		//if jsonMarshallError == nil {
-		//	log.Debugf("REPLICANT CONFIG\n", string(configJSONString))
-		//}
-
 		return config.Listen, nil
 	// FIXME - meeklite parsing is incorrect
 	case "meekserver":
