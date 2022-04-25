@@ -34,7 +34,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/OperatorFoundation/shapeshifter-ipc/v2"
+	"github.com/OperatorFoundation/shapeshifter-ipc/v3"
 )
 
 // This file contains things that probably should be in goptlib but are not
@@ -143,4 +143,3 @@ func resolveAddrStr(addrStr string) (*net.TCPAddr, error) {
 
 	return &net.TCPAddr{IP: ip, Port: int(port), Zone: ""}, nil
 }
-

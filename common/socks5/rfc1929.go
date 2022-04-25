@@ -29,7 +29,7 @@ package socks5
 
 import (
 	"fmt"
-	pt "github.com/OperatorFoundation/shapeshifter-ipc/v2"
+	pt "github.com/OperatorFoundation/shapeshifter-ipc/v3"
 )
 
 const (

@@ -38,22 +38,6 @@ import (
 // target is the server address string
 func ArgsToDialer(name string, args string, dialer proxy.Dialer) (Optimizer.TransportDialer, error) {
 	switch name {
-	case "obfs2":
-		transport, obfs2Error := transports.ParseArgsObfs2(args)
-		if obfs2Error != nil {
-			golog.Errorf("Could not parse options %s", obfs2Error.Error())
-			return nil, obfs2Error
-		}
-		return transport, nil
-	case "obfs4":
-		//refactor starts here
-		transport, err := transports.ParseArgsObfs4(args, dialer)
-		if err != nil {
-			golog.Errorf("Could not parse options %s", err.Error())
-			return nil, err
-		} else {
-			return transport, nil
-		}
 	case "shadow":
 		transport, err := transports.ParseArgsShadow(args)
 		if err != nil {
@@ -70,22 +54,6 @@ func ArgsToDialer(name string, args string, dialer proxy.Dialer) (Optimizer.Tran
 		} else {
 			return transport, nil
 		}
-	case "Dust":
-		transport, err := transports.ParseArgsDust(args, dialer)
-		if err != nil {
-			golog.Errorf("Could not parse options %s", err.Error())
-			return nil, err
-		} else {
-			return transport, nil
-		}
-	case "meeklite":
-		transport, err := transports.ParseArgsMeeklite(args, dialer)
-		if err != nil {
-			golog.Errorf("Could not parse options %s", err.Error())
-			return nil, err
-		} else {
-			return transport, nil
-		}
 	case "Replicant":
 		transport, err := transports.ParseArgsReplicantClient(args, dialer)
 		if err != nil {
@@ -95,9 +63,9 @@ func ArgsToDialer(name string, args string, dialer proxy.Dialer) (Optimizer.Tran
 			return transport, nil
 		}
 	case "StarBridge":
-		transport, err := transports.ParseArgsStarBridgeClient(args, target, dialer)
+		transport, err := transports.ParseArgsStarBridgeClient(args, dialer)
 		if err != nil {
-			log.Errorf("Could not parse options %s", err.Error())
+			golog.Errorf("Could not parse options %s", err.Error())
 			return nil, err
 		} else {
 			return transport, nil
@@ -121,16 +89,6 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 	}
 
 	switch name {
-	case "obfs2":
-		transport := obfs2.NewObfs2Transport()
-		listen = transport.Listen
-	case "obfs4":
-		transport, err := obfs4.NewObfs4Server(stateDir)
-		if err != nil {
-			golog.Errorf("Can't start obfs4 transport: %v", err)
-			return nil, errors.New("can't start obfs4 transport")
-		}
-		listen = transport.Listen
 	case "Replicant":
 		shargs, aok := args["Replicant"]
 		if !aok {
@@ -167,43 +125,6 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 		}
 
 		return config.Listen, nil
-	// FIXME - meeklite parsing is incorrect
-	case "meekserver":
-		shargs, aok := args["meekserver"]
-		if !aok {
-			return nil, errors.New("could not find meeklite options")
-		}
-
-		shargsByte, err := json.Marshal(shargs)
-		if err != nil {
-			golog.Errorf("could not coerce meeklite Url to string")
-		}
-		shargsString := string(shargsByte)
-		config, err := transports.ParseArgsMeekliteServer(shargsString)
-		if err != nil {
-			return nil, errors.New("could not parse Replicant options")
-		}
-		transport := meekserver.NewMeekTransportServer(true, config.AcmeEmail, config.AcmeHostname, stateDir)
-		listen = transport.Listen
-	// FIXME - Dust parsing is incorrect
-	//case "Dust":
-	//	shargs, aok := args["Dust"]
-	//	if !aok {
-	//		return false
-	//	}
-	//
-	//	untypedIdPath, ok := shargs["Url"]
-	//	if !ok {
-	//		return false
-	//	}
-	//	idPathByte, err:= json.Marshal(untypedIdPath)
-	//	idPathString := string(idPathByte)
-	//	if err != nil {
-	//		log.Errorf("could not coerce Dust Url to string")
-	//		return false
-	//	}
-	//	transport := Dust.NewDustServer(idPathString)
-	//	listen = transport.Listen
 	case "shadow":
 		args, aok := args["shadow"]
 		if !aok {

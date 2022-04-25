@@ -35,7 +35,7 @@ import (
 	"fmt"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
-	pt "github.com/OperatorFoundation/shapeshifter-ipc/v2"
+	pt "github.com/OperatorFoundation/shapeshifter-ipc/v3"
 	"github.com/kataras/golog"
 	"io"
 	"io/ioutil"

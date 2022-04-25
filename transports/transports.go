@@ -32,50 +32,16 @@ package transports
 import (
 	"encoding/json"
 	"errors"
+	"github.com/OperatorFoundation/Starbridge-go/Starbridge/v3"
 	Optimizer "github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v3"
 	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v3"
+	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v3"
 	"golang.org/x/net/proxy"
 )
 
 // Transports returns the list of registered transport protocols.
 func Transports() []string {
-	return []string{"obfs2", "shadow", "Dust", "meeklite", "Replicant", "obfs4", "Optimizer"}
-}
-
-func ParseArgsObfs2(args string) (*obfs2.OptimizerTransport, error) {
-	var config obfs2.Config
-	bytes := []byte(args)
-	jsonError := json.Unmarshal(bytes, &config)
-	if jsonError != nil {
-		return nil, errors.New("obfs2 options json decoding error")
-	}
-	transport := obfs2.New(config.Address, proxy.Direct)
-
-	return transport, nil
-}
-
-func ParseArgsObfs4(args string, dialer proxy.Dialer) (*obfs4.TransportClient, error) {
-	var config obfs4.Config
-
-	bytes := []byte(args)
-	jsonError := json.Unmarshal(bytes, &config)
-	if jsonError != nil {
-		return nil, errors.New("obfs4 options json decoding error")
-	}
-
-	iatMode := 0
-	if config.IatMode == "1" {
-		iatMode = 1
-	}
-
-	transport := obfs4.TransportClient{
-		CertString: config.CertString,
-		IatMode:    iatMode,
-		Address:    config.Address,
-		Dialer:     dialer,
-	}
-
-	return &transport, nil
+	return []string{"shadow", "Replicant", "Optimizer"}
 }
 
 func ParseArgsShadow(args string) (*shadow.Transport, error) {
@@ -100,24 +66,6 @@ func ParseArgsShadowServer(args string) (*shadow.ServerConfig, error) {
 	}
 
 	return &config, nil
-}
-
-func ParseArgsDust(args string, dialer proxy.Dialer) (*Dust.Transport, error) {
-	var config Dust.Config
-
-	bytes := []byte(args)
-	jsonError := json.Unmarshal(bytes, &config)
-	if jsonError != nil {
-		return nil, errors.New("dust options json decoding error")
-	}
-
-	transport := Dust.Transport{
-		ServerPublic: config.ServerPublic,
-		Address:      config.Address,
-		Dialer:       dialer,
-	}
-
-	return &transport, nil
 }
 
 func CreateDefaultReplicantServer() replicant.ServerConfig {
@@ -182,59 +130,29 @@ func ParseArgsReplicantServer(args string) (*replicant.ServerConfig, error) {
 	return config, nil
 }
 
-func ParseArgsStarBridgeClient(args string, target string, dialer proxy.Dialer) (*StarBridge.Transport, error) {
-	var config StarBridge.ClientConfig
+func ParseArgsStarBridgeClient(args string, dialer proxy.Dialer) (*Starbridge.TransportClient, error) {
+	var config Starbridge.ClientConfig
 	bytes := []byte(args)
 	jsonError := json.Unmarshal(bytes, &config)
 	if jsonError != nil {
 		return nil, errors.New("starbridge options json decoding error")
 	}
-	transport := StarBridge.Transport{
+	transport := Starbridge.TransportClient{
 		Config:  config,
-		Address: target,
+		Address: config.Address,
 		Dialer:  dialer,
 	}
 
 	return &transport, nil
 }
 
-func ParseArgsStarBridgeServer(args string) (*StarBridge.ServerConfig, error) {
-	var config StarBridge.ServerConfig
+func ParseArgsStarBridgeServer(args string) (*Starbridge.ServerConfig, error) {
+	var config Starbridge.ServerConfig
 
 	bytes := []byte(args)
 	jsonError := json.Unmarshal(bytes, &config)
 	if jsonError != nil {
 		return nil, errors.New("starbridge server options json decoding error")
-	}
-
-	return &config, nil
-}
-
-func ParseArgsMeeklite(args string, dialer proxy.Dialer) (*meeklite.Transport, error) {
-	var config meeklite.Config
-
-	bytes := []byte(args)
-	jsonError := json.Unmarshal(bytes, &config)
-	if jsonError != nil {
-		return nil, errors.New("meeklite options json decoding error")
-	}
-
-	transport := meeklite.Transport{
-		URL:    config.URL,
-		Front:  config.Front,
-		Dialer: dialer,
-	}
-
-	return &transport, nil
-}
-
-func ParseArgsMeekliteServer(args string) (*meekserver.Config, error) {
-	var config meekserver.Config
-
-	bytes := []byte(args)
-	jsonError := json.Unmarshal(bytes, &config)
-	if jsonError != nil {
-		return nil, errors.New("meeklite options json decoding error")
 	}
 
 	return &config, nil
@@ -359,30 +277,6 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 			return nil, errors.New("could not parse shadow Args")
 		}
 		return shadowTransport, nil
-	case "obfs2":
-		obfs2Transport, parseErr := ParseArgsObfs2(jsonConfigString)
-		if parseErr != nil {
-			return nil, errors.New("could not parse obfs2 Args")
-		}
-		return obfs2Transport, nil
-	case "obfs4":
-		obfs4Transport, parseErr := ParseArgsObfs4(jsonConfigString, dialer)
-		if parseErr != nil {
-			return nil, errors.New("could not parse obfs4 Args")
-		}
-		return obfs4Transport, nil
-	case "meeklite":
-		meekliteTransport, parseErr := ParseArgsMeeklite(jsonConfigString, dialer)
-		if parseErr != nil {
-			return nil, errors.New("could not parse meeklite Args")
-		}
-		return meekliteTransport, nil
-	case "Dust":
-		DustTransport, parseErr := ParseArgsDust(jsonConfigString, dialer)
-		if parseErr != nil {
-			return nil, errors.New("could not parse dust Args")
-		}
-		return DustTransport, nil
 	case "Replicant":
 		replicantTransport, parseErr := ParseArgsReplicantClient(jsonConfigString, dialer)
 		if parseErr != nil {
@@ -390,7 +284,7 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 		}
 		return replicantTransport, nil
 	case "StarBridge":
-		starbridgeTransport, parseErr := ParseArgsStarBridgeClient(jsonConfigString, PartialConfig.Address, dialer)
+		starbridgeTransport, parseErr := ParseArgsStarBridgeClient(jsonConfigString, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse starbridge Args")
 		}

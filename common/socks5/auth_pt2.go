@@ -30,7 +30,7 @@ package socks5
 import (
 	"fmt"
 
-	"github.com/OperatorFoundation/shapeshifter-ipc/v2"
+	"github.com/OperatorFoundation/shapeshifter-ipc/v3"
 )
 
 func (req *Request) authPT2() (err error) {

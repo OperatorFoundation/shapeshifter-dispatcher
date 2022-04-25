@@ -27,7 +27,7 @@ package modes
 import (
 	"github.com/OperatorFoundation/obfs4/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
-	pt "github.com/OperatorFoundation/shapeshifter-ipc/v2"
+	pt "github.com/OperatorFoundation/shapeshifter-ipc/v3"
 	"github.com/kataras/golog"
 	"net"
 	"net/url"
@@ -65,7 +65,6 @@ func ServerSetupUDP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 		if parseError != nil {
 			return false
 		}
-
 
 		go func() {
 			for {

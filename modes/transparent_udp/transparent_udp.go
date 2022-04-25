@@ -35,7 +35,7 @@ import (
 	"fmt"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes"
-	"github.com/OperatorFoundation/shapeshifter-ipc/v2"
+	"github.com/OperatorFoundation/shapeshifter-ipc/v3"
 	"github.com/kataras/golog"
 	"io"
 	"net"

@@ -41,7 +41,7 @@ import (
 	"github.com/willscott/goturn"
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
-	"github.com/OperatorFoundation/shapeshifter-ipc/v2"
+	"github.com/OperatorFoundation/shapeshifter-ipc/v3"
 )
 
 func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, options string) bool {
