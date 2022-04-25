@@ -1,4 +1,4 @@
-package main
+package SocksTCP
 
 import (
 	"encoding/binary"
@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	version                = 0x05
+	version = 0x05
 )
 
 func TestSocksTCPDust(t *testing.T) {
@@ -156,7 +156,7 @@ func negotiateSocks(jsonFile string) error {
 		return dialError
 	}
 	readCount, readError := dialConn.Read(reply)
-	if readCount <1 {
+	if readCount < 1 {
 		println("did not receive reply from server")
 	}
 	println(readCount, "is the number of bytes being read")

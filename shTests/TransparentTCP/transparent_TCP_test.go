@@ -1,4 +1,4 @@
-package main
+package TransparentTCP
 
 import (
 	"net"
@@ -13,7 +13,7 @@ func TestTransparentTCP(t *testing.T) {
 		return
 	}
 
-	time.Sleep(1*time.Second)
+	time.Sleep(1 * time.Second)
 
 	_, writeErr := dialConn.Write([]byte("data"))
 	if writeErr != nil {
@@ -21,6 +21,6 @@ func TestTransparentTCP(t *testing.T) {
 		return
 	}
 
-	time.Sleep(1*time.Second)
+	time.Sleep(1 * time.Second)
 
 }

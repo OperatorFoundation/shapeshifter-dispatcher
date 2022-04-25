@@ -1,4 +1,4 @@
-package main
+package TransparentUDP
 
 import (
 	"net"
@@ -13,7 +13,7 @@ func TestTransparentUDP(t *testing.T) {
 		return
 	}
 
-	time.Sleep(1*time.Second)
+	time.Sleep(1 * time.Second)
 
 	_, writeErr1 := dialConn.Write([]byte("data1"))
 	if writeErr1 != nil {
@@ -21,7 +21,7 @@ func TestTransparentUDP(t *testing.T) {
 		return
 	}
 
-	time.Sleep(1*time.Second)
+	time.Sleep(1 * time.Second)
 
 	_, writeErr2 := dialConn.Write([]byte("data2"))
 	if writeErr2 != nil {
@@ -29,7 +29,7 @@ func TestTransparentUDP(t *testing.T) {
 		return
 	}
 
-	time.Sleep(1*time.Second)
+	time.Sleep(1 * time.Second)
 
 	_, writeErr3 := dialConn.Write([]byte("data1"))
 	if writeErr3 != nil {

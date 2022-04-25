@@ -1,4 +1,4 @@
-package main
+package StunUDP
 
 import (
 	"github.com/willscott/goturn"
@@ -14,7 +14,7 @@ func TestStunUDP(t *testing.T) {
 		return
 	}
 
-	time.Sleep(1*time.Second)
+	time.Sleep(1 * time.Second)
 	message, reqError := goturn.NewBindingRequest()
 	if reqError != nil {
 		t.Fail()
@@ -31,7 +31,7 @@ func TestStunUDP(t *testing.T) {
 		return
 	}
 
-	time.Sleep(1*time.Second)
+	time.Sleep(1 * time.Second)
 
 	_, writeErr2 := dialConn.Write(data)
 	if writeErr2 != nil {
@@ -39,7 +39,7 @@ func TestStunUDP(t *testing.T) {
 		return
 	}
 
-	time.Sleep(1*time.Second)
+	time.Sleep(1 * time.Second)
 
 	_, writeErr3 := dialConn.Write(data)
 	if writeErr3 != nil {
