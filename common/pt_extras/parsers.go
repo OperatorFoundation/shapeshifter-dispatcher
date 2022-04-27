@@ -27,9 +27,9 @@ package pt_extras
 import (
 	"encoding/json"
 	"errors"
+	Optimizer "github.com/OperatorFoundation/Optimizer-go/Optimizer/v3"
 	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
-	Optimizer "github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v3"
 	"github.com/kataras/golog"
 	"golang.org/x/net/proxy"
 	"net"
@@ -62,8 +62,8 @@ func ArgsToDialer(name string, args string, dialer proxy.Dialer) (Optimizer.Tran
 		} else {
 			return transport, nil
 		}
-	case "StarBridge":
-		transport, err := transports.ParseArgsStarBridgeClient(args, dialer)
+	case "Starbridge":
+		transport, err := transports.ParseArgsStarbridgeClient(args, dialer)
 		if err != nil {
 			golog.Errorf("Could not parse options %s", err.Error())
 			return nil, err
@@ -111,17 +111,17 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 		//}
 
 		return config.Listen, nil
-	case "StarBridge":
-		shargs, aok := args["StarBridge"]
+	case "Starbridge":
+		shargs, aok := args["Starbridge"]
 		if !aok {
-			return nil, errors.New("could not find StarBridge options")
+			return nil, errors.New("could not find Starbridge options")
 		}
 
 		shargsBytes, err := json.Marshal(shargs)
 		shargsString := string(shargsBytes)
-		config, err := transports.ParseArgsStarBridgeServer(shargsString)
+		config, err := transports.ParseArgsStarbridgeServer(shargsString)
 		if err != nil {
-			return nil, errors.New("could not parse StarBridge options")
+			return nil, errors.New("could not parse Starbridge options")
 		}
 
 		return config.Listen, nil

@@ -1,6 +1,7 @@
-# This script runs a full end-to-end functional test of the dispatcher and the Obfs2 transport, using two netcat instances as the application server and application client.
+#!/bin/bash
+# This script runs a full end-to-end functional test of the dispatcher and the Starbridge transport, using two netcat instances as the application server and application client.
 # An alternative way to run this test is to run each command in its own terminal. Each netcat instance can be used to type content which should appear in the other.
-FILENAME=testSocksTCPObfs2Output.txt
+FILENAME=testStunUDPStarbridgeOutput.txt
 # Update and build code
 go build
 
@@ -8,20 +9,20 @@ go build
 rm $FILENAME
 
 # Run a demo application server with netcat and write to the output file
-nc -l 3333 >$FILENAME &
+nc -l -u 3333 >$FILENAME &
 
 # Run the transport server
-~/go/bin/shapeshifter-dispatcher -server -state state -target 127.0.0.1:3333 -bindaddr obfs2-127.0.0.1:2222  -transports obfs2 -logLevel DEBUG -enableLogging &
+~/go/bin/shapeshifter-dispatcher -udp -server -state state -target 127.0.0.1:3333 -transports Starbridge -bindaddr Starbridge-127.0.0.1:2222 -optionsFile ../../ConfigFiles/StarbridgeServerConfig.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
 # Run the transport client
-~/go/bin/shapeshifter-dispatcher -client -state state -transports obfs2 -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../Configs/obfs2.json -logLevel DEBUG -enableLogging &
+~/go/bin/shapeshifter-dispatcher -udp -client -state state -transports Starbridge -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/StarbridgeClientConfig.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
 # Run a demo application client with netcat
-go test -run SocksTCPObfs2
+go test -run StunUDP
 
 sleep 1
 
@@ -48,3 +49,4 @@ killall shapeshifter-dispatcher
 killall nc
 
 echo "Done."
+

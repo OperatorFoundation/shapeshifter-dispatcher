@@ -31,7 +31,6 @@ package transparent_tcp
 
 import (
 	"fmt"
-	"github.com/OperatorFoundation/obfs4/common/log"
 	commonLog "github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes"
@@ -114,13 +113,13 @@ func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 	// Connect to the orport.
 	orConn, err := pt.DialOr(info, remote.RemoteAddr().String(), name)
 	if err != nil {
-		golog.Errorf("%s - failed to connect to ORPort: %s", name, log.ElideError(err))
+		golog.Errorf("%s - failed to connect to ORPort: %s", name, commonLog.ElideError(err))
 		remote.Close()
 		return
 	}
 
 	if err = modes.CopyLoop(orConn, remote); err != nil {
-		golog.Warnf("%s - closed connection: %s", name, log.ElideError(err))
+		golog.Warnf("%s - closed connection: %s", name, commonLog.ElideError(err))
 	} else {
 		golog.Infof("%s - closed connection", name)
 	}

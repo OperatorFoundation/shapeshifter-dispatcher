@@ -32,10 +32,10 @@ package transports
 import (
 	"encoding/json"
 	"errors"
+	Optimizer "github.com/OperatorFoundation/Optimizer-go/Optimizer/v3"
+	replicant "github.com/OperatorFoundation/Replicant-go/Replicant/v3"
+	"github.com/OperatorFoundation/Shadow-go/shadow/v3"
 	"github.com/OperatorFoundation/Starbridge-go/Starbridge/v3"
-	Optimizer "github.com/OperatorFoundation/shapeshifter-transports/transports/Optimizer/v3"
-	replicant "github.com/OperatorFoundation/shapeshifter-transports/transports/Replicant/v3"
-	"github.com/OperatorFoundation/shapeshifter-transports/transports/shadow/v3"
 	"golang.org/x/net/proxy"
 )
 
@@ -130,7 +130,7 @@ func ParseArgsReplicantServer(args string) (*replicant.ServerConfig, error) {
 	return config, nil
 }
 
-func ParseArgsStarBridgeClient(args string, dialer proxy.Dialer) (*Starbridge.TransportClient, error) {
+func ParseArgsStarbridgeClient(args string, dialer proxy.Dialer) (*Starbridge.TransportClient, error) {
 	var config Starbridge.ClientConfig
 	bytes := []byte(args)
 	jsonError := json.Unmarshal(bytes, &config)
@@ -146,7 +146,7 @@ func ParseArgsStarBridgeClient(args string, dialer proxy.Dialer) (*Starbridge.Tr
 	return &transport, nil
 }
 
-func ParseArgsStarBridgeServer(args string) (*Starbridge.ServerConfig, error) {
+func ParseArgsStarbridgeServer(args string) (*Starbridge.ServerConfig, error) {
 	var config Starbridge.ServerConfig
 
 	bytes := []byte(args)
@@ -283,8 +283,8 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 			return nil, errors.New("could not parse replicant Args")
 		}
 		return replicantTransport, nil
-	case "StarBridge":
-		starbridgeTransport, parseErr := ParseArgsStarBridgeClient(jsonConfigString, dialer)
+	case "Starbridge":
+		starbridgeTransport, parseErr := ParseArgsStarbridgeClient(jsonConfigString, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse starbridge Args")
 		}

@@ -30,7 +30,6 @@
 package pt_socks5
 
 import (
-	"github.com/OperatorFoundation/obfs4/common/log"
 	commonLog "github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5"
@@ -155,7 +154,7 @@ func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (l
 				if LnError != nil {
 					continue
 				}
-				golog.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
+				golog.Infof("%s - registered listener: %s", name, commonLog.ElideAddr(bindaddr.Addr.String()))
 				modes.ServerAcceptLoop(name, transportLn, &ptServerInfo, serverHandler)
 				transportLnErr := transportLn.Close()
 				if transportLnErr != nil {
@@ -173,20 +172,20 @@ func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (l
 
 func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 
-	addrStr := log.ElideAddr(remote.RemoteAddr().String())
+	addrStr := commonLog.ElideAddr(remote.RemoteAddr().String())
 	golog.Infof("%s(%s) - new connection", name, addrStr)
 
 	// Connect to the orport.
 	orConn, err := pt.DialOr(info, remote.RemoteAddr().String(), name)
 	if err != nil {
-		golog.Errorf("%s(%s) - failed to connect to ORPort: %s", name, addrStr, log.ElideError(err))
+		golog.Errorf("%s(%s) - failed to connect to ORPort: %s", name, addrStr, commonLog.ElideError(err))
 		remote.Close()
 
 		return
 	}
 
 	if err = modes.CopyLoop(orConn, remote); err != nil {
-		golog.Warnf("%s(%s) - closed connection: %s", name, addrStr, log.ElideError(err))
+		golog.Warnf("%s(%s) - closed connection: %s", name, addrStr, commonLog.ElideError(err))
 	} else {
 		golog.Infof("%s(%s) - closed connection", name, addrStr)
 	}

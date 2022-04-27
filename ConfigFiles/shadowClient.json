@@ -1,5 +1,5 @@
 {
-  "password": "1234",
-  "cipherName": "CHACHA20-IETF-POLY1305",
+  "password": "d089c225ef8cda8d477a586f062b31a756270124d94944e458edf1a9e1e41ed6",
+  "cipherName": "DarkStar",
   "address": "127.0.0.1:2222"
 }

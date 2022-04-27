@@ -48,9 +48,6 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/stun_udp"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/transparent_tcp"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/transparent_udp"
-
-	_ "github.com/OperatorFoundation/obfs4/proxy_dialers/proxy_http"
-	_ "github.com/OperatorFoundation/obfs4/proxy_dialers/proxy_socks4"
 )
 
 const (

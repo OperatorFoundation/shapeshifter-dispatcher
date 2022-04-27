@@ -1,6 +1,7 @@
-# This script runs a full end-to-end functional test of the dispatcher and the Dust transport, using two netcat instances as the application server and application client.
+#!/bin/bash
+# This script runs a full end-to-end functional test of the dispatcher and the Starbridge transport, using two netcat instances as the application server and application client.
 # An alternative way to run this test is to run each command in its own terminal. Each netcat instance can be used to type content which should appear in the other.
-FILENAME=testTCPDustOutput.txt
+FILENAME=testTCPStarbridgeOutput.txt
 # Update and build code
 go build
 
@@ -11,12 +12,14 @@ rm $FILENAME
 nc -l 3333 >$FILENAME &
 
 # Run the transport server
-~/go/bin/shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports dust -bindaddr dust-127.0.0.1:2222 -optionsFile ../../ConfigFiles/dustServer.json -logLevel DEBUG -enableLogging &
+
+~/go/bin/shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports Starbridge -bindaddr Starbridge-127.0.0.1:2222 -optionsFile ../../ConfigFiles/StarbridgeServerConfig.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
 # Run the transport client
-~/go/bin/shapeshifter-dispatcher -transparent -client -state state -transports dust -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/dustClient.json -logLevel DEBUG -enableLogging &
+
+~/go/bin/shapeshifter-dispatcher -transparent -client -state state -transports Starbridge -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/StarbridgeClientConfig.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
@@ -34,7 +37,6 @@ else
   FILESIZE=$(stat -c%s "$FILENAME")
 fi
 
-
 if [ "$FILESIZE" = "0" ]
 then
   echo "Test Failed"
@@ -49,3 +51,4 @@ killall shapeshifter-dispatcher
 killall nc
 
 echo "Done."
+

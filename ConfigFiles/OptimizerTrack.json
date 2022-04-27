@@ -1,12 +1,6 @@
 {
   "transports": [
     {
-      "name": "obfs2",
-      "config": {
-        "address": "127.0.0.1:2223"
-      }
-    },
-    {
       "name": "shadow",
       "config": {
         "password": "1234",

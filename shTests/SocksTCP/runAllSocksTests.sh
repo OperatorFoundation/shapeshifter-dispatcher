@@ -1,7 +1,4 @@
-#./testSocksTCPDust.sh
-#./testSocksTCPMeek.sh
-./testSocksTCPObfs2.sh
-./testSocksTCPObfs4.sh
+#!/bin/bash
 ./testSocksTCPOptimizerFirst.sh
 ./testSocksTCPOptimizerMinimizeDialDuration.sh
 ./testSocksTCPOptimizerRandom.sh
@@ -9,3 +6,4 @@
 ./testSocksTCPOptimizerTrack.sh
 ./testSocksTCPReplicant.sh
 ./testSocksTCPShadow.sh
+./testSocksTCPStarbridge.sh
