@@ -12,13 +12,12 @@ rm $FILENAME
 nc -l -u 3333 >$FILENAME &
 
 # Run the transport server
-~/go/bin/shapeshifter-dispatcher -transparent -udp -server -state state -orport 127.0.0.1:3333 -transports Starbridge -bindaddr Starbridge-127.0.0.1:2222 -optionsFile ../../ConfigFiles/StarbridgeServerConfig.json -logLevel DEBUG -enableLogging &
+~/go/bin/shapeshifter-dispatcher -transparent -udp -server -state state -target 127.0.0.1:3333 -transports Starbridge -bindaddr Starbridge-127.0.0.1:2222 -optionsFile ../../ConfigFiles/StarbridgeServerConfig.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
 # Run the transport client
-~/go/bin/shapeshifter-dispatcher -transparent -udp -client -state state -target 127.0.0.1:2222 -transports Starbridge -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/StarbridgeClientConfig.json -logLevel DEBUG -enableLogging &
-
+~/go/bin/shapeshifter-dispatcher -transparent -udp -client -state state -transports Starbridge -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/StarbridgeClientConfig.json -logLevel DEBUG -enableLogging &
 sleep 1
 
 # Run a demo application client with netcat

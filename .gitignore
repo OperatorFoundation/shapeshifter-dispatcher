@@ -19,3 +19,4 @@ TransportState/dispatcher.log
 shapeshifter-dispatcher
 go.mod
 go.sum
+*.json
