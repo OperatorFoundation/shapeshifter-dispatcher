@@ -91,9 +91,9 @@ func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 					continue
 				}
 
-				//print(name)
-				//print(" listening on ")
-				//println(bindaddr.Addr.String())
+				print(name)
+				print(" listening on ")
+				println(bindaddr.Addr.String())
 				log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
 
 				ServerAcceptLoop(name, transportLn, &ptServerInfo, serverHandler)
