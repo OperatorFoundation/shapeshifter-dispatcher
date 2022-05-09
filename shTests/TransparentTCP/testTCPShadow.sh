@@ -15,7 +15,7 @@ rm $FILENAME
 nc -l 3333 >$FILENAME &
 
 # Run the transport server
-"$GOPATH"/bin/shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports shadow -bindaddr shadow-127.0.0.1:2222 -optionsFile ../../ConfigFiles/shadowServer.json -logLevel DEBUG -enableLogging &
+"$GOPATH"/bin/shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports shadow -bindaddr shadow-127.0.0.1:2222 -optionsFile ConfigFiles/shadowServer.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
