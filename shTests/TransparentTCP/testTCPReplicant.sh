@@ -2,8 +2,11 @@
 # This script runs a full end-to-end functional test of the dispatcher and the Replicant transport, using two netcat instances as the application server and application client.
 # An alternative way to run this test is to run each command in its own terminal. Each netcat instance can be used to type content which should appear in the other.
 FILENAME=testTCPReplicantOutput.txt
+
+GOPATH=${GOPATH:-'$HOME/go'}
+
 # Update and build code
-go build
+go install
 
 # remove text from the output file
 rm $FILENAME
@@ -12,19 +15,20 @@ rm $FILENAME
 nc -l 3333 >$FILENAME &
 
 # Run the transport server
-
-~/go/bin/shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports Replicant -bindaddr Replicant-127.0.0.1:2222 -optionsFile ../../ConfigFiles/ReplicantServerConfigV3.json -logLevel DEBUG -enableLogging &
+"$GOPATH"/bin/shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports Replicant -bindaddr Replicant-127.0.0.1:2222 -optionsFile ../../ConfigFiles/ReplicantServerConfigV3.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
 # Run the transport client
 
-~/go/bin/shapeshifter-dispatcher -transparent -client -state state -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/ReplicantClientConfigV3.json -logLevel DEBUG -enableLogging &
+"$GOPATH"/bin/shapeshifter-dispatcher -transparent -client -state state -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/ReplicantClientConfigV3.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
 # Run a demo application client with netcat
+pushd shTests/TransparentTCP
 go test -run TransparentTCP
+popd
 
 sleep 1
 

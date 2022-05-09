@@ -275,7 +275,7 @@ The Replicant transport is enabled and bound to the address 127.0.0.1 and the po
 2222. Logging is enabled and set to DEBUG level. To access the Log for debugging purposes,
 look at state/dispatcher.log
 
-To use Replicant, a config file is needed. A sample config file, ReplicantServerConfigV2.json, is provided purely for educational purposes and should not be used in actual production.
+To use Replicant, a config file is needed. A sample config file, ReplicantServerConfigV3.json, is provided purely for educational purposes and should not be used in actual production.
 
 ##### Client
 
@@ -286,7 +286,7 @@ used to hold transport state. The Replicant transport is enabled and bound to th
 address 127.0.0.1 and the port 1443. Please note that you do not specify the server address with -target in SOCKS5
 mode. This happens below, in the tsocks step.
 
-To use Replicant, a config file is needed. A sample config file, ReplicantClientConfigV2.json, is provided purely for educational purposes and should not be used in actual production.
+To use Replicant, a config file is needed. A sample config file, ReplicantClientConfigV3.json, is provided purely for educational purposes and should not be used in actual production.
 
 Once the client is running, you can connect to the client address, which in this
 case is 127.0.0.1, port 1443. You will need to use a SOCKS5 client. Normally, this would be a host application
