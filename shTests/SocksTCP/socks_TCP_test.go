@@ -15,34 +15,6 @@ const (
 	version = 0x05
 )
 
-func TestSocksTCPDust(t *testing.T) {
-	negotiateError := negotiateSocks("../../ConfigFiles/dustClient.json")
-	if negotiateError != nil {
-		t.Fail()
-	}
-}
-
-func TestSocksTCPMeek(t *testing.T) {
-	negotiateError := negotiateSocks("../../ConfigFiles/meek.json")
-	if negotiateError != nil {
-		t.Fail()
-	}
-}
-
-func TestSocksTCPObfs2(t *testing.T) {
-	negotiateError := negotiateSocks("../../ConfigFiles/obfs2.json")
-	if negotiateError != nil {
-		t.Fail()
-	}
-}
-
-func TestSocksTCPObfs4(t *testing.T) {
-	negotiateError := negotiateSocks("../../ConfigFiles/obfs4.json")
-	if negotiateError != nil {
-		t.Fail()
-	}
-}
-
 func TestSocksTCPOptimizerFirst(t *testing.T) {
 	negotiateError := negotiateSocks("../../ConfigFiles/OptimizerFirst.json")
 	if negotiateError != nil {
@@ -86,7 +58,7 @@ func TestSocksTCPReplicant(t *testing.T) {
 }
 
 func TestSocksTCPShadow(t *testing.T) {
-	negotiateError := negotiateSocks("../../ConfigFiles/shadowClientChaCha.json")
+	negotiateError := negotiateSocks("../../ConfigFiles/shadowClient.json")
 	if negotiateError != nil {
 		t.Fail()
 	}

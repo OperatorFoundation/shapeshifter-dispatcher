@@ -41,7 +41,7 @@ import (
 
 // Transports returns the list of registered transport protocols.
 func Transports() []string {
-	return []string{"shadow", "Replicant", "Optimizer"}
+	return []string{"shadow", "Replicant", "Starbridge", "Optimizer"}
 }
 
 func ParseArgsShadow(args string) (*shadow.Transport, error) {
