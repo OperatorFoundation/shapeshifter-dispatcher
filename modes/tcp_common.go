@@ -113,8 +113,6 @@ func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 }
 
 func CopyLoop(client net.Conn, server net.Conn) error {
-	fmt.Println("--> Entering copy loop.")
-
 	if server == nil {
 		fmt.Fprintln(os.Stderr, "--> Copy loop has a nil connection (b).")
 		return errors.New("copy loop has a nil connection (b)")
@@ -158,7 +156,7 @@ func CopyClientToServer(client net.Conn, server net.Conn, okToCloseClient chan b
 	_, copyError := io.Copy(server, client)
 	okToCloseClient <- true
 	if copyError != nil {
-		fmt.Printf("\n!! CopyClientToServer received an error: ", copyError)
+		fmt.Printf("\n!! CopyClientToServer received an error: ", copyError.Error())
 		errorChannel <- copyError
 	}
 }
@@ -167,7 +165,7 @@ func CopyServerToClient(client net.Conn, server net.Conn, okToCloseServer chan b
 	_, copyError := io.Copy(client, server)
 	okToCloseServer <- true
 	if copyError != nil {
-		fmt.Printf("\n!! CopyServerToClient received an error: ", copyError)
+		fmt.Printf("\n!! CopyServerToClient received an error: ", copyError.Error())
 		errorChannel <- copyError
 	}
 }

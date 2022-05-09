@@ -173,17 +173,16 @@ func main() {
 		golog.Fatalf("[ERROR]: %s - No state directory: Use --state", execName)
 	}
 	if *options != "" && *optionsFile != "" {
-		golog.Fatal("cannot specify -options and -optionsFile at the same time")
+		golog.Fatal("You should not specify -options and -optionsFile at the same time.")
 	}
 	if *optionsFile != "" {
-		fmt.Println("checking for optionsFile")
 		_, err := os.Stat(*optionsFile)
 		if err != nil {
-			golog.Errorf("optionsFile does not exist with error %s %s", *optionsFile, err.Error())
+			golog.Errorf("Received an error while attempting to parse the options file %s: %s", *optionsFile, err.Error())
 		} else {
 			contents, readErr := ioutil.ReadFile(*optionsFile)
 			if readErr != nil {
-				golog.Errorf("could not open optionsFile: %s", *optionsFile)
+				golog.Errorf("Failed to open the optionsFile: %s", *optionsFile)
 			} else {
 				*options = string(contents)
 			}
@@ -192,7 +191,7 @@ func main() {
 
 	transportValidationError := validateTransports(transport, transportsList)
 	if transportValidationError != nil {
-		golog.Errorf("could not validate: %s", transportValidationError)
+		golog.Errorf("Failed to validate transports: %s", transportValidationError)
 		return
 	}
 
@@ -202,13 +201,13 @@ func main() {
 
 	modeValidationError := validateMode(modeName, transparent, udp)
 	if modeValidationError != nil {
-		golog.Errorf("could not validate: %s", modeValidationError)
+		golog.Errorf("Failed to validate the mode: %s", modeValidationError)
 		return
 	}
 
 	mode, modeError := determineMode(*modeName, *transparent, *udp)
 	if modeError != nil {
-		golog.Errorf("invalid mode name %s", *modeName)
+		golog.Errorf("Invalid mode name: %s", *modeName)
 		return
 	}
 
@@ -315,11 +314,11 @@ func main() {
 
 		switch mode {
 		case socks5:
-			golog.Infof("%s - initializing server transport listeners", execName)
+			golog.Infof("%s - initializing socks5 server transport listeners", execName)
 			ptServerInfo := getServerInfo(bindAddr, options, transportsList, target, extorport, authcookie)
 			launched = pt_socks5.ServerSetup(ptServerInfo, stateDir, *options)
 		case transparentTCP:
-			golog.Infof("%s - initializing server transport listeners", execName)
+			golog.Infof("%s - initializing transparentTCP server transport listeners", execName)
 			ptServerInfo := getServerInfo(bindAddr, options, transportsList, target, extorport, authcookie)
 			launched = transparent_tcp.ServerSetup(ptServerInfo, stateDir, *options)
 		case transparentUDP:
