@@ -92,7 +92,7 @@ func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 				}
 
 				print(name)
-				print("listening on ")
+				print(" listening on ")
 				println(bindaddr.Addr.String())
 				log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
 
@@ -156,7 +156,8 @@ func CopyClientToServer(client net.Conn, server net.Conn, okToCloseClient chan b
 	_, copyError := io.Copy(server, client)
 	okToCloseClient <- true
 	if copyError != nil {
-		fmt.Printf("\n!! CopyClientToServer received an error: ", copyError.Error())
+		println("!! CopyClientToServer received an error from io.Copy: ")
+		println(copyError)
 		errorChannel <- copyError
 	}
 }

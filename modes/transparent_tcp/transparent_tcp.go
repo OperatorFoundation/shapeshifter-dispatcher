@@ -113,12 +113,16 @@ func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 	// Connect to the orport.
 	orConn, err := pt.DialOr(info, remote.RemoteAddr().String(), name)
 	if err != nil {
+		print("failed to connect to ORPort: ")
+		println(commonLog.ElideError(err))
 		golog.Errorf("%s - failed to connect to ORPort: %s", name, commonLog.ElideError(err))
 		remote.Close()
 		return
 	}
 
 	if err = modes.CopyLoop(orConn, remote); err != nil {
+		print("closed a connection: ")
+		println(commonLog.ElideError(err))
 		golog.Warnf("%s - closed connection: %s", name, commonLog.ElideError(err))
 	} else {
 		golog.Infof("%s - closed connection", name)

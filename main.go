@@ -323,7 +323,6 @@ func main() {
 			launched = transparent_tcp.ServerSetup(ptServerInfo, stateDir, *options)
 		case transparentUDP:
 			// launched = transparent_udp.ServerSetup(termMon, *bindAddr, *target)
-
 			ptServerInfo := getServerInfo(bindAddr, options, transportsList, target, extorport, authcookie)
 			launched = transparent_udp.ServerSetup(ptServerInfo, stateDir, *options)
 		case stunUDP:
