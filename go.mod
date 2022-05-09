@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/OperatorFoundation/Optimizer-go/Optimizer/v3 v3.0.2
 	github.com/OperatorFoundation/Replicant-go/Replicant/v3 v3.0.2
-	github.com/OperatorFoundation/Shadow-go/shadow/v3 v3.0.3
+	github.com/OperatorFoundation/Shadow-go/shadow/v3 v3.0.4
 	github.com/OperatorFoundation/Starbridge-go/Starbridge/v3 v3.0.2
 	github.com/OperatorFoundation/shapeshifter-ipc/v3 v3.0.0
 	github.com/kataras/golog v0.1.7
@@ -15,7 +15,7 @@ require (
 
 require (
 	github.com/OperatorFoundation/go-bloom v1.0.1 // indirect
-	github.com/OperatorFoundation/go-shadowsocks2 v1.1.6 // indirect
+	github.com/OperatorFoundation/go-shadowsocks2 v1.1.7 // indirect
 	github.com/OperatorFoundation/monolith-go/monolith v1.0.10 // indirect
 	github.com/aead/ecdh v0.2.0 // indirect
 	github.com/deckarep/golang-set v1.8.0 // indirect

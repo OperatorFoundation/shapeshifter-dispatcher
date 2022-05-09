@@ -27,7 +27,7 @@ package modes
 import (
 	"errors"
 	"fmt"
-
+	commonLog "github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	pt "github.com/OperatorFoundation/shapeshifter-ipc/v3"
 	"github.com/kataras/golog"
@@ -114,11 +114,13 @@ func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 
 func CopyLoop(client net.Conn, server net.Conn) error {
 	if server == nil {
-		fmt.Fprintln(os.Stderr, "--> Copy loop has a nil connection (b).")
+		println("--> Copy loop has a nil server connection.")
+		fmt.Fprintln(os.Stderr, "--> Copy loop has a nil server connection (b).")
 		return errors.New("copy loop has a nil connection (b)")
 	}
 
 	if client == nil {
+		println("--> Copy loop has a nil client connection.")
 		fmt.Fprintln(os.Stderr, "--> Copy loop has a nil connection (a).")
 		return errors.New("copy loop has a nil connection (a)")
 	}
@@ -166,7 +168,7 @@ func CopyServerToClient(client net.Conn, server net.Conn, okToCloseServer chan b
 	_, copyError := io.Copy(client, server)
 	okToCloseServer <- true
 	if copyError != nil {
-		fmt.Printf("\n!! CopyServerToClient received an error: ", copyError.Error())
+		fmt.Printf("\n!! CopyServerToClient received an error: ", commonLog.ElideError(copyError))
 		errorChannel <- copyError
 	}
 }
