@@ -2,6 +2,9 @@
 # This script runs a full end-to-end functional test of the dispatcher and the Shadow transport, using two netcat instances as the application server and application client.
 # An alternative way to run this test is to run each command in its own terminal. Each netcat instance can be used to type content which should appear in the other.
 FILENAME=testTCPShadowOutput.txt
+
+GOPATH=${GOPATH:-'$HOME/go'}
+
 # Update and build code
 go install
 
