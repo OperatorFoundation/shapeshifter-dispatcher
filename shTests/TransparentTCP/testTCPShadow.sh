@@ -25,7 +25,9 @@ sleep 1
 sleep 1
 
 # Run a demo application client with netcat
+pushd shTests/TransparentTCP
 go test -run TransparentTCP
+popd
 
 sleep 1
 
