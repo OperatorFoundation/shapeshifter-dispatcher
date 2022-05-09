@@ -76,7 +76,7 @@ func dialConn(tracker *ConnTracker, addr string, name string, options string, pr
 
 	}
 
-	fmt.Println("Dialing....")
+	println("Dialing....")
 
 	// Deal with arguments.
 	transport, argsToDialerErr := pt_extras.ArgsToDialer(name, options, dialer)
@@ -89,14 +89,14 @@ func dialConn(tracker *ConnTracker, addr string, name string, options string, pr
 	fmt.Println("Dialing ")
 	remote, dialError := transport.Dial()
 	if dialError != nil {
-		fmt.Println("outgoing connection failed", dialError)
+		fmt.Println("outgoing connection failed: ", dialError)
 		golog.Error("(%s) - outgoing connection failed")
-		fmt.Println("Failed")
+		println("Failed")
 		delete(*tracker, addr)
 		return
 	}
 
-	fmt.Println("Success")
+	println("Success")
 
 	(*tracker)[addr] = ConnState{remote, false}
 }
@@ -106,6 +106,9 @@ func ServerAcceptLoop(name string, ln net.Listener, info *pt.ServerInfo, serverH
 		conn, err := ln.Accept()
 		fmt.Println("accepted")
 		if err != nil {
+			print("Received an error while attempting to accept a connection:")
+			print(err.Error())
+
 			if e, ok := err.(net.Error); ok && !e.Temporary() {
 				log.Errorf("ServerAcceptLoop failed")
 				_ = ln.Close()

@@ -86,14 +86,18 @@ func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 
 		go func() {
 			for {
-				print("listening on ")
-				println(bindaddr.Addr.String())
 				transportLn, LnError := listen(bindaddr.Addr.String())
 				if LnError != nil {
 					continue
 				}
+
+				print(name)
+				print("listening on ")
+				println(bindaddr.Addr.String())
 				log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
+
 				ServerAcceptLoop(name, transportLn, &ptServerInfo, serverHandler)
+
 				transportLnErr := transportLn.Close()
 				if transportLnErr != nil {
 					fmt.Fprintf(os.Stderr, "Listener close error: %s", transportLnErr.Error())
@@ -127,7 +131,6 @@ func CopyLoop(client net.Conn, server net.Conn) error {
 	copyErrorChannel := make(chan error)
 
 	go CopyClientToServer(client, server, okToCloseClientChannel, copyErrorChannel)
-
 	go CopyServerToClient(client, server, okToCloseServerChannel, copyErrorChannel)
 
 	serverRunning := true
@@ -141,7 +144,7 @@ func CopyLoop(client net.Conn, server net.Conn) error {
 		case <-okToCloseServerChannel:
 			serverRunning = false
 		case copyError = <-copyErrorChannel:
-			log.Errorf("Error while copying")
+			log.Errorf("Error while copying", copyError)
 		}
 	}
 
@@ -155,6 +158,7 @@ func CopyClientToServer(client net.Conn, server net.Conn, okToCloseClient chan b
 	_, copyError := io.Copy(server, client)
 	okToCloseClient <- true
 	if copyError != nil {
+		fmt.Printf("\n!! CopyClientToServer received an error: ", copyError)
 		errorChannel <- copyError
 	}
 }
@@ -163,6 +167,7 @@ func CopyServerToClient(client net.Conn, server net.Conn, okToCloseServer chan b
 	_, copyError := io.Copy(client, server)
 	okToCloseServer <- true
 	if copyError != nil {
+		fmt.Printf("\n!! CopyServerToClient received an error: ", copyError)
 		errorChannel <- copyError
 	}
 }
