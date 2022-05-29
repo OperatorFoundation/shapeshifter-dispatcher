@@ -38,9 +38,6 @@ This is the repository for the shapeshifter-dispatcher command line proxy tool.
 If you are looking for the transports is provides, they are here:
 <https://github.com/OperatorFoundation/shapeshifter-transports>
 
-The dispatcher implements the Pluggable Transports 2.1 draft 1 specification available here:
-<https://github.com/Pluggable-Transports/Pluggable-Transports-spec/tree/master/releases/PTSpecV2.1Draft1>
-
 The purpose of the dispatcher is to provide different proxy interfaces to using
 transports. Through the use of these proxies, application traffic can be sent
 over the network in a shapeshifted form that bypasses network filtering, allowing
@@ -85,22 +82,20 @@ Go into that directory and build the command line executable:
 
 This will fetch the source code for shapeshifter-dispatcher, and all the
 dependencies, compile everything, and put the result in
-~/go/bin/shapeshifter-dispatcher.
+$HOME/go/bin/shapeshifter-dispatcher if your GOPATH is $HOME/go
 
 #### Running
 
-Run without argument to get usage information:
-
-    ~/go/bin/shapeshifter-dispatcher
-
 Shapeshifter dispatcher has several modes of operations. A common way to get started is with transparent TCP mode:
 
-    ~/go/bin/shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports obfs2 -bindaddr obfs2-127.0.0.1:2222 -logLevel DEBUG -enableLogging &
-    ~/go/bin/shapeshifter-dispatcher -transparent -client -state state -transports obfs2 -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/obfs2.json -logLevel DEBUG -enableLogging &
+    $HOME/go/bin/shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports shadow -bindaddr shadow-127.0.0.1:2222 -optionsFile ConfigFiles/shadowServer.json -logLevel DEBUG -enableLoggingccccccknggcfnlklltiuudguhnvrtdbkjgcbvidlrinu
+    
+
+    $HOME/go/bin/shapeshifter-dispatcher -transparent -client -state state -transports shadow -proxylistenaddr 127.0.0.1:1443 -optionsFile ConfigFiles/shadowClient.json -logLevel DEBUG -enableLogging
 
 Use either -client or -server to place the proxy into client or server mode,
 respectively. Use -state to specify a directory to put transports state
-information. Use -transports to specify which transports to launch.
+information. Use -transports to specify which transports to launch.  Use -optionsFile to specify the directory where your config file is located
 
 The default proxy mode is SOCKS5 (with optional PT 2.1 authentication protocol),
 which can only proxy SOCKS5-aware TCP connections. For some transports, the
@@ -121,9 +116,6 @@ any incoming packets are forwarded over the transport.
 
 Only one proxy mode can be used at a time.
 
-The full set of command line flags is specified in the Pluggable Transport 2.1 specification.
-<https://www.pluggabletransports.info/spec/#build>
-
 #### Running with Replicant
 
 Replicant is Operator's flagship transport which can be tuned for each adversary.
@@ -138,7 +130,7 @@ For this example to work, you need an application server running. You can use ne
 
 Now launch the transport server, telling it where to find the application server:
 
-    ~/go/bin/shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports Replicant -bindaddr Replicant-127.0.0.1:2222 -optionsFile ../../ConfigFiles/ReplicantServerConfigV3.json -logLevel DEBUG -enableLogging
+    $HOME/go/bin/shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports Replicant -bindaddr Replicant-127.0.0.1:2222 -optionsFile ConfigFiles/ReplicantServerConfigV3.json -logLevel DEBUG -enableLogging
 
 This runs the server in transparent TCP proxy mode. The directory "state" is used
 to hold transport state. The destination that the server will proxy to is
@@ -150,7 +142,7 @@ To use Replicant, a config file is needed. A sample config file, ReplicantServer
 
 ##### Client
 
-    ~/go/bin/shapeshifter-dispatcher -transparent -client -state state -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/ReplicantClientConfigV3.json -logLevel DEBUG -enableLogging
+    $HOME/go/bin/shapeshifter-dispatcher -transparent -client -state state -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ConfigFiles/ReplicantClientConfigV3.json -logLevel DEBUG -enableLogging
 
 This runs the client in transparent TCP proxy mode. The directory "state" is
 used to hold transport state. The address of the server is specified as
@@ -178,10 +170,6 @@ dispatcher automatically from inside of an application, another option is to
 use environment variables. Most of the functionality specified by command line
 flags can also be set using environment variables instead.
 
-The full set of environment variables is specified in the Pluggable Transport
-2.1 specification.
-<https://www.pluggabletransports.info/spec/#build>
-
 ### Running in SOCKS5 Mode
 
 SOCKS5 mode is an older mode inherited from the PT1.0 specification and updated in PT2.0. Despite the name,
@@ -202,7 +190,7 @@ For this example to work, you need an application server running. You can use ne
 
 Now launch the transport server, telling it where to find the application server:
 
-    ~/go/bin/shapeshifter-dispatcher -server -state state -target 127.0.0.1:3333 -transports Replicant -bindaddr Replicant-127.0.0.1:2222 -optionsFile ../../ConfigFiles/ReplicantServerConfigV3.json -logLevel DEBUG -enableLogging
+    $HOME/go/bin/shapeshifter-dispatcher -server -state state -target 127.0.0.1:3333 -bindaddr shadow-127.0.0.1:2222 -transports shadow -optionsFile ConfigFiles/shadowServer.json -logLevel DEBUG -enableLogging
 
 This runs the server in the default mode, which is SOCKS5 mode. The directory "state" is used
 to hold transport state. The destination that the server will proxy to is 127.0.0.1, port 3333.
@@ -214,7 +202,7 @@ To use Replicant, a config file is needed. A sample config file, ReplicantServer
 
 ##### Client
 
-    ~/go/bin/shapeshifter-dispatcher -client -state state -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/ReplicantClientConfigV3.json -logLevel DEBUG -enableLogging 
+    $HOME/go/bin/shapeshifter-dispatcher -client -state state -transports shadow -proxylistenaddr 127.0.0.1:1443 -optionsFile ConfigFiles/shadowClient.json -logLevel DEBUG -enableLogging
 
 This runs the client in the default mode, which is SOCKS5 mode. The directory "state" is
 used to hold transport state. The Replicant transport is enabled and bound to the
@@ -267,7 +255,6 @@ SOCKS5 mode is not recommended for most users, use Transparent TCP mode instead.
 
 shapeshifter-dispatcher is descended from the Tor project's "obfs4proxy" tool.
 
- * Yawning Angel for obfs4proxy
  * David Fifield for goptlib
  * Adam Langley for the Go Elligator implementation.
  * Philipp Winter for the ScrambleSuit protocol.
