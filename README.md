@@ -88,8 +88,8 @@ $HOME/go/bin/shapeshifter-dispatcher if your GOPATH is $HOME/go
 
 Shapeshifter dispatcher has several modes of operations. A common way to get started is with transparent TCP mode:
 
-    $HOME/go/bin/shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports shadow -bindaddr shadow-127.0.0.1:2222 -optionsFile ConfigFiles/shadowServer.json -logLevel DEBUG -enableLoggingccccccknggcfnlklltiuudguhnvrtdbkjgcbvidlrinu
-    
+    $HOME/go/bin/shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports shadow -bindaddr shadow-127.0.0.1:2222 -optionsFile ConfigFiles/shadowServer.json -logLevel DEBUG -enableLogging
+
 
     $HOME/go/bin/shapeshifter-dispatcher -transparent -client -state state -transports shadow -proxylistenaddr 127.0.0.1:1443 -optionsFile ConfigFiles/shadowClient.json -logLevel DEBUG -enableLogging
 
