@@ -25,12 +25,13 @@ SOFTWARE.
 package modes
 
 import (
+	"net"
+	"net/url"
+
 	commonLog "github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	pt "github.com/OperatorFoundation/shapeshifter-ipc/v3"
 	"github.com/kataras/golog"
-	"net"
-	"net/url"
 )
 
 func ClientSetupUDP(socksAddr string, ptClientProxy *url.URL, names []string, options string, clientHandler ClientHandlerUDP) bool {
@@ -72,6 +73,11 @@ func ServerSetupUDP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 				if LnError != nil {
 					continue
 				}
+
+				print(name)
+				print(" listening on ")
+				println(bindaddr.Addr.String())
+
 				golog.Infof("%s - registered listener: %s", name, commonLog.ElideAddr(bindaddr.Addr.String()))
 				ServerAcceptLoop(name, transportLn, &ptServerInfo, serverHandler)
 				transportLnErr := transportLn.Close()

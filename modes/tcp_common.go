@@ -27,14 +27,15 @@ package modes
 import (
 	"errors"
 	"fmt"
-	commonLog "github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
-	pt "github.com/OperatorFoundation/shapeshifter-ipc/v3"
-	"github.com/kataras/golog"
 	"io"
 	"net"
 	"net/url"
 	"os"
+
+	commonLog "github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	pt "github.com/OperatorFoundation/shapeshifter-ipc/v3"
+	"github.com/kataras/golog"
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 )
@@ -91,9 +92,10 @@ func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 					continue
 				}
 
-				//print(name)
-				//print(" listening on ")
-				//println(bindaddr.Addr.String())
+				print(name)
+				print(" listening on ")
+				println(bindaddr.Addr.String())
+
 				log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
 
 				ServerAcceptLoop(name, transportLn, &ptServerInfo, serverHandler)
