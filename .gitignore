@@ -17,6 +17,4 @@ stateDir/dispatcher.log
 TransportState/dispatcher.log
 *.log
 shapeshifter-dispatcher
-go.mod
-go.sum
 *.json
