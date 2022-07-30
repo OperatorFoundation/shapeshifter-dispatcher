@@ -19,18 +19,24 @@ jobs:
         sudo apt install -y netcat
         go install
 
+  test:
+    needs: build
+    steps:
     - name: Test SocksTCP
       working-directory: ./shTests/SocksTCP
       run: sh ./runAllSocksTests.sh
 
     - name: Test StunUDP
+      if: always()
       working-directory: ./shTests/StunUDP
       run: sh ./runAllStunUDPTests.sh
     
     - name: Test TransparentTCP
+      if: always()
       working-directory: ./shTests/TransparentTCP
       run: sh ./runAllTCPTests.sh
     
     - name: Test TransparentUDP
+      if: always()
       working-directory: ./shTests/TransparentUDP
       run: sh ./runAllUDPTests.sh
