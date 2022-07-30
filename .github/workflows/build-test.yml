@@ -20,13 +20,17 @@ jobs:
         go install
 
     - name: Test SocksTCP
-      run: sh ./shTests/SocksTCP/runAllSocksTests.sh
+      working-directory: ./shTests/SocksTCP
+      run: sh ./runAllSocksTests.sh
 
     - name: Test StunUDP
-      run: sh ./shTests/StunUDP/runAllStunUDPTests.sh
+      working-directory: ./shTests/StunUDP
+      run: sh ./runAllStunUDPTests.sh
     
     - name: Test TransparentTCP
-      run: sh ./shTests/TransparentTCP/runAllTCPTests.sh
+      working-directory: ./shTests/TransparentTCP
+      run: sh ./runAllTCPTests.sh
     
     - name: Test TransparentUDP
-      run: sh ./shTests/TransparentUDP/runAllUDPTests.sh
+      working-directory: ./shTests/TransparentUDP
+      run: sh ./runAllUDPTests.sh
