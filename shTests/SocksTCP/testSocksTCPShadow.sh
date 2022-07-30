@@ -3,8 +3,6 @@
 # An alternative way to run this test is to run each command in its own terminal. Each netcat instance can be used to type content which should appear in the other.
 FILENAME=testSocksTCPShadowOutput.txt
 
-GOPATH=${GOPATH:-'$HOME/go'}
-
 # Update and build code
 go install
 
