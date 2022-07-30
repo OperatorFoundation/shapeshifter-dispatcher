@@ -16,7 +16,7 @@ jobs:
 
     - name: Build
       run: |
-        apt install -y netcat
+        sudo apt install -y netcat
         go install
 
     - name: Test SocksTCP
