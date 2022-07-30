@@ -65,7 +65,7 @@ func TestSocksTCPShadow(t *testing.T) {
 	}
 }
 
-func SocksTCPStarbridge(t *testing.T) {
+func TestSocksTCPStarbridge(t *testing.T) {
 	negotiateError := negotiateSocks("../../ConfigFiles/StarbridgeClientConfig.json")
 	if negotiateError != nil {
 		t.Fail()
