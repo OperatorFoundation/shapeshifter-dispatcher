@@ -3,7 +3,10 @@
 # An alternative way to run this test is to run each command in its own terminal. Each netcat instance can be used to type content which should appear in the other.
 FILENAME=testTCPShadowOutput.txt
 
-GOPATH=${GOPATH:-'$HOME/go'}
+if [[ -z "${GOPATH}" ]]; then
+  echo "your GOPATH variable is not set. Temporarily setting to HOME/go"
+fi
+GOPATH=${GOPATH:-"$HOME/go"}
 
 # Update and build code
 go install

@@ -12,6 +12,8 @@ github.com/OperatorFoundation/go-bloom v1.0.1/go.mod h1:b6bJWAnYIhwDgFIIolHyeuTY
 github.com/OperatorFoundation/go-shadowsocks2 v1.1.0/go.mod h1:paPY4LTOVMxWJ4ojsR3dsEfOqXAhwwqZY44rN/QBS0s=
 github.com/OperatorFoundation/go-shadowsocks2 v1.1.7 h1:5D12/NhB/rpR1pQL8atmmDTTqTP/dTtkA5ARLVuTvsA=
 github.com/OperatorFoundation/go-shadowsocks2 v1.1.7/go.mod h1:yw8jel8UNDWkJNE3wwAfEyctdCw6DI1FWBrZgcuoBfI=
+github.com/OperatorFoundation/locket-go v1.0.0 h1:y9re41YqYi0bs+sfkeh1GcP1OF9J3qZW4G6ZxYsrzEY=
+github.com/OperatorFoundation/locket-go v1.0.0/go.mod h1:1AhXjUWRgU3dXxPSsUcW8L2QUJGLaQ0umBqGpC36cEw=
 github.com/OperatorFoundation/monolith-go/monolith v1.0.10 h1:mK7X57x5LliwsPmRoWgdVhMK1u+ag3LaxemsYpQ279Y=
 github.com/OperatorFoundation/monolith-go/monolith v1.0.10/go.mod h1:czRPOIH/In5SEcnHndvit7O+Pq+rHxkrE5XqwYhIkqo=
 github.com/OperatorFoundation/shapeshifter-ipc/v3 v3.0.0 h1:zeWIkAC4NH9X49wLg75yKw4g5p3Gq8ZYTWxbXGeinCs=
@@ -61,6 +63,8 @@ golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1/go.mod h1:oPkhp1MJrh7nUepCBc
 golang.org/x/sys v0.0.0-20211216021012-1d35b9e2eb4e/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/sys v0.0.0-20220429233432-b5fbb4746d32 h1:Js08h5hqB5xyWR789+QqueR6sDE8mk+YvpETZ+F6X9Y=
 golang.org/x/sys v0.0.0-20220429233432-b5fbb4746d32/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
+golang.org/x/sys v0.0.0-20220817070843-5a390386f1f2 h1:fqTvyMIIj+HRzMmnzr9NtpHP6uVpvB5fkHcgPDC4nu8=
+golang.org/x/sys v0.0.0-20220817070843-5a390386f1f2/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
 golang.org/x/term v0.0.0-20201117132131-f5c789dd3221/go.mod h1:Nr5EML6q2oocZ2LXRh80K7BxOlk5/8JxuGnuhpl+muw=
 golang.org/x/term v0.0.0-20201126162022-7de9c90e9dd1/go.mod h1:bj7SfCRtBDWHUb9snDiAeCFNEtKQo2Wmx5Cou7ajbmo=
 golang.org/x/term v0.0.0-20210927222741-03fcf44c2211/go.mod h1:jbD1KX2456YbFQfuXm/mYQcufACuNUgVhRMnK/tPxf8=

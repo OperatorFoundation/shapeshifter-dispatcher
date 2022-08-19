@@ -41,8 +41,8 @@ import (
 	"net/url"
 )
 
-func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, options string) (launched bool) {
-	return modes.ClientSetupTCP(socksAddr, ptClientProxy, names, options, clientHandler)
+func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, options string, enableLocket bool, stateDir string) (launched bool) {
+	return modes.ClientSetupTCP(socksAddr, ptClientProxy, names, options, clientHandler, enableLocket, stateDir)
 }
 
 func clientHandler(name string, options string, conn net.Conn, proxyURI *url.URL) {
@@ -105,8 +105,8 @@ func clientHandler(name string, options string, conn net.Conn, proxyURI *url.URL
 	}
 }
 
-func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (launched bool) {
-	return modes.ServerSetupTCP(ptServerInfo, statedir, options, serverHandler)
+func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string, enableLocket bool) (launched bool) {
+	return modes.ServerSetupTCP(ptServerInfo, statedir, options, serverHandler, enableLocket)
 }
 
 func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {

@@ -26,13 +26,15 @@ package modes
 
 import (
 	"fmt"
+	"net"
+	"net/url"
+
+	locketgo "github.com/OperatorFoundation/locket-go"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	pt "github.com/OperatorFoundation/shapeshifter-ipc/v3"
 	"github.com/kataras/golog"
 	"golang.org/x/net/proxy"
-	"net"
-	"net/url"
 )
 
 type ConnState struct {
@@ -101,7 +103,7 @@ func dialConn(tracker *ConnTracker, addr string, name string, options string, pr
 	(*tracker)[addr] = ConnState{remote, false}
 }
 
-func ServerAcceptLoop(name string, ln net.Listener, info *pt.ServerInfo, serverHandler ServerHandler) {
+func ServerAcceptLoop(name string, ln net.Listener, info *pt.ServerInfo, serverHandler ServerHandler, enableLocket bool, stateDir string) {
 	for {
 		conn, err := ln.Accept()
 		fmt.Println("accepted")
@@ -115,6 +117,17 @@ func ServerAcceptLoop(name string, ln net.Listener, info *pt.ServerInfo, serverH
 				return
 			}
 			continue
+		}
+
+		if enableLocket {
+			locketConn, locketError := locketgo.NewLocketConn(conn, stateDir)
+			if locketError != nil {
+				golog.Error("server failed to enable Locket")
+				conn.Close()
+				return
+			}
+
+			conn = locketConn
 		}
 
 		go serverHandler(name, conn, info)

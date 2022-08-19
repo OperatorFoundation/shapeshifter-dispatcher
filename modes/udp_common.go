@@ -79,7 +79,7 @@ func ServerSetupUDP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 				println(bindaddr.Addr.String())
 
 				golog.Infof("%s - registered listener: %s", name, commonLog.ElideAddr(bindaddr.Addr.String()))
-				ServerAcceptLoop(name, transportLn, &ptServerInfo, serverHandler)
+				ServerAcceptLoop(name, transportLn, &ptServerInfo, serverHandler, false, "")
 				transportLnErr := transportLn.Close()
 				if transportLnErr != nil {
 					golog.Errorf("Listener close error: %s", transportLnErr.Error())

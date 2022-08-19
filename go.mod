@@ -7,6 +7,7 @@ require (
 	github.com/OperatorFoundation/Replicant-go/Replicant/v3 v3.0.2
 	github.com/OperatorFoundation/Shadow-go/shadow/v3 v3.0.4
 	github.com/OperatorFoundation/Starbridge-go/Starbridge/v3 v3.0.2
+	github.com/OperatorFoundation/locket-go v1.0.0
 	github.com/OperatorFoundation/shapeshifter-ipc/v3 v3.0.0
 	github.com/kataras/golog v0.1.7
 	github.com/willscott/goturn v0.0.0-20170802220503-19f41278d0c9
@@ -22,5 +23,5 @@ require (
 	github.com/kataras/pio v0.0.10 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
 	golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f // indirect
-	golang.org/x/sys v0.0.0-20220429233432-b5fbb4746d32 // indirect
+	golang.org/x/sys v0.0.0-20220817070843-5a390386f1f2 // indirect
 )

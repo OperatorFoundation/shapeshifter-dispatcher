@@ -32,6 +32,7 @@ import (
 	"net/url"
 	"os"
 
+	locketgo "github.com/OperatorFoundation/locket-go"
 	commonLog "github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	pt "github.com/OperatorFoundation/shapeshifter-ipc/v3"
@@ -40,7 +41,7 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 )
 
-func ClientSetupTCP(socksAddr string, ptClientProxy *url.URL, names []string, options string, clientHandler ClientHandlerTCP) (launched bool) {
+func ClientSetupTCP(socksAddr string, ptClientProxy *url.URL, names []string, options string, clientHandler ClientHandlerTCP, enableLocket bool, stateDir string) (launched bool) {
 	// Launch each of the client listeners.
 	for _, name := range names {
 		ln, err := net.Listen("tcp", socksAddr)
@@ -50,7 +51,7 @@ func ClientSetupTCP(socksAddr string, ptClientProxy *url.URL, names []string, op
 			continue
 		}
 
-		go clientAcceptLoop(name, options, ln, ptClientProxy, clientHandler)
+		go clientAcceptLoop(name, options, ln, ptClientProxy, clientHandler, enableLocket, stateDir)
 		log.Infof("%s - registered listener: %s", name, ln.Addr())
 		launched = true
 	}
@@ -58,7 +59,7 @@ func ClientSetupTCP(socksAddr string, ptClientProxy *url.URL, names []string, op
 	return
 }
 
-func clientAcceptLoop(name string, options string, ln net.Listener, proxyURI *url.URL, clientHandler ClientHandlerTCP) {
+func clientAcceptLoop(name string, options string, ln net.Listener, proxyURI *url.URL, clientHandler ClientHandlerTCP, enableLocket bool, stateDir string) {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
@@ -70,11 +71,23 @@ func clientAcceptLoop(name string, options string, ln net.Listener, proxyURI *ur
 			golog.Warnf("Failed to accept connection: %s", err.Error())
 			continue
 		}
+
+		if enableLocket {
+			locketConn, err := locketgo.NewLocketConn(conn, stateDir)
+			if err != nil {
+				golog.Error("client failed to enable Locket")
+				conn.Close()
+				return
+			}
+
+			conn = locketConn
+		}
+		
 		go clientHandler(name, options, conn, proxyURI)
 	}
 }
 
-func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string, serverHandler ServerHandler) (launched bool) {
+func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string, serverHandler ServerHandler, enableLocket bool) (launched bool) {
 	// Launch each of the server listeners.
 	for _, bindaddr := range ptServerInfo.Bindaddrs {
 		name := bindaddr.MethodName
@@ -98,7 +111,7 @@ func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 
 				log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
 
-				ServerAcceptLoop(name, transportLn, &ptServerInfo, serverHandler)
+				ServerAcceptLoop(name, transportLn, &ptServerInfo, serverHandler, enableLocket, stateDir)
 
 				transportLnErr := transportLn.Close()
 				if transportLnErr != nil {
