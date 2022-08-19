@@ -120,7 +120,7 @@ func ServerAcceptLoop(name string, ln net.Listener, info *pt.ServerInfo, serverH
 		}
 
 		if enableLocket {
-			locketConn, locketError := locketgo.NewLocketConn(conn, stateDir)
+			locketConn, locketError := locketgo.NewLocketConn(conn, stateDir, "DispatcherServer")
 			if locketError != nil {
 				golog.Error("server failed to enable Locket")
 				conn.Close()

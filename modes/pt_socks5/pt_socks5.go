@@ -76,7 +76,7 @@ func clientAcceptLoop(name string, ln net.Listener, proxyURI *url.URL, options s
 		}
 
 		if enableLocket {
-			locketConn, err := locketgo.NewLocketConn(conn, stateDir)
+			locketConn, err := locketgo.NewLocketConn(conn, stateDir, "DispatcherClient")
 			if err != nil {
 				golog.Error("client failed to enable Locket")
 				conn.Close()
