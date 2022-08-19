@@ -18,12 +18,12 @@ rm shTests/TransparentTCP/$FILENAME
 nc -l 3333 >shTests/TransparentTCP/$FILENAME &
 
 # Run the transport server
-"$GOPATH"/bin/shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports shadow -bindaddr shadow-127.0.0.1:2222 -optionsFile ConfigFiles/shadowServer.json -logLevel DEBUG -enableLogging &
+"$GOPATH"/bin/shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports shadow -bindaddr shadow-127.0.0.1:2222 -optionsFile ConfigFiles/shadowServer.json -logLevel DEBUG -enableLogging - enableLocket &
 
 sleep 1
 
 # Run the transport client
-"$GOPATH"/bin/shapeshifter-dispatcher -transparent -client -state state -transports shadow -proxylistenaddr 127.0.0.1:1443 -optionsFile ConfigFiles/shadowClient.json -logLevel DEBUG -enableLogging &
+"$GOPATH"/bin/shapeshifter-dispatcher -transparent -client -state state -transports shadow -proxylistenaddr 127.0.0.1:1443 -optionsFile ConfigFiles/shadowClient.json -logLevel DEBUG -enableLogging -enableLocket &
 
 sleep 1
 

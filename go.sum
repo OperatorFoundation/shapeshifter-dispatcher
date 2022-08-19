@@ -14,6 +14,8 @@ github.com/OperatorFoundation/go-shadowsocks2 v1.1.7 h1:5D12/NhB/rpR1pQL8atmmDTT
 github.com/OperatorFoundation/go-shadowsocks2 v1.1.7/go.mod h1:yw8jel8UNDWkJNE3wwAfEyctdCw6DI1FWBrZgcuoBfI=
 github.com/OperatorFoundation/locket-go v1.0.0 h1:y9re41YqYi0bs+sfkeh1GcP1OF9J3qZW4G6ZxYsrzEY=
 github.com/OperatorFoundation/locket-go v1.0.0/go.mod h1:1AhXjUWRgU3dXxPSsUcW8L2QUJGLaQ0umBqGpC36cEw=
+github.com/OperatorFoundation/locket-go v1.0.1 h1:CTuMrVoYxPHtUnNf5MwjKT0DpAK3C/v9HeIeezOyFSo=
+github.com/OperatorFoundation/locket-go v1.0.1/go.mod h1:1AhXjUWRgU3dXxPSsUcW8L2QUJGLaQ0umBqGpC36cEw=
 github.com/OperatorFoundation/monolith-go/monolith v1.0.10 h1:mK7X57x5LliwsPmRoWgdVhMK1u+ag3LaxemsYpQ279Y=
 github.com/OperatorFoundation/monolith-go/monolith v1.0.10/go.mod h1:czRPOIH/In5SEcnHndvit7O+Pq+rHxkrE5XqwYhIkqo=
 github.com/OperatorFoundation/shapeshifter-ipc/v3 v3.0.0 h1:zeWIkAC4NH9X49wLg75yKw4g5p3Gq8ZYTWxbXGeinCs=
