@@ -147,8 +147,6 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 	} else {
 		golog.Infof("%s(%s) - closed connection", name, addrStr)
 	}
-
-	return
 }
 
 func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string, enableLocket bool) (launched bool) {
@@ -202,6 +200,4 @@ func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 	} else {
 		golog.Infof("%s(%s) - closed connection", name, addrStr)
 	}
-
-	return
 }

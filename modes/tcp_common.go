@@ -37,8 +37,6 @@ import (
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	pt "github.com/OperatorFoundation/shapeshifter-ipc/v3"
 	"github.com/kataras/golog"
-
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 )
 
 func ClientSetupTCP(socksAddr string, ptClientProxy *url.URL, names []string, options string, clientHandler ClientHandlerTCP, enableLocket bool, stateDir string) (launched bool) {
@@ -47,12 +45,12 @@ func ClientSetupTCP(socksAddr string, ptClientProxy *url.URL, names []string, op
 		ln, err := net.Listen("tcp", socksAddr)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "failed to listen %s %s", name, err.Error())
-			log.Errorf("failed to listen %s %s", name, err.Error())
+			golog.Errorf("failed to listen %s %s", name, err.Error())
 			continue
 		}
 
 		go clientAcceptLoop(name, options, ln, ptClientProxy, clientHandler, enableLocket, stateDir)
-		log.Infof("%s - registered listener: %s", name, ln.Addr())
+		golog.Infof("%s - registered listener: %s", name, ln.Addr())
 		launched = true
 	}
 
@@ -65,7 +63,7 @@ func clientAcceptLoop(name string, options string, ln net.Listener, proxyURI *ur
 		if err != nil {
 			if e, ok := err.(net.Error); ok && !e.Temporary() {
 				fmt.Fprintf(os.Stderr, "Fatal listener error: %s", err.Error())
-				log.Errorf("Fatal listener error: %s", err.Error())
+				golog.Errorf("Fatal listener error: %s", err.Error())
 				return
 			}
 			golog.Warnf("Failed to accept connection: %s", err.Error())
@@ -109,14 +107,14 @@ func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 				print(" listening on ")
 				println(bindaddr.Addr.String())
 
-				log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
+				golog.Infof("%s - registered listener: %s", name, commonLog.ElideAddr(bindaddr.Addr.String()))
 
 				ServerAcceptLoop(name, transportLn, &ptServerInfo, serverHandler, enableLocket, stateDir)
 
 				transportLnErr := transportLn.Close()
 				if transportLnErr != nil {
 					fmt.Fprintf(os.Stderr, "Listener close error: %s", transportLnErr.Error())
-					log.Errorf("Listener close error: %s", transportLnErr.Error())
+					golog.Errorf("Listener close error: %s", transportLnErr.Error())
 				}
 			}
 		}()
@@ -159,7 +157,7 @@ func CopyLoop(client net.Conn, server net.Conn) error {
 		case <-okToCloseServerChannel:
 			serverRunning = false
 		case copyError = <-copyErrorChannel:
-			log.Errorf("Error while copying", copyError)
+			golog.Errorf("Error while copying", copyError)
 		}
 	}
 
@@ -183,7 +181,7 @@ func CopyServerToClient(client net.Conn, server net.Conn, okToCloseServer chan b
 	_, copyError := io.Copy(client, server)
 	okToCloseServer <- true
 	if copyError != nil {
-		fmt.Printf("\n!! CopyServerToClient received an error: ", commonLog.ElideError(copyError))
+		fmt.Printf("\n!! CopyServerToClient received an error: %s", commonLog.ElideError(copyError))
 		errorChannel <- copyError
 	}
 }
