@@ -45,7 +45,7 @@ func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, optio
 	return modes.ClientSetupTCP(socksAddr, ptClientProxy, names, options, clientHandler, enableLocket, stateDir)
 }
 
-func clientHandler(name string, options string, conn net.Conn, proxyURI *url.URL) {
+func clientHandler(name string, options string, conn net.Conn, proxyURI *url.URL, enableLocket bool, logDir string) {
 	var dialer proxy.Dialer
 	dialer = proxy.Direct
 	if proxyURI != nil {
@@ -62,7 +62,7 @@ func clientHandler(name string, options string, conn net.Conn, proxyURI *url.URL
 	}
 
 	// Deal with arguments.
-	transport, argsToDialerErr := pt_extras.ArgsToDialer(name, options, dialer)
+	transport, argsToDialerErr := pt_extras.ArgsToDialer(name, options, dialer, enableLocket, logDir)
 	if argsToDialerErr != nil {
 		golog.Errorf("Error creating a transport with the provided options: %v", options)
 		golog.Errorf("Error: %v", argsToDialerErr.Error())

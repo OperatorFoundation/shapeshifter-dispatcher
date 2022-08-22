@@ -81,7 +81,7 @@ func clientAcceptLoop(name string, options string, ln net.Listener, proxyURI *ur
 			conn = locketConn
 		}
 		
-		go clientHandler(name, options, conn, proxyURI)
+		go clientHandler(name, options, conn, proxyURI, enableLocket, stateDir)
 	}
 }
 
@@ -91,7 +91,7 @@ func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 		name := bindaddr.MethodName
 
 		// Deal with arguments.
-		listen, parseError := pt_extras.ArgsToListener(name, stateDir, options)
+		listen, parseError := pt_extras.ArgsToListener(name, stateDir, options, enableLocket, stateDir)
 		if parseError != nil {
 			return false
 		}

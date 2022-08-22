@@ -86,11 +86,11 @@ func clientAcceptLoop(name string, ln net.Listener, proxyURI *url.URL, options s
 			conn = locketConn
 		}
 		
-		go clientHandler(name, conn, proxyURI, options)
+		go clientHandler(name, conn, proxyURI, options, enableLocket, stateDir)
 	}
 }
 
-func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string) {
+func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string, enableLocket bool, logDir string) {
 	var needOptions = options == ""
 
 	// Read the client's SOCKS handshake.
@@ -106,7 +106,7 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 
 	// Deal with arguments.
 
-	transport, argsToDialerErr := pt_extras.ArgsToDialer(name, options, dialer)
+	transport, argsToDialerErr := pt_extras.ArgsToDialer(name, options, dialer, enableLocket, logDir)
 	if argsToDialerErr != nil {
 		golog.Errorf("Error creating a transport with the provided options: %s", options)
 		golog.Errorf("Error: %s", argsToDialerErr)
@@ -154,7 +154,7 @@ func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string, en
 		name := bindaddr.MethodName
 
 		// Deal with arguments.
-		listen, parseError := pt_extras.ArgsToListener(name, stateDir, options)
+		listen, parseError := pt_extras.ArgsToListener(name, stateDir, options, enableLocket, stateDir)
 		if parseError != nil {
 			return false
 		}

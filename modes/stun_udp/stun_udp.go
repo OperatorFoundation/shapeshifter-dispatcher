@@ -93,7 +93,7 @@ func clientHandler(name string, options string, conn *net.UDPConn, proxyURI *url
 
 			fmt.Println("Opening connection to ")
 
-			modes.OpenConnection(&tracker, addr.String(), name, options, proxyURI)
+			modes.OpenConnection(&tracker, addr.String(), name, options, proxyURI, false, "")
 
 			// Drop the packet.
 			fmt.Println("recv: Open")

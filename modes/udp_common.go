@@ -62,7 +62,7 @@ func ServerSetupUDP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 		name := bindaddr.MethodName
 
 		// Deal with arguments.
-		listen, parseError := pt_extras.ArgsToListener(name, stateDir, options)
+		listen, parseError := pt_extras.ArgsToListener(name, stateDir, options, false, "")
 		if parseError != nil {
 			return false
 		}
