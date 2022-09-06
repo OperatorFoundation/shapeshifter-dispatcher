@@ -30,6 +30,7 @@
 package pt_socks5
 
 import (
+	locketgo "github.com/OperatorFoundation/locket-go"
 	commonLog "github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5"
@@ -41,7 +42,7 @@ import (
 	"net/url"
 )
 
-func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, options string) (launched bool) {
+func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, options string, enableLocket bool, stateDir string) (launched bool) {
 	// Launch each of the client listeners.
 	for _, name := range names {
 		ln, err := net.Listen("tcp", socksAddr)
@@ -50,7 +51,7 @@ func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, optio
 			continue
 		}
 
-		go clientAcceptLoop(name, ln, ptClientProxy, options)
+		go clientAcceptLoop(name, ln, ptClientProxy, options, enableLocket, stateDir)
 		pt.Cmethod(name, socks5.Version(), ln.Addr())
 
 		golog.Infof("%s - registered listener: %s", name, ln.Addr())
@@ -62,7 +63,7 @@ func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, optio
 	return
 }
 
-func clientAcceptLoop(name string, ln net.Listener, proxyURI *url.URL, options string) {
+func clientAcceptLoop(name string, ln net.Listener, proxyURI *url.URL, options string, enableLocket bool, stateDir string) {
 	for {
 		conn, err := ln.Accept()
 		if err != nil {
@@ -73,11 +74,23 @@ func clientAcceptLoop(name string, ln net.Listener, proxyURI *url.URL, options s
 			}
 			continue
 		}
-		go clientHandler(name, conn, proxyURI, options)
+
+		if enableLocket {
+			locketConn, err := locketgo.NewLocketConn(conn, stateDir, "DispatcherClient")
+			if err != nil {
+				golog.Error("client failed to enable Locket")
+				conn.Close()
+				return
+			}
+
+			conn = locketConn
+		}
+		
+		go clientHandler(name, conn, proxyURI, options, enableLocket, stateDir)
 	}
 }
 
-func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string) {
+func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string, enableLocket bool, logDir string) {
 	var needOptions = options == ""
 
 	// Read the client's SOCKS handshake.
@@ -93,7 +106,7 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 
 	// Deal with arguments.
 
-	transport, argsToDialerErr := pt_extras.ArgsToDialer(name, options, dialer)
+	transport, argsToDialerErr := pt_extras.ArgsToDialer(name, options, dialer, enableLocket, logDir)
 	if argsToDialerErr != nil {
 		golog.Errorf("Error creating a transport with the provided options: %s", options)
 		golog.Errorf("Error: %s", argsToDialerErr)
@@ -134,16 +147,14 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 	} else {
 		golog.Infof("%s(%s) - closed connection", name, addrStr)
 	}
-
-	return
 }
 
-func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (launched bool) {
+func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string, enableLocket bool) (launched bool) {
 	for _, bindaddr := range ptServerInfo.Bindaddrs {
 		name := bindaddr.MethodName
 
 		// Deal with arguments.
-		listen, parseError := pt_extras.ArgsToListener(name, stateDir, options)
+		listen, parseError := pt_extras.ArgsToListener(name, stateDir, options, enableLocket, stateDir)
 		if parseError != nil {
 			return false
 		}
@@ -155,7 +166,7 @@ func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (l
 					continue
 				}
 				golog.Infof("%s - registered listener: %s", name, commonLog.ElideAddr(bindaddr.Addr.String()))
-				modes.ServerAcceptLoop(name, transportLn, &ptServerInfo, serverHandler)
+				modes.ServerAcceptLoop(name, transportLn, &ptServerInfo, serverHandler, enableLocket, stateDir)
 				transportLnErr := transportLn.Close()
 				if transportLnErr != nil {
 					golog.Errorf("Listener close error: %s", transportLnErr.Error())
@@ -189,6 +200,4 @@ func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
 	} else {
 		golog.Infof("%s(%s) - closed connection", name, addrStr)
 	}
-
-	return
 }

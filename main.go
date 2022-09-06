@@ -131,6 +131,7 @@ func main() {
 	transparent := flag.Bool("transparent", false, "Enable transparent proxy mode. The default is protocol-aware proxy mode (socks5 for TCP, STUN for UDP)")
 	udp := flag.Bool("udp", false, "Enable UDP proxy mode. The default is TCP proxy mode.")
 	target := flag.String("target", "", "Specify transport server destination address")
+	enableLocket := flag.Bool("enableLocket", false, "Log to [state]/"+dispatcherLogFile+" using Locket")
 	flag.Parse() // Flag variables are set to actual values here.
 
 	// Start validation of command line arguments
@@ -285,14 +286,14 @@ func main() {
 				golog.Errorf("must specify -version and -transports")
 				return
 			}
-			launched = pt_socks5.ClientSetup(*socksAddr, ptClientProxy, names, *options)
+			launched = pt_socks5.ClientSetup(*socksAddr, ptClientProxy, names, *options, *enableLocket, stateDir)
 		case transparentTCP:
 			ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
 			if nameErr != nil {
 				golog.Errorf("must specify -version and -transports")
 				return
 			}
-			launched = transparent_tcp.ClientSetup(*socksAddr, ptClientProxy, names, *options)
+			launched = transparent_tcp.ClientSetup(*socksAddr, ptClientProxy, names, *options, *enableLocket, stateDir)
 		case transparentUDP:
 			ptClientProxy, names, nameErr := getClientNames(ptversion, transportsList, proxy)
 			if nameErr != nil {
@@ -317,11 +318,11 @@ func main() {
 		case socks5:
 			golog.Infof("%s - initializing socks5 server transport listeners", execName)
 			ptServerInfo := getServerInfo(bindAddr, options, transportsList, target, extorport, authcookie)
-			launched = pt_socks5.ServerSetup(ptServerInfo, stateDir, *options)
+			launched = pt_socks5.ServerSetup(ptServerInfo, stateDir, *options, *enableLocket)
 		case transparentTCP:
 			golog.Infof("%s - initializing transparentTCP server transport listeners", execName)
 			ptServerInfo := getServerInfo(bindAddr, options, transportsList, target, extorport, authcookie)
-			launched = transparent_tcp.ServerSetup(ptServerInfo, stateDir, *options)
+			launched = transparent_tcp.ServerSetup(ptServerInfo, stateDir, *options, *enableLocket)
 		case transparentUDP:
 			// launched = transparent_udp.ServerSetup(termMon, *bindAddr, *target)
 			ptServerInfo := getServerInfo(bindAddr, options, transportsList, target, extorport, authcookie)

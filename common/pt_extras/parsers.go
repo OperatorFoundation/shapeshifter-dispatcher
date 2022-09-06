@@ -36,10 +36,10 @@ import (
 )
 
 // target is the server address string
-func ArgsToDialer(name string, args string, dialer proxy.Dialer) (Optimizer.TransportDialer, error) {
+func ArgsToDialer(name string, args string, dialer proxy.Dialer, enableLocket bool, logDir string) (Optimizer.TransportDialer, error) {
 	switch name {
 	case "shadow":
-		transport, err := transports.ParseArgsShadow(args)
+		transport, err := transports.ParseArgsShadow(args, enableLocket, logDir)
 		if err != nil {
 			golog.Errorf("Could not parse options %s", err.Error())
 			return nil, err
@@ -47,7 +47,7 @@ func ArgsToDialer(name string, args string, dialer proxy.Dialer) (Optimizer.Tran
 			return transport, nil
 		}
 	case "Optimizer":
-		transport, err := transports.ParseArgsOptimizer(args, dialer)
+		transport, err := transports.ParseArgsOptimizer(args, dialer, enableLocket, logDir)
 		if err != nil {
 			golog.Errorf("Could not parse options %s", err.Error())
 			return nil, err
@@ -77,7 +77,7 @@ func ArgsToDialer(name string, args string, dialer proxy.Dialer) (Optimizer.Tran
 	}
 }
 
-func ArgsToListener(name string, stateDir string, options string) (func(address string) (net.Listener, error), error) {
+func ArgsToListener(name string, stateDir string, options string, enableLocket bool, logDir string) (func(address string) (net.Listener, error), error) {
 	var listen func(address string) (net.Listener, error)
 
 	//var config meekserver.Config
@@ -133,7 +133,7 @@ func ArgsToListener(name string, stateDir string, options string) (func(address 
 
 		argsBytes, err := json.Marshal(args)
 		argsString := string(argsBytes)
-		config, err := transports.ParseArgsShadowServer(argsString)
+		config, err := transports.ParseArgsShadowServer(argsString, enableLocket, logDir)
 		if err != nil {
 			return nil, err
 		}

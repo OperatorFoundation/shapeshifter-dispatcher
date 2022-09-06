@@ -44,20 +44,33 @@ func Transports() []string {
 	return []string{"shadow", "Replicant", "Starbridge", "Optimizer"}
 }
 
-func ParseArgsShadow(args string) (*shadow.Transport, error) {
+func ParseArgsShadow(args string, enableLocket bool, logDir string) (*shadow.Transport, error) {
 	var config shadow.ClientConfig
+
+	if enableLocket {
+		config.LogDir = &logDir
+	} else {
+		config.LogDir = nil
+	}
+
 	bytes := []byte(args)
 	jsonError := json.Unmarshal(bytes, &config)
 	if jsonError != nil {
 		return nil, errors.New("shadow options json decoding error")
 	}
-	transport := shadow.NewTransport(config.Password, config.CipherName, config.Address)
+	transport := shadow.NewTransport(config.Password, config.CipherName, config.Address, config.LogDir)
 
 	return &transport, nil
 }
 
-func ParseArgsShadowServer(args string) (*shadow.ServerConfig, error) {
+func ParseArgsShadowServer(args string, enableLocket bool, logDir string) (*shadow.ServerConfig, error) {
 	var config shadow.ServerConfig
+
+	if enableLocket {
+		config.LogDir = &logDir
+	} else {
+		config.LogDir = nil
+	}
 
 	bytes := []byte(args)
 	jsonError := json.Unmarshal(bytes, &config)
@@ -169,7 +182,7 @@ type OptimizerArgs struct {
 	Config  map[string]interface{} `json:"config"`
 }
 
-func ParseArgsOptimizer(jsonConfig string, dialer proxy.Dialer) (*Optimizer.Client, error) {
+func ParseArgsOptimizer(jsonConfig string, dialer proxy.Dialer, enableLocket bool, logDir string) (*Optimizer.Client, error) {
 	var config OptimizerConfig
 	var transports []Optimizer.TransportDialer
 	var strategy Optimizer.Strategy
@@ -178,7 +191,7 @@ func ParseArgsOptimizer(jsonConfig string, dialer proxy.Dialer) (*Optimizer.Clie
 	if parseErr != nil {
 		return nil, errors.New("could not marshal optimizer config")
 	}
-	transports, parseErr = parseTransports(config.Transports, dialer)
+	transports, parseErr = parseTransports(config.Transports, dialer, enableLocket, logDir)
 	if parseErr != nil {
 		println("this is the returned error from parseTransports:", parseErr)
 		return nil, errors.New("could not parse transports")
@@ -215,13 +228,13 @@ func parseStrategy(strategyString string, transports []Optimizer.TransportDialer
 	}
 }
 
-func parseTransports(otcs []interface{}, dialer proxy.Dialer) ([]Optimizer.TransportDialer, error) {
+func parseTransports(otcs []interface{}, dialer proxy.Dialer, enableLocket bool, logDir string) ([]Optimizer.TransportDialer, error) {
 	transports := make([]Optimizer.TransportDialer, len(otcs))
 	for index, untypedOtc := range otcs {
 		switch untypedOtc.(type) {
 		case map[string]interface{}:
 			otc := untypedOtc.(map[string]interface{})
-			transport, err := parsedTransport(otc, dialer)
+			transport, err := parsedTransport(otc, dialer, enableLocket, logDir)
 			if err != nil {
 				return nil, errors.New("transport could not parse config")
 				//this error sucks and is uninformative
@@ -235,7 +248,7 @@ func parseTransports(otcs []interface{}, dialer proxy.Dialer) ([]Optimizer.Trans
 	return transports, nil
 }
 
-func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer.TransportDialer, error) {
+func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer, enableLocket bool, logDir string) (Optimizer.TransportDialer, error) {
 	var config map[string]interface{}
 
 	type PartialOptimizerConfig struct {
@@ -272,7 +285,7 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 	jsonConfigString := string(jsonConfigBytes)
 	switch PartialConfig.Name {
 	case "shadow":
-		shadowTransport, parseErr := ParseArgsShadow(jsonConfigString)
+		shadowTransport, parseErr := ParseArgsShadow(jsonConfigString, enableLocket, logDir)
 		if parseErr != nil {
 			return nil, errors.New("could not parse shadow Args")
 		}
@@ -290,7 +303,7 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer) (Optimizer
 		}
 		return starbridgeTransport, nil
 	case "Optimizer":
-		optimizerTransport, parseErr := ParseArgsOptimizer(jsonConfigString, dialer)
+		optimizerTransport, parseErr := ParseArgsOptimizer(jsonConfigString, dialer, enableLocket, logDir)
 		if parseErr != nil {
 			return nil, errors.New("could not parse Optimizer Args")
 		}

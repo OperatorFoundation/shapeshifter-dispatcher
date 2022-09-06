@@ -26,13 +26,15 @@ package modes
 
 import (
 	"fmt"
+	"net"
+	"net/url"
+
+	locketgo "github.com/OperatorFoundation/locket-go"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	pt "github.com/OperatorFoundation/shapeshifter-ipc/v3"
 	"github.com/kataras/golog"
 	"golang.org/x/net/proxy"
-	"net"
-	"net/url"
 )
 
 type ConnState struct {
@@ -42,7 +44,7 @@ type ConnState struct {
 
 type ConnTracker map[string]ConnState
 
-type ClientHandlerTCP func(name string, options string, conn net.Conn, proxyURI *url.URL)
+type ClientHandlerTCP func(name string, options string, conn net.Conn, proxyURI *url.URL, enableLocket bool, logDir string)
 
 type ClientHandlerUDP func(name string, options string, conn *net.UDPConn, proxyURI *url.URL)
 
@@ -52,14 +54,14 @@ func NewConnState() ConnState {
 	return ConnState{nil, true}
 }
 
-func OpenConnection(tracker *ConnTracker, addr string, name string, options string, proxyURI *url.URL) {
+func OpenConnection(tracker *ConnTracker, addr string, name string, options string, proxyURI *url.URL, enableLocket bool, logDir string) {
 	newConn := NewConnState()
 	(*tracker)[addr] = newConn
 
-	go dialConn(tracker, addr, name, options, proxyURI)
+	go dialConn(tracker, addr, name, options, proxyURI, enableLocket, logDir)
 }
 
-func dialConn(tracker *ConnTracker, addr string, name string, options string, proxyURI *url.URL) {
+func dialConn(tracker *ConnTracker, addr string, name string, options string, proxyURI *url.URL, enableLocket bool, logDir string) {
 	// Obtain the proxy dialer if any, and create the outgoing TCP connection.
 	var dialer proxy.Dialer
 	dialer = proxy.Direct
@@ -79,7 +81,7 @@ func dialConn(tracker *ConnTracker, addr string, name string, options string, pr
 	println("Dialing....")
 
 	// Deal with arguments.
-	transport, argsToDialerErr := pt_extras.ArgsToDialer(name, options, dialer)
+	transport, argsToDialerErr := pt_extras.ArgsToDialer(name, options, dialer, enableLocket, logDir)
 
 	if argsToDialerErr != nil {
 		log.Errorf("Error creating a transport with the provided options: %s", options)
@@ -101,7 +103,7 @@ func dialConn(tracker *ConnTracker, addr string, name string, options string, pr
 	(*tracker)[addr] = ConnState{remote, false}
 }
 
-func ServerAcceptLoop(name string, ln net.Listener, info *pt.ServerInfo, serverHandler ServerHandler) {
+func ServerAcceptLoop(name string, ln net.Listener, info *pt.ServerInfo, serverHandler ServerHandler, enableLocket bool, stateDir string) {
 	for {
 		conn, err := ln.Accept()
 		fmt.Println("accepted")
@@ -115,6 +117,17 @@ func ServerAcceptLoop(name string, ln net.Listener, info *pt.ServerInfo, serverH
 				return
 			}
 			continue
+		}
+
+		if enableLocket {
+			locketConn, locketError := locketgo.NewLocketConn(conn, stateDir, "DispatcherServer")
+			if locketError != nil {
+				golog.Error("server failed to enable Locket")
+				conn.Close()
+				return
+			}
+
+			conn = locketConn
 		}
 
 		go serverHandler(name, conn, info)

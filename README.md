@@ -134,8 +134,7 @@ Now launch the transport server, telling it where to find the application server
 
 This runs the server in transparent TCP proxy mode. The directory "state" is used
 to hold transport state. The destination that the server will proxy to is
-127.0.0.1, port 3333. The obfs4 transport is enabled and bound to the address 127.0.0.1 and the port
-2222. Logging is enabled and set to DEBUG level.
+127.0.0.1, port 3333. The Replicant transport is enabled and bound to the address 127.0.0.1 and the port 2222. Logging is enabled and set to DEBUG level.
 To access the Log for debugging purposes, look at state/dispatcher.log
 
 To use Replicant, a config file is needed. A sample config file, ReplicantServerConfigV3.json, is provided purely for educational purposes and should not be used in actual production.
