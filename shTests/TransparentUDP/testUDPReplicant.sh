@@ -3,8 +3,6 @@
 # An alternative way to run this test is to run each command in its own terminal. Each netcat instance can be used to type content which should appear in the other.
 FILENAME=testUDPReplicantOutput.txt
 
-GOPATH=${GOPATH:-'$HOME/go'}
-
 # Update and build code
 go install
 
@@ -15,12 +13,12 @@ rm $FILENAME
 nc -l -u 3333 >$FILENAME &
 
 # Run the transport server
-"$GOPATH"/bin/shapeshifter-dispatcher -transparent -udp -server -state state -target 127.0.0.1:3333 -transports Replicant -bindaddr Replicant-127.0.0.1:2222 -optionsFile ../../ConfigFiles/ReplicantServerConfigV3.json -logLevel DEBUG -enableLogging &
+shapeshifter-dispatcher -transparent -udp -server -state state -target 127.0.0.1:3333 -transports Replicant -bindaddr Replicant-127.0.0.1:2222 -optionsFile ../../ConfigFiles/ReplicantServerConfigV3.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
 # Run the transport client
-"$GOPATH"/bin/shapeshifter-dispatcher -transparent -udp -client -state state -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/ReplicantClientConfigV3.json -logLevel DEBUG -enableLogging &
+shapeshifter-dispatcher -transparent -udp -client -state state -transports Replicant -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/ReplicantClientConfigV3.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 

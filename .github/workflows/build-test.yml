@@ -1,0 +1,39 @@
+name: Build and Test
+
+on: [push, pull_request]
+
+jobs:
+
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Go
+      uses: actions/setup-go@v3
+      with:
+        go-version: 1.18
+
+    - name: Build
+      run: |
+        sudo apt install -y netcat
+        go install
+
+    - name: Test SocksTCP
+      working-directory: ./shTests/SocksTCP
+      run: sh ./runAllSocksTests.sh
+
+    - name: Test StunUDP
+      if: always()
+      working-directory: ./shTests/StunUDP
+      run: sh ./runAllStunUDPTests.sh
+    
+    - name: Test TransparentTCP
+      if: always()
+      working-directory: ./shTests/TransparentTCP
+      run: sh ./runAllTCPTests.sh
+    
+    - name: Test TransparentUDP
+      if: always()
+      working-directory: ./shTests/TransparentUDP
+      run: sh ./runAllUDPTests.sh

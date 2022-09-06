@@ -4,11 +4,12 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	socks "github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5"
 	"io/ioutil"
 	"net"
 	"testing"
 	"time"
+
+	socks "github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5"
 )
 
 const (
@@ -59,6 +60,13 @@ func TestSocksTCPReplicant(t *testing.T) {
 
 func TestSocksTCPShadow(t *testing.T) {
 	negotiateError := negotiateSocks("../../ConfigFiles/shadowClient.json")
+	if negotiateError != nil {
+		t.Fail()
+	}
+}
+
+func TestSocksTCPStarbridge(t *testing.T) {
+	negotiateError := negotiateSocks("../../ConfigFiles/StarbridgeClientConfig.json")
 	if negotiateError != nil {
 		t.Fail()
 	}
