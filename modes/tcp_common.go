@@ -32,10 +32,13 @@ import (
 	"net/url"
 	"os"
 
+	log2 "log"
+
 	commonLog "github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	pt "github.com/OperatorFoundation/shapeshifter-ipc/v3"
 	"github.com/kataras/golog"
+	"github.com/things-go/go-socks5"
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 )
@@ -101,6 +104,51 @@ func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string,
 				ServerAcceptLoop(name, transportLn, &ptServerInfo, serverHandler)
 
 				transportLnErr := transportLn.Close()
+				if transportLnErr != nil {
+					fmt.Fprintf(os.Stderr, "Listener close error: %s", transportLnErr.Error())
+					log.Errorf("Listener close error: %s", transportLnErr.Error())
+				}
+			}
+		}()
+
+		launched = true
+	}
+
+	return
+}
+
+// "Dynamic Port Forwarding" mode, the server is a socks5 server.
+func ServerSetupDynamic(ptServerInfo pt.ServerInfo, stateDir string, options string, serverHandler ServerHandler) (launched bool) {
+	// Launch each of the server listeners.
+	for _, bindaddr := range ptServerInfo.Bindaddrs {
+		name := bindaddr.MethodName
+
+		// Deal with arguments.
+		listen, parseError := pt_extras.ArgsToListener(name, stateDir, options)
+		if parseError != nil {
+			return false
+		}
+
+		go func() {
+			for {
+				transportLn, LnError := listen(bindaddr.Addr.String())
+				if LnError != nil {
+					continue
+				}
+
+				print(name)
+				print(" listening on ")
+				println(bindaddr.Addr.String())
+
+				log.Infof("%s - registered listener: %s", name, log.ElideAddr(bindaddr.Addr.String()))
+
+				// Create a SOCKS5 server
+				server := socks5.NewServer(
+					socks5.WithLogger(socks5.NewLogger(log2.New(os.Stdout, "socks5: ", log2.LstdFlags))),
+				)
+
+				// Create SOCKS5 proxy
+				transportLnErr := server.Serve(transportLn)
 				if transportLnErr != nil {
 					fmt.Fprintf(os.Stderr, "Listener close error: %s", transportLnErr.Error())
 					log.Errorf("Listener close error: %s", transportLnErr.Error())

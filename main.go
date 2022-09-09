@@ -67,6 +67,7 @@ const (
 	transparentTCP
 	transparentUDP
 	stunUDP
+	dynamic
 )
 
 func main() {
@@ -100,7 +101,7 @@ func main() {
 	targetPort := flag.String("targetport", "", "Specify transport server destination address host")
 	proxyListenHost := flag.String("proxylistenhost", "", "Specify the bind address for the local SOCKS server host provided by the client")
 	proxyListenPort := flag.String("proxylistenport", "", "Specify the bind address for the local SOCKS server port provided by the client")
-	modeName := flag.String("mode", "", "Specify which mode is being used: transparent-TCP, transparent-UDP, socks5, or STUN")
+	modeName := flag.String("mode", "", "Specify which mode is being used: transparent-TCP, transparent-UDP, socks5, STUN or dynamic")
 
 	// PT 2.1 specification, 3.3.1.2. Pluggable PT Client Configuration Parameters
 	proxy := flag.String("proxy", "", "Specify an HTTP or SOCKS4a proxy that the PT needs to use to reach the Internet")
@@ -329,6 +330,9 @@ func main() {
 		case stunUDP:
 			ptServerInfo := getServerInfo(bindAddr, options, transportsList, target, extorport, authcookie)
 			launched = stun_udp.ServerSetup(ptServerInfo, stateDir, *options)
+		case dynamic:
+			ptServerInfo := getServerInfo(bindAddr, options, transportsList, target, extorport, authcookie)
+			launched = transparent_tcp.ServerProxyServe(ptServerInfo, stateDir, *options)
 		default:
 			golog.Errorf("unsupported mode %d", mode)
 		}
@@ -361,6 +365,8 @@ func determineMode(mode string, isTransparent bool, isUDP bool) (int, error) {
 			return transparentUDP, nil
 		case "STUN":
 			return stunUDP, nil
+		case "dynamic":
+			return dynamic, nil
 		default:
 			return -1, errors.New("invalid mode")
 		}

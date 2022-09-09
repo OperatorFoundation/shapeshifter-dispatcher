@@ -26,6 +26,7 @@ package main
 
 import (
 	"errors"
+
 	"github.com/kataras/golog"
 )
 
@@ -157,6 +158,8 @@ func validateMode(mode *string, transparent *bool, udp *bool) error {
 		case "transparent-UDP":
 			return nil
 		case "STUN":
+			return nil
+		case "dynamic":
 			return nil
 		default:
 			return errors.New("invalid mode")

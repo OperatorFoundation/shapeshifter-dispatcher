@@ -31,14 +31,15 @@ package transparent_tcp
 
 import (
 	"fmt"
+	"net"
+	"net/url"
+
 	commonLog "github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes"
 	pt "github.com/OperatorFoundation/shapeshifter-ipc/v3"
 	"github.com/kataras/golog"
 	"golang.org/x/net/proxy"
-	"net"
-	"net/url"
 )
 
 func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, options string) (launched bool) {
@@ -107,6 +108,10 @@ func clientHandler(name string, options string, conn net.Conn, proxyURI *url.URL
 
 func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string) (launched bool) {
 	return modes.ServerSetupTCP(ptServerInfo, statedir, options, serverHandler)
+}
+
+func ServerProxyServe(ptServerInfo pt.ServerInfo, statedir string, options string) (launched bool) {
+	return modes.ServerSetupDynamic(ptServerInfo, statedir, options, serverHandler)
 }
 
 func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {

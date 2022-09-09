@@ -21,6 +21,7 @@ require (
 	github.com/deckarep/golang-set v1.8.0 // indirect
 	github.com/kataras/pio v0.0.10 // indirect
 	github.com/opentracing/opentracing-go v1.2.0 // indirect
+	github.com/things-go/go-socks5 v0.0.2 // indirect
 	golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f // indirect
 	golang.org/x/sys v0.0.0-20220429233432-b5fbb4746d32 // indirect
 )
