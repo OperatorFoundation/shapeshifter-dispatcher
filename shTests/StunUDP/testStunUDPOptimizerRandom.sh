@@ -2,16 +2,19 @@
 # This script runs a full end-to-end functional test of the dispatcher and the Replicant transportOptimizer transport with the Random Strategy. Each netcat instance can be used to type content which should appear in the other.
 FILENAME=testStunUDPOptimizerRandomOutput.txt
 
-GOPATH=${GOPATH:-'$HOME/go'}
+if [[ -z "${GOPATH}" ]]; then
+  echo "your GOPATH variable is not set. Temporarily setting to HOME/go"
+fi
+GOPATH=${GOPATH:-"$HOME/go"}
 
 # Update and build code
 go install
 
 # remove text from the output file
-rm $FILENAME
+rm shTests/StunUDP/$FILENAME
 
 # Run a demo application server with netcat and write to the output file
-nc -l -u 3333 >$FILENAME &
+nc -l 3333 >shTests/StunUDP/$FILENAME &
 
 # Run the transport server
 "$GOPATH"/bin/shapeshifter-dispatcher -udp -server -state state -target 127.0.0.1:3333 -transports shadow -bindaddr shadow-127.0.0.1:2222 -optionsFile ../../ConfigFiles/shadowServer.json -logLevel DEBUG -enableLogging &

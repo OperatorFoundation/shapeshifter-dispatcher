@@ -2,14 +2,20 @@
 # This script runs a full end-to-end functional test of the dispatcher and the Replicant transport, using two netcat instances as the application server and application client.
 # An alternative way to run this test is to run each command in its own terminal. Each netcat instance can be used to type content which should appear in the other.
 FILENAME=testUDPStarbridgeOutput.txt
+
+if [[ -z "${GOPATH}" ]]; then
+  echo "your GOPATH variable is not set. Temporarily setting to HOME/go"
+fi
+GOPATH=${GOPATH:-"$HOME/go"}
+
 # Update and build code
-go get -u github.com/OperatorFoundation/shapeshifter-dispatcher
+go install
 
 # remove text from the output file
-rm $FILENAME
+rm shTests/TransparentUDP/$FILENAME
 
 # Run a demo application server with netcat and write to the output file
-nc -l -u 3333 >$FILENAME &
+nc -l 3333 >shTests/TransparentUDP/$FILENAME &
 
 # Run the transport server
 "$GOPATH"/bin/shapeshifter-dispatcher -transparent -udp -server -state state -target 127.0.0.1:3333 -transports Starbridge -bindaddr Starbridge-127.0.0.1:2222 -optionsFile ../../ConfigFiles/StarbridgeServerConfig.json -logLevel DEBUG -enableLogging &

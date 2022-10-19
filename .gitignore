@@ -18,3 +18,4 @@ TransportState/dispatcher.log
 *.log
 shapeshifter-dispatcher
 *.json
+*.json

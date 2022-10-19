@@ -32,6 +32,7 @@ package transports
 import (
 	"encoding/json"
 	"errors"
+
 	Optimizer "github.com/OperatorFoundation/Optimizer-go/Optimizer/v3"
 	replicant "github.com/OperatorFoundation/Replicant-go/Replicant/v3"
 	"github.com/OperatorFoundation/Shadow-go/shadow/v3"
@@ -148,7 +149,7 @@ func ParseArgsStarbridgeClient(args string, dialer proxy.Dialer) (*Starbridge.Tr
 	bytes := []byte(args)
 	jsonError := json.Unmarshal(bytes, &config)
 	if jsonError != nil {
-		return nil, errors.New("starbridge options json decoding error")
+		return nil, errors.New("starbridge options ")
 	}
 	transport := Starbridge.TransportClient{
 		Config:  config,

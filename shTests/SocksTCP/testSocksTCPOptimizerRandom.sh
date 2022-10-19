@@ -2,16 +2,19 @@
 # This script runs a full end-to-end functional test of the dispatcher and the Replicant transportOptimizer transport with the Random Strategy. Each netcat instance can be used to type content which should appear in the other.
 FILENAME=testSocksTCPOptimizerRandomOutput.txt
 
-GOPATH=${GOPATH:-'$HOME/go'}
+if [[ -z "${GOPATH}" ]]; then
+  echo "your GOPATH variable is not set. Temporarily setting to HOME/go"
+fi
+GOPATH=${GOPATH:-"$HOME/go"}
 
 # Update and build code
 go install
 
 # remove text from the output file
-rm $FILENAME
+rm shTests/SocksTCP/$FILENAME
 
 # Run a demo application server with netcat and write to the output file
-nc -l 3333 >$FILENAME &
+nc -l 3333 >shTests/SocksTCP/$FILENAME &
 
 # Run the transport server
 "$GOPATH"/bin/shapeshifter-dispatcher -server -state state -bindaddr shadow-127.0.0.1:2222 -target 127.0.0.1:3333 -transports shadow -optionsFile ../../ConfigFiles/shadowServer.json -logLevel DEBUG -enableLogging &

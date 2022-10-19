@@ -3,26 +3,29 @@
 # An alternative way to run this test is to run each command in its own terminal. Each netcat instance can be used to type content which should appear in the other.
 FILENAME=testTCPStarbridgeOutput.txt
 
-GOPATH=${GOPATH:-'$HOME/go'}
+if [[ -z "${GOPATH}" ]]; then
+  echo "your GOPATH variable is not set. Temporarily setting to HOME/go"
+fi
+GOPATH=${GOPATH:-"$HOME/go"}
 
 # Update and build code
 go install
 
 # remove text from the output file
-rm $FILENAME
+rm shTests/TransparentTCP/$FILENAME
 
 # Run a demo application server with netcat and write to the output file
-nc -l 3333 >$FILENAME &
+nc -l 3333 >shTests/TransparentTCP/$FILENAME &
 
 # Run the transport server
 
-"$GOPATH"/bin/shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports Starbridge -bindaddr Starbridge-127.0.0.1:2222 -optionsFile ../../ConfigFiles/StarbridgeServerConfig.json -logLevel DEBUG -enableLogging &
+"$GOPATH"/bin/shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports Starbridge -bindaddr Starbridge-127.0.0.1:2222 -optionsFile ConfigFiles/StarbridgeServerConfig.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
 # Run the transport client
 
-"$GOPATH"/bin/shapeshifter-dispatcher -transparent -client -state state -transports Starbridge -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/StarbridgeClientConfig.json -logLevel DEBUG -enableLogging &
+"$GOPATH"/bin/shapeshifter-dispatcher -transparent -client -state state -transports Starbridge -proxylistenaddr 127.0.0.1:1443 -optionsFile ConfigFiles/StarbridgeClientConfig.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
