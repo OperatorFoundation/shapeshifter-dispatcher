@@ -30,7 +30,6 @@ import (
 
 	commonLog "github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
-	pt "github.com/OperatorFoundation/shapeshifter-ipc/v3"
 	"github.com/kataras/golog"
 )
 
@@ -56,7 +55,7 @@ func ClientSetupUDP(socksAddr string, ptClientProxy *url.URL, names []string, op
 	return true
 }
 
-func ServerSetupUDP(ptServerInfo pt.ServerInfo, stateDir string, options string, serverHandler ServerHandler) (launched bool) {
+func ServerSetupUDP(ptServerInfo pt_extras.ServerInfo, stateDir string, options string, serverHandler ServerHandler) (launched bool) {
 	// Launch each of the server listeners.
 	for _, bindaddr := range ptServerInfo.Bindaddrs {
 		name := bindaddr.MethodName

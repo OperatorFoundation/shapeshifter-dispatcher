@@ -30,7 +30,6 @@ package socks5
 import (
 	"fmt"
 
-	"github.com/OperatorFoundation/shapeshifter-ipc/v3"
 )
 
 func (req *Request) authPT2() (err error) {
@@ -47,18 +46,18 @@ func (req *Request) authPT2() (err error) {
 		err = fmt.Errorf("PT 2.0 authentication data with 0 length")
 		return
 	}
-	var data []byte
-	if data, err = req.readBytes(int(u)); err != nil {
-		return
-	}
+	// var data []byte
+	// if data, err = req.readBytes(int(u)); err != nil {
+	// 	return
+	// }
 
-	var result = string(data)
+	// var result = string(data)
 
-	// Parse the authentication data according to the PT 2.0 specification
-	if req.Args, err = pt.ParsePT2ClientParameters(result); err != nil {
-		fmt.Println("Error parsing PT2 client parameters", err)
-		return
-	}
+	// // Parse the authentication data according to the PT 2.0 specification
+	// if req.Args, err = pt.ParsePT2ClientParameters(result); err != nil {
+	// 	fmt.Println("Error parsing PT2 client parameters", err)
+	// 	return
+	// }
 
 	return
 }

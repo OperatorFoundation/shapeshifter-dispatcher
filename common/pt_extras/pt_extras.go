@@ -33,8 +33,11 @@ import (
 	"net"
 	"net/url"
 	"strconv"
+	"strings"
+	"time"
+	"io"
+	"os"
 
-	"github.com/OperatorFoundation/shapeshifter-ipc/v3"
 )
 
 // This file contains things that probably should be in goptlib but are not
@@ -42,13 +45,13 @@ import (
 
 func ptProxyError(msg string) error {
 	line := []byte(fmt.Sprintf("PROXY-ERROR %s\n", msg))
-	_, _ = pt.Stdout.Write(line)
+	_, _ = io.Writer.Write(syncWriter{os.Stdout}, line)
 	return errors.New(msg)
 }
 
 func PtProxyDone() {
 	line := []byte("PROXY DONE\n")
-	_, _ = pt.Stdout.Write(line)
+	_, _ = io.Writer.Write(syncWriter{os.Stdout}, line)
 }
 
 func PtGetProxy(proxy *string) (*url.URL, error) {
@@ -142,4 +145,99 @@ func resolveAddrStr(addrStr string) (*net.TCPAddr, error) {
 	}
 
 	return &net.TCPAddr{IP: ip, Port: int(port), Zone: ""}, nil
+}
+
+type ClientInfo struct {
+	MethodNames []string
+	ProxyURL    *url.URL
+}
+
+type ServerInfo struct {
+	Bindaddrs      []Bindaddr
+	OrAddr         *net.TCPAddr
+	ExtendedOrAddr *net.TCPAddr
+	AuthCookiePath string
+}
+
+type Bindaddr struct {
+	MethodName string
+	Addr       *net.TCPAddr
+	Options string
+}
+
+// Resolve an address string into a net.TCPAddr. We are a bit more strict than
+// net.ResolveTCPAddr; we don't allow an empty host or port, and the host part
+// must be a literal IP address.
+func ResolveAddr(addrStr string) (*net.TCPAddr, error) {
+	ipStr, portStr, err := net.SplitHostPort(addrStr)
+	if err != nil {
+		// Before the fixing of bug #7011, tor doesn't put brackets around IPv6
+		// addresses. Split after the last colon, assuming it is a port
+		// separator, and try adding the brackets.
+		parts := strings.Split(addrStr, ":")
+		if len(parts) <= 2 {
+			return nil, err
+		}
+		addrStr := "[" + strings.Join(parts[:len(parts)-1], ":") + "]:" + parts[len(parts)-1]
+		ipStr, portStr, err = net.SplitHostPort(addrStr)
+	}
+	if err != nil {
+		return nil, err
+	}
+	if ipStr == "" {
+		return nil, net.InvalidAddrError(fmt.Sprintf("address string %q lacks a host part", addrStr))
+	}
+	if portStr == "" {
+		return nil, net.InvalidAddrError(fmt.Sprintf("address string %q lacks a port part", addrStr))
+	}
+	ip := net.ParseIP(ipStr)
+	if ip == nil {
+		return nil, net.InvalidAddrError(fmt.Sprintf("not an IP string: %q", ipStr))
+	}
+	port, err := parsePort(portStr)
+	if err != nil {
+		return nil, err
+	}
+	return &net.TCPAddr{IP: ip, Port: port}, nil
+}
+
+// Return a new slice, the members of which are those members of addrs having a
+// MethodName in methodNames.
+func FilterBindaddrs(addrs []Bindaddr, methodNames []string) []Bindaddr {
+	var result []Bindaddr
+
+	for _, ba := range addrs {
+		for _, methodName := range methodNames {
+			if ba.MethodName == methodName {
+				result = append(result, ba)
+				break
+			}
+		}
+	}
+
+	return result
+}
+
+func DialOr(info *ServerInfo, addr, methodName string) (*net.TCPConn, error) {
+	if info.ExtendedOrAddr == nil || info.AuthCookiePath == "" {
+		return net.DialTCP("tcp", nil, info.OrAddr)
+	}
+
+	s, err := net.DialTCP("tcp", nil, info.ExtendedOrAddr)
+	if err != nil {
+		return nil, err
+	}
+	s.SetDeadline(time.Now().Add(5 * time.Second))
+	s.SetDeadline(time.Time{})
+
+	return s, nil
+}
+
+func parsePort(portStr string) (int, error) {
+	port, err := strconv.ParseUint(portStr, 10, 16)
+	return int(port), err
+}
+
+type syncWriter struct {
+	*os.File
 }

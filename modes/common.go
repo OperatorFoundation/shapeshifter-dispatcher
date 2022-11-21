@@ -32,7 +32,6 @@ import (
 	locketgo "github.com/OperatorFoundation/locket-go"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
-	pt "github.com/OperatorFoundation/shapeshifter-ipc/v3"
 	"github.com/kataras/golog"
 	"golang.org/x/net/proxy"
 )
@@ -48,7 +47,7 @@ type ClientHandlerTCP func(name string, options string, conn net.Conn, proxyURI 
 
 type ClientHandlerUDP func(name string, options string, conn *net.UDPConn, proxyURI *url.URL)
 
-type ServerHandler func(name string, remote net.Conn, info *pt.ServerInfo)
+type ServerHandler func(name string, remote net.Conn, info *pt_extras.ServerInfo)
 
 func NewConnState() ConnState {
 	return ConnState{nil, true}
@@ -103,7 +102,7 @@ func dialConn(tracker *ConnTracker, addr string, name string, options string, pr
 	(*tracker)[addr] = ConnState{remote, false}
 }
 
-func ServerAcceptLoop(name string, ln net.Listener, info *pt.ServerInfo, serverHandler ServerHandler, enableLocket bool, stateDir string) {
+func ServerAcceptLoop(name string, ln net.Listener, info *pt_extras.ServerInfo, serverHandler ServerHandler, enableLocket bool, stateDir string) {
 	for {
 		conn, err := ln.Accept()
 		fmt.Println("accepted")

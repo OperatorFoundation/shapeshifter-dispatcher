@@ -15,10 +15,10 @@ go install
 rm shTests/TransparentUDP/$FILENAME
 
 # Run a demo application server with netcat and write to the output file
-nc -l 3333 >shTests/TransparentUDP/$FILENAME &
+nc -l 1111 >shTests/TransparentUDP/$FILENAME &
 
 # Run the transport server
-"$GOPATH"/bin/shapeshifter-dispatcher -transparent -udp -server -state state -target 127.0.0.1:3333 -transports Starbridge -bindaddr Starbridge-127.0.0.1:2222 -optionsFile ../../ConfigFiles/StarbridgeServerConfig.json -logLevel DEBUG -enableLogging &
+"$GOPATH"/bin/shapeshifter-dispatcher -transparent -udp -server -state state -target 127.0.0.1:1111 -transports Starbridge -bindaddr Starbridge-127.0.0.1:2222 -optionsFile ../../ConfigFiles/StarbridgeServerConfig.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 

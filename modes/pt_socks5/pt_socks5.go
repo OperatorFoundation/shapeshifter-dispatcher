@@ -30,16 +30,17 @@
 package pt_socks5
 
 import (
+	"fmt"
+	"net"
+	"net/url"
+
 	locketgo "github.com/OperatorFoundation/locket-go"
 	commonLog "github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/socks5"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes"
-	pt "github.com/OperatorFoundation/shapeshifter-ipc/v3"
 	"github.com/kataras/golog"
 	"golang.org/x/net/proxy"
-	"net"
-	"net/url"
 )
 
 func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, options string, enableLocket bool, stateDir string) (launched bool) {
@@ -47,18 +48,17 @@ func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, optio
 	for _, name := range names {
 		ln, err := net.Listen("tcp", socksAddr)
 		if err != nil {
-			_ = pt.CmethodError(name, err.Error())
+			golog.Error(err)
 			continue
 		}
 
 		go clientAcceptLoop(name, ln, ptClientProxy, options, enableLocket, stateDir)
-		pt.Cmethod(name, socks5.Version(), ln.Addr())
 
 		golog.Infof("%s - registered listener: %s", name, ln.Addr())
 
 		launched = true
 	}
-	pt.CmethodsDone()
+	fmt.Println("CMETHODS DONE")
 
 	return
 }
@@ -85,7 +85,7 @@ func clientAcceptLoop(name string, ln net.Listener, proxyURI *url.URL, options s
 
 			conn = locketConn
 		}
-		
+
 		go clientHandler(name, conn, proxyURI, options, enableLocket, stateDir)
 	}
 }
@@ -149,7 +149,7 @@ func clientHandler(name string, conn net.Conn, proxyURI *url.URL, options string
 	}
 }
 
-func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string, enableLocket bool) (launched bool) {
+func ServerSetup(ptServerInfo pt_extras.ServerInfo, stateDir string, options string, enableLocket bool) (launched bool) {
 	for _, bindaddr := range ptServerInfo.Bindaddrs {
 		name := bindaddr.MethodName
 
@@ -176,18 +176,18 @@ func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string, en
 
 		launched = true
 	}
-	pt.SmethodsDone()
+	fmt.Println("SMETHODS DONE")
 
 	return
 }
 
-func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
+func serverHandler(name string, remote net.Conn, info *pt_extras.ServerInfo) {
 
 	addrStr := commonLog.ElideAddr(remote.RemoteAddr().String())
 	golog.Infof("%s(%s) - new connection", name, addrStr)
 
 	// Connect to the orport.
-	orConn, err := pt.DialOr(info, remote.RemoteAddr().String(), name)
+	orConn, err := pt_extras.DialOr(info, remote.RemoteAddr().String(), name)
 	if err != nil {
 		golog.Errorf("%s(%s) - failed to connect to ORPort: %s", name, addrStr, commonLog.ElideError(err))
 		remote.Close()

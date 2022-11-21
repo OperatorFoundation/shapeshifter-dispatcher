@@ -30,13 +30,19 @@
 package transports
 
 import (
+	"crypto/elliptic"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"os"
 
 	Optimizer "github.com/OperatorFoundation/Optimizer-go/Optimizer/v3"
 	replicant "github.com/OperatorFoundation/Replicant-go/Replicant/v3"
 	"github.com/OperatorFoundation/Shadow-go/shadow/v3"
 	"github.com/OperatorFoundation/Starbridge-go/Starbridge/v3"
+	shadowsocks "github.com/OperatorFoundation/go-shadowsocks2/darkstar"
+	"github.com/aead/ecdh"
 	"golang.org/x/net/proxy"
 )
 
@@ -312,4 +318,110 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer, enableLock
 	default:
 		return nil, errors.New("unsupported transport name")
 	}
+}
+
+func CreateShadowConfigs(serverIP string, port string) error {
+	keyExchange := ecdh.Generic(elliptic.P256())
+	clientEphemeralPrivateKey, clientEphemeralPublicKeyPoint, keyError := keyExchange.GenerateKey(rand.Reader)
+	if keyError != nil {
+		return keyError
+	}
+
+	privateKeyBytes, ok := clientEphemeralPrivateKey.([]byte)
+	if !ok {
+		return errors.New("could not convert private key to bytes")
+	}
+
+	publicKeyBytes, keyByteError := shadowsocks.PublicKeyToBytes(clientEphemeralPublicKeyPoint)
+	if keyByteError != nil {
+		return keyByteError
+	}
+
+	privateKeyHex := hex.EncodeToString(privateKeyBytes)
+	publicKeyHex := hex.EncodeToString(publicKeyBytes)
+
+	shadowServerConfig := shadow.ServerConfig{
+		Password:   privateKeyHex,
+		CipherName: "DARKSTAR",
+	}
+
+	serverJsonBytes, marshalError := json.MarshalIndent(shadowServerConfig, "", "  ")
+	if marshalError != nil {
+		return marshalError
+	}
+
+	shadowClientConfig := shadow.ClientConfig{
+		Password:   publicKeyHex,
+		CipherName: "DARKSTAR",
+		Address:    serverIP + ":" + port,
+	}
+
+	clientJsonBytes, marshalError := json.MarshalIndent(shadowClientConfig, "", "  ")
+	if marshalError != nil {
+		return marshalError
+	}
+
+	serverJsonError := os.WriteFile("ShadowServerConfig.json", serverJsonBytes, 0777)
+	if serverJsonError != nil {
+		return serverJsonError
+	}
+	
+	clientJsonError := os.WriteFile("ShadowClientConfig.json", clientJsonBytes, 0777)
+	if clientJsonError != nil {
+		return clientJsonError
+	}
+
+	return nil
+}
+
+func CreateStarbridgeConfigs(serverIP string, port string) error {
+	keyExchange := ecdh.Generic(elliptic.P256())
+	clientEphemeralPrivateKey, clientEphemeralPublicKeyPoint, keyError := keyExchange.GenerateKey(rand.Reader)
+	if keyError != nil {
+		return keyError
+	}
+
+	privateKeyBytes, ok := clientEphemeralPrivateKey.([]byte)
+	if !ok {
+		return errors.New("could not convert private key to bytes")
+	}
+
+	publicKeyBytes, keyByteError := shadowsocks.PublicKeyToBytes(clientEphemeralPublicKeyPoint)
+	if keyByteError != nil {
+		return keyByteError
+	}
+
+	privateKeyHex := hex.EncodeToString(privateKeyBytes)
+	publicKeyHex := hex.EncodeToString(publicKeyBytes)
+
+	starbridgeClientConfig := Starbridge.ClientConfig {
+		Address: serverIP + ":" + port,
+		ServerPersistentPublicKey: publicKeyHex,
+	}
+
+	starbridgeServerConfig := Starbridge.ServerConfig {
+		ServerPersistentPrivateKey: privateKeyHex,
+	}
+
+	serverJsonBytes, marshalError := json.MarshalIndent(starbridgeServerConfig, "", "  ")
+	if marshalError != nil {
+		return marshalError
+	}
+
+	clientJsonBytes, marshalError := json.MarshalIndent(starbridgeClientConfig, "", "  ")
+	if marshalError != nil {
+		return marshalError
+	}
+
+	serverJsonError := os.WriteFile("StarbridgeServerConfig.json", serverJsonBytes, 0777)
+	if serverJsonError != nil {
+		return serverJsonError
+	}
+	
+	clientJsonError := os.WriteFile("StarbridgeClientConfig.json", clientJsonBytes, 0777)
+	if clientJsonError != nil {
+		return clientJsonError
+	}
+
+	return nil
 }

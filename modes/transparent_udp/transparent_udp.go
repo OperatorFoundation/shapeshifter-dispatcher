@@ -33,13 +33,14 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
-	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes"
-	"github.com/OperatorFoundation/shapeshifter-ipc/v3"
-	"github.com/kataras/golog"
 	"io"
 	"net"
 	"net/url"
+
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
+	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes"
+	"github.com/kataras/golog"
 )
 
 func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, options string) bool {
@@ -105,11 +106,11 @@ func clientHandler(name string, options string, conn *net.UDPConn, proxyURI *url
 	}
 }
 
-func ServerSetup(ptServerInfo pt.ServerInfo, stateDir string, options string) (launched bool) {
+func ServerSetup(ptServerInfo pt_extras.ServerInfo, stateDir string, options string) (launched bool) {
 	return modes.ServerSetupUDP(ptServerInfo, stateDir, options, serverHandler)
 }
 
-func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
+func serverHandler(name string, remote net.Conn, info *pt_extras.ServerInfo) {
 	var length16 uint16
 
 	addrStr := log.ElideAddr(remote.RemoteAddr().String())

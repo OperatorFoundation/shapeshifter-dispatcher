@@ -42,7 +42,6 @@ import (
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
-	pt "github.com/OperatorFoundation/shapeshifter-ipc/v3"
 	"github.com/kataras/golog"
 
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes/pt_socks5"
@@ -125,6 +124,11 @@ func main() {
 	enableLogging := flag.Bool("enableLogging", false, "Log to [state]/"+dispatcherLogFile)
 	ipcLogLevelStr := flag.String("ipcLogLevel", "NONE", "IPC Log level (ERROR/WARN/INFO/DEBUG/NONE)")
 
+	// Flags for config generation
+	generateConfig := flag.Bool("generateConfig", false, "Generate a config for the specified transport")
+	serverIP := flag.String("serverIP", "", "Specify the IP address of the server to use in the config")
+	port := flag.String("port", "", "Specify which port to use in the config")
+
 	// Additional command line flags added to shapeshifter-dispatcher
 	clientMode := flag.Bool("client", false, "Enable client mode")
 	serverMode := flag.Bool("server", false, "Enable server mode")
@@ -135,6 +139,17 @@ func main() {
 	flag.Parse() // Flag variables are set to actual values here.
 
 	// Start validation of command line arguments
+
+	if *generateConfig {
+		switch *transport {
+			case "shadow":
+				transports.CreateShadowConfigs(*serverIP, *port)
+			case "Starbridge":
+				transports.CreateStarbridgeConfigs(*serverIP, *port)
+			default:
+				return
+		}
+	} 
 
 	if *showVer {
 		fmt.Printf("%s\n", getVersion())
@@ -399,25 +414,16 @@ func makeStateDir(statePath string) (string, error) {
 		return statePath, err
 	}
 
-	return pt.MakeStateDir()
+	return statePath, nil
 }
 
 func getClientNames(ptversion *string, transportsList *string, proxy *string) (clientProxy *url.URL, names []string, retErr error) {
-	var ptClientInfo pt.ClientInfo
-	var err error
+	var ptClientInfo pt_extras.ClientInfo
 
-	if ptversion == nil || transportsList == nil {
-		golog.Infof("Falling back to environment variables for ptversion/transports.")
-		ptClientInfo, err = pt.ClientSetup(transports.Transports())
-		if err != nil {
-			return nil, nil, err
-		}
+	if *transportsList == "*" {
+		ptClientInfo = pt_extras.ClientInfo{MethodNames: transports.Transports()}
 	} else {
-		if *transportsList == "*" {
-			ptClientInfo = pt.ClientInfo{MethodNames: transports.Transports()}
-		} else {
-			ptClientInfo = pt.ClientInfo{MethodNames: strings.Split(*transportsList, ",")}
-		}
+		ptClientInfo = pt_extras.ClientInfo{MethodNames: strings.Split(*transportsList, ",")}
 	}
 
 	ptClientProxy, proxyErr := pt_extras.PtGetProxy(proxy)
@@ -430,10 +436,10 @@ func getClientNames(ptversion *string, transportsList *string, proxy *string) (c
 	return ptClientProxy, ptClientInfo.MethodNames, nil
 }
 
-func getServerInfo(bindaddrList *string, options *string, transportList *string, target *string, extorport *string, authcookie *string) pt.ServerInfo {
-	var ptServerInfo pt.ServerInfo
+func getServerInfo(bindaddrList *string, options *string, transportList *string, target *string, extorport *string, authcookie *string) pt_extras.ServerInfo {
+	var ptServerInfo pt_extras.ServerInfo
 	var err error
-	var bindaddrs []pt.Bindaddr
+	var bindaddrs []pt_extras.Bindaddr
 
 	bindaddrs, err = getServerBindaddrs(bindaddrList, options, transportList)
 	if err != nil {
@@ -442,8 +448,8 @@ func getServerInfo(bindaddrList *string, options *string, transportList *string,
 		return ptServerInfo
 	}
 
-	ptServerInfo = pt.ServerInfo{Bindaddrs: bindaddrs}
-	ptServerInfo.OrAddr, err = pt.ResolveAddr(*target)
+	ptServerInfo = pt_extras.ServerInfo{Bindaddrs: bindaddrs}
+	ptServerInfo.OrAddr, err = pt_extras.ResolveAddr(*target)
 	if err != nil {
 		golog.Errorf("Error resolving OR address %q %q", *target, err)
 		return ptServerInfo
@@ -454,7 +460,7 @@ func getServerInfo(bindaddrList *string, options *string, transportList *string,
 	}
 
 	if *extorport != "" {
-		ptServerInfo.ExtendedOrAddr, err = pt.ResolveAddr(*extorport)
+		ptServerInfo.ExtendedOrAddr, err = pt_extras.ResolveAddr(*extorport)
 		if err != nil {
 			golog.Errorf("Error resolving Extended OR address %q %q", *extorport, err)
 			return ptServerInfo
@@ -465,25 +471,10 @@ func getServerInfo(bindaddrList *string, options *string, transportList *string,
 }
 
 // Return an array of Bindaddrs.
-func getServerBindaddrs(bindaddrList *string, options *string, transports *string) ([]pt.Bindaddr, error) {
-	var result []pt.Bindaddr
-	var serverTransportOptions string
+func getServerBindaddrs(bindaddrList *string, options *string, transports *string) ([]pt_extras.Bindaddr, error) {
+	var result []pt_extras.Bindaddr
 	var serverBindaddr string
 	var serverTransports string
-	var optionsMap map[string]map[string]interface{}
-	var optionsError error
-
-	// Parse the list of server transport options.
-	if *options != "" {
-		serverTransportOptions = *options
-		if serverTransportOptions != "" {
-			optionsMap, optionsError = pt.ParsePT2ServerParameters(serverTransportOptions)
-			if optionsError != nil {
-				golog.Errorf("Error parsing options map %q %q", serverTransportOptions, optionsError)
-				return nil, fmt.Errorf("-options: %q: %s", serverTransportOptions, optionsError.Error())
-			}
-		}
-	}
 
 	// Get the list of all requested bindaddrs.
 	if *bindaddrList != "" {
@@ -491,19 +482,19 @@ func getServerBindaddrs(bindaddrList *string, options *string, transports *strin
 	}
 
 	for _, spec := range strings.Split(serverBindaddr, ",") {
-		var bindaddr pt.Bindaddr
+		var bindaddr pt_extras.Bindaddr
 
 		parts := strings.SplitN(spec, "-", 2)
 		if len(parts) != 2 {
 			return nil, fmt.Errorf("-bindaddr: %q: doesn't contain \"-\"", spec)
 		}
 		bindaddr.MethodName = parts[0]
-		addr, err := pt.ResolveAddr(parts[1])
+		addr, err := pt_extras.ResolveAddr(parts[1])
 		if err != nil {
 			return nil, fmt.Errorf("-bindaddr: %q: %s", spec, err.Error())
 		}
 		bindaddr.Addr = addr
-		bindaddr.Options = optionsMap[bindaddr.MethodName]
+		bindaddr.Options = *options
 		result = append(result, bindaddr)
 	}
 
@@ -512,7 +503,7 @@ func getServerBindaddrs(bindaddrList *string, options *string, transports *strin
 	} else {
 		serverTransports = *transports
 	}
-	result = pt.FilterBindaddrs(result, strings.Split(serverTransports, ","))
+	result = pt_extras.FilterBindaddrs(result, strings.Split(serverTransports, ","))
 	if len(result) == 0 {
 		golog.Errorf("no valid bindaddrs")
 	}

@@ -25,14 +25,13 @@ SOFTWARE.
 package pt_extras
 
 import (
-	"encoding/json"
 	"errors"
+	"net"
+
 	Optimizer "github.com/OperatorFoundation/Optimizer-go/Optimizer/v3"
-	options2 "github.com/OperatorFoundation/shapeshifter-dispatcher/common"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
 	"github.com/kataras/golog"
 	"golang.org/x/net/proxy"
-	"net"
 )
 
 // target is the server address string
@@ -80,27 +79,9 @@ func ArgsToDialer(name string, args string, dialer proxy.Dialer, enableLocket bo
 func ArgsToListener(name string, stateDir string, options string, enableLocket bool, logDir string) (func(address string) (net.Listener, error), error) {
 	var listen func(address string) (net.Listener, error)
 
-	//var config meekserver.Config
-
-	args, argsErr := options2.ParseServerOptions(options)
-	if argsErr != nil {
-		golog.Errorf("Error parsing transport options: %s", options)
-		return nil, errors.New("error parsing transport options")
-	}
-
 	switch name {
 	case "Replicant":
-		shargs, aok := args["Replicant"]
-		if !aok {
-			return nil, errors.New("could not find Replicant options")
-		}
-
-		shargsBytes, err := json.Marshal(shargs)
-		if err != nil {
-			return nil, errors.New("could not marshall json")
-		}
-		shargsString := string(shargsBytes)
-		config, err := transports.ParseArgsReplicantServer(shargsString)
+		config, err := transports.ParseArgsReplicantServer(options)
 		if err != nil {
 			return nil, errors.New("could not parse Replicant options")
 		}
@@ -112,28 +93,14 @@ func ArgsToListener(name string, stateDir string, options string, enableLocket b
 
 		return config.Listen, nil
 	case "Starbridge":
-		shargs, aok := args["Starbridge"]
-		if !aok {
-			return nil, errors.New("could not find Starbridge options")
-		}
-
-		shargsBytes, err := json.Marshal(shargs)
-		shargsString := string(shargsBytes)
-		config, err := transports.ParseArgsStarbridgeServer(shargsString)
+		config, err := transports.ParseArgsStarbridgeServer(options)
 		if err != nil {
 			return nil, errors.New("could not parse Starbridge options")
 		}
 
 		return config.Listen, nil
 	case "shadow":
-		args, aok := args["shadow"]
-		if !aok {
-			return nil, errors.New("could not find shadow options")
-		}
-
-		argsBytes, err := json.Marshal(args)
-		argsString := string(argsBytes)
-		config, err := transports.ParseArgsShadowServer(argsString, enableLocket, logDir)
+		config, err := transports.ParseArgsShadowServer(options, enableLocket, logDir)
 		if err != nil {
 			return nil, err
 		}

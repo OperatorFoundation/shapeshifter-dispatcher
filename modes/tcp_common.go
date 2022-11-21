@@ -35,7 +35,6 @@ import (
 	locketgo "github.com/OperatorFoundation/locket-go"
 	commonLog "github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
-	pt "github.com/OperatorFoundation/shapeshifter-ipc/v3"
 	"github.com/kataras/golog"
 )
 
@@ -80,12 +79,12 @@ func clientAcceptLoop(name string, options string, ln net.Listener, proxyURI *ur
 
 			conn = locketConn
 		}
-		
+
 		go clientHandler(name, options, conn, proxyURI, enableLocket, stateDir)
 	}
 }
 
-func ServerSetupTCP(ptServerInfo pt.ServerInfo, stateDir string, options string, serverHandler ServerHandler, enableLocket bool) (launched bool) {
+func ServerSetupTCP(ptServerInfo pt_extras.ServerInfo, stateDir string, options string, serverHandler ServerHandler, enableLocket bool) (launched bool) {
 	// Launch each of the server listeners.
 	for _, bindaddr := range ptServerInfo.Bindaddrs {
 		name := bindaddr.MethodName

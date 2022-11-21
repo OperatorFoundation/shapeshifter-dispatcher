@@ -31,14 +31,14 @@ package transparent_tcp
 
 import (
 	"fmt"
+	"net"
+	"net/url"
+
 	commonLog "github.com/OperatorFoundation/shapeshifter-dispatcher/common/log"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/common/pt_extras"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/modes"
-	pt "github.com/OperatorFoundation/shapeshifter-ipc/v3"
 	"github.com/kataras/golog"
 	"golang.org/x/net/proxy"
-	"net"
-	"net/url"
 )
 
 func ClientSetup(socksAddr string, ptClientProxy *url.URL, names []string, options string, enableLocket bool, stateDir string) (launched bool) {
@@ -105,13 +105,13 @@ func clientHandler(name string, options string, conn net.Conn, proxyURI *url.URL
 	}
 }
 
-func ServerSetup(ptServerInfo pt.ServerInfo, statedir string, options string, enableLocket bool) (launched bool) {
+func ServerSetup(ptServerInfo pt_extras.ServerInfo, statedir string, options string, enableLocket bool) (launched bool) {
 	return modes.ServerSetupTCP(ptServerInfo, statedir, options, serverHandler, enableLocket)
 }
 
-func serverHandler(name string, remote net.Conn, info *pt.ServerInfo) {
+func serverHandler(name string, remote net.Conn, info *pt_extras.ServerInfo) {
 	// Connect to the orport.
-	orConn, err := pt.DialOr(info, remote.RemoteAddr().String(), name)
+	orConn, err := pt_extras.DialOr(info, remote.RemoteAddr().String(), name)
 	if err != nil {
 		print("failed to connect to ORPort: ")
 		println(commonLog.ElideError(err))
