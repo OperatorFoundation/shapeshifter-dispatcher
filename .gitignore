@@ -19,3 +19,5 @@ TransportState/dispatcher.log
 shapeshifter-dispatcher
 *.json
 *.json
+bloomfilter.gob
+go.sum
