@@ -1,36 +1,35 @@
 #!/bin/bash
 # This script runs a full end-to-end functional test of the dispatcher and the Starbridge transport, using two netcat instances as the application server and application client.
 # An alternative way to run this test is to run each command in its own terminal. Each netcat instance can be used to type content which should appear in the other.
-FILENAME=testTCPStarbridgeOutput.txt
-
-if [[ -z "${GOPATH}" ]]; then
-  echo "your GOPATH variable is not set. Temporarily setting to HOME/go"
-fi
-GOPATH=${GOPATH:-"$HOME/go"}
+SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+EXECUTABLE_DIR=${SCRIPT_DIR%/shTests/TransparentTCP}
+FILE_PATH="$SCRIPT_DIR/testTCPStarbridgeOutput.txt"
 
 # Update and build code
+cd $EXECUTABLE_DIR
 go install
+go build .
 
 # remove text from the output file
-rm shTests/TransparentTCP/$FILENAME
+rm $FILE_PATH
 
 # Run a demo application server with netcat and write to the output file
-nc -l 1111 >shTests/TransparentTCP/$FILENAME &
+nc -l 1111 >$FILE_PATH &
 
 # Run the transport server
 
-"$GOPATH"/bin/shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:1111 -transports Starbridge -bindaddr Starbridge-127.0.0.1:2222 -optionsFile ConfigFiles/StarbridgeServerConfig.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:1111 -transports Starbridge -bindaddr Starbridge-127.0.0.1:2222 -optionsFile ConfigFiles/StarbridgeServerConfig.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
 # Run the transport client
 
-"$GOPATH"/bin/shapeshifter-dispatcher -transparent -client -state state -transports Starbridge -proxylistenaddr 127.0.0.1:1443 -optionsFile ConfigFiles/StarbridgeClientConfig.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -transparent -client -state state -transports Starbridge -proxylistenaddr 127.0.0.1:1443 -optionsFile ConfigFiles/StarbridgeClientConfig.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
 # Run a demo application client with netcat
-pushd shTests/TransparentTCP
+pushd $SCRIPT_DIR
 go test -run TransparentTCP
 popd
 
@@ -40,9 +39,9 @@ OS=$(uname)
 
 if [ "$OS" = "Darwin" ]
 then
-  FILESIZE=$(stat -f%z "$FILENAME")
+  FILESIZE=$(stat -f%z "$FILE_PATH")
 else
-  FILESIZE=$(stat -c%s "$FILENAME")
+  FILESIZE=$(stat -c%zs"$FILE_PATH")
 fi
 
 if [ "$FILESIZE" = "0" ]
