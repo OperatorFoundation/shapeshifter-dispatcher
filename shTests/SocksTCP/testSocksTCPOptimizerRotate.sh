@@ -17,14 +17,14 @@ rm $FILE_PATH
 nc -l 3333 >$FILE_PATH &
 
 # Run the transport server
-./shapeshifter-dispatcher -server -state state -target 127.0.0.1:3333 -bindaddr shadow-127.0.0.1:2222 -transports shadow -optionsFile ../../ConfigFiles/shadowServer.json -logLevel DEBUG -enableLogging &
-./shapeshifter-dispatcher -server -state state -target 127.0.0.1:3333 -bindaddr Starbridge-127.0.0.1:2223 -transports Starbridge -optionsFile ../../ConfigFiles/StarbridgeServerConfig.json -logLevel DEBUG -enableLogging &
-./shapeshifter-dispatcher -server -state state -target 127.0.0.1:3333 -bindaddr Replicant-127.0.0.1:2224 -transports Replicant -optionsFile ../../ConfigFiles/ReplicantServerConfigV3.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -server -state state -target 127.0.0.1:3333 -bindaddr shadow-127.0.0.1:2222 -transports shadow -optionsFile ConfigFiles/shadowServer.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -server -state state -target 127.0.0.1:3333 -bindaddr Starbridge-127.0.0.1:2223 -transports Starbridge -optionsFile ConfigFiles/StarbridgeServerConfig.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -server -state state -target 127.0.0.1:3333 -bindaddr Replicant-127.0.0.1:2224 -transports Replicant -optionsFile ConfigFiles/ReplicantServerConfigV3.json -logLevel DEBUG -enableLogging &
 
 sleep 5
 
 # Run the transport client
-./shapeshifter-dispatcher -client -state state -transports Optimizer -proxylistenaddr 127.0.0.1:1443 -optionsFile ../../ConfigFiles/OptimizerRotate.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -client -state state -transports Optimizer -proxylistenaddr 127.0.0.1:1443 -optionsFile ConfigFiles/OptimizerRotate.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 
