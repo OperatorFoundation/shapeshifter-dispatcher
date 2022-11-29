@@ -14,11 +14,11 @@ go build .
 rm $FILE_PATH
 
 # Run a demo application server with netcat and write to the output file
-nc -l 1111 >$FILE_PATH &
+nc -l 3333 >$FILE_PATH &
 
 # Run the transport server
 
-./shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:1111 -transports Starbridge -bindaddr Starbridge-127.0.0.1:2222 -optionsFile ConfigFiles/StarbridgeServerConfig.json -logLevel DEBUG -enableLogging &
+./shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports Starbridge -bindaddr Starbridge-127.0.0.1:2222 -optionsFile ConfigFiles/StarbridgeServerConfig.json -logLevel DEBUG -enableLogging &
 
 sleep 1
 

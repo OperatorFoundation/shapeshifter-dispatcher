@@ -1,1 +1,6 @@
-{"shadow": {"password": "e7afafe8098d06d9cac98cfdd5179bd031e81761717a04d0415765f0d8d5f4d0", "cipherName": "DarkStar"}}
+{
+    "serverAddress": "127.0.0.1:2222",
+    "serverPrivateKey": "RaHouPFVOazVSqInoMm8BSO9o/7J493y4cUVofmwXAU=",
+    "cipherName": "darkstar",
+    "transport": "shadow"
+}

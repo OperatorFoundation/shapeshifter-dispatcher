@@ -46,6 +46,7 @@ import (
 	"net"
 	"syscall"
 	"time"
+	"github.com/kataras/golog"
 )
 
 const (
@@ -196,6 +197,7 @@ func (req *Request) NegotiateAuth(needOptions bool) (byte, error) {
 
 	var err error
 	if err = req.readByteVerify("version", version); err != nil {
+		golog.Errorf("error in NegotiateAuth: %s", err)
 		return 0, err
 	}
 
@@ -243,6 +245,7 @@ func (req *Request) authenticate(method byte) error {
 	case authNoneRequired:
 		// No authentication required.
 	case AuthJsonParameterBlock:
+		golog.Info("AuthJsonParameterBlock reached")
 		if err := req.authPT2(); err != nil {
 			return err
 		}
@@ -268,6 +271,7 @@ func (req *Request) readCommand() error {
 
 	var err error
 	if err = req.readByteVerify("version", version); err != nil {
+		golog.Errorf("error in readCommand: %s", err)
 		_ = req.Reply(ReplyGeneralFailure)
 		return err
 	}

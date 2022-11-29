@@ -14,7 +14,7 @@ go build .
 rm $FILE_PATH
 
 # Run a demo application server with netcat and write to the output file
-nc -l 3333 >$FILE_PATH &
+nc -l -u 3333 >$FILE_PATH &
 
 # Run the transport server
 ./shapeshifter-dispatcher -udp -server -state state -target 127.0.0.1:3333 -transports Replicant -bindaddr Replicant-127.0.0.1:2222 -optionsFile ConfigFiles/ReplicantServerConfigV3.json -logLevel DEBUG -enableLogging &

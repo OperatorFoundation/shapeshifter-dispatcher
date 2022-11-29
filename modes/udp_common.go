@@ -68,7 +68,7 @@ func ServerSetupUDP(ptServerInfo pt_extras.ServerInfo, stateDir string, options 
 
 		go func() {
 			for {
-				transportLn, LnError := listen(bindaddr.Addr.String())
+				transportLn, LnError := listen()
 				if LnError != nil {
 					continue
 				}

@@ -76,20 +76,13 @@ func ArgsToDialer(name string, args string, dialer proxy.Dialer, enableLocket bo
 	}
 }
 
-func ArgsToListener(name string, stateDir string, options string, enableLocket bool, logDir string) (func(address string) (net.Listener, error), error) {
-	var listen func(address string) (net.Listener, error)
-
+func ArgsToListener(name string, stateDir string, options string, enableLocket bool, logDir string) (func() (net.Listener, error), error) {
 	switch name {
 	case "Replicant":
 		config, err := transports.ParseArgsReplicantServer(options)
 		if err != nil {
 			return nil, errors.New("could not parse Replicant options")
 		}
-
-		//configJSONString, jsonMarshallError := json.Marshal(config)
-		//if jsonMarshallError == nil {
-		//	log.Debugf("REPLICANT CONFIG\n", string(configJSONString))
-		//}
 
 		return config.Listen, nil
 	case "Starbridge":
@@ -105,10 +98,8 @@ func ArgsToListener(name string, stateDir string, options string, enableLocket b
 			return nil, err
 		}
 
-		listen = config.Listen
+		return config.Listen, nil
 	default:
 		return nil, errors.New("unknown transport")
 	}
-
-	return listen, nil
 }

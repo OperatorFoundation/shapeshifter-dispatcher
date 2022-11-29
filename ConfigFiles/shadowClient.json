@@ -1,5 +1,6 @@
 {
-  "password": "0a24ee71ff31fe0882ff3ec362d8eb47d1976d948f3d069193481cbb5be5858c",
-  "cipherName": "DarkStar",
-  "address": "127.0.0.1:2222"
+  "serverAddress": "127.0.0.1:2222",
+  "serverPublicKey": "6LukZ8KqZLQ7eOdaTVFkBVqMA8NS1AUxwqG17L/kHnQ=",
+  "cipherName": "darkstar",
+  "transport": "shadow"
 }

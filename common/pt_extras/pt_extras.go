@@ -28,16 +28,16 @@
 package pt_extras
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
-	"io"
-	"os"
-
 )
 
 // This file contains things that probably should be in goptlib but are not
@@ -240,4 +240,18 @@ func parsePort(portStr string) (int, error) {
 
 type syncWriter struct {
 	*os.File
+}
+
+func ParsePT2ClientParameters(s string) (map[string]interface{}, error) {
+	if len(s) == 0 {
+		return nil, errors.New("cannot use empty string")
+	}
+
+	decoder := json.NewDecoder(strings.NewReader(s))
+	var result map[string]interface{}
+	if err := decoder.Decode(&result); err != nil {
+		fmt.Errorf("Error decoding JSON %q", err)
+		return nil, err
+	}
+	return result, nil
 }

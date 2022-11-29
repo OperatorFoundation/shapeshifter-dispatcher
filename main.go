@@ -126,8 +126,7 @@ func main() {
 
 	// Flags for config generation
 	generateConfig := flag.Bool("generateConfig", false, "Generate a config for the specified transport")
-	serverIP := flag.String("serverIP", "", "Specify the IP address of the server to use in the config")
-	port := flag.String("port", "", "Specify which port to use in the config")
+	serverAddress := flag.String("serverIP", "", "Specify the IP address of the server to use in the config")
 
 	// Additional command line flags added to shapeshifter-dispatcher
 	clientMode := flag.Bool("client", false, "Enable client mode")
@@ -143,9 +142,9 @@ func main() {
 	if *generateConfig {
 		switch *transport {
 			case "shadow":
-				transports.CreateShadowConfigs(*serverIP, *port)
+				transports.CreateShadowConfigs(*serverAddress)
 			case "Starbridge":
-				transports.CreateStarbridgeConfigs(*serverIP, *port)
+				transports.CreateStarbridgeConfigs(*serverAddress)
 			default:
 				return
 		}

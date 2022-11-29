@@ -161,7 +161,7 @@ func ServerSetup(ptServerInfo pt_extras.ServerInfo, stateDir string, options str
 
 		go func() {
 			for {
-				transportLn, LnError := listen(bindaddr.Addr.String())
+				transportLn, LnError := listen()
 				if LnError != nil {
 					continue
 				}

@@ -32,7 +32,7 @@ package transports
 import (
 	"crypto/elliptic"
 	"crypto/rand"
-	"encoding/hex"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"os"
@@ -65,7 +65,7 @@ func ParseArgsShadow(args string, enableLocket bool, logDir string) (*shadow.Tra
 	if jsonError != nil {
 		return nil, errors.New("shadow options json decoding error")
 	}
-	transport := shadow.NewTransport(config.Password, config.CipherName, config.Address, config.LogDir)
+	transport := shadow.NewTransport(config.ServerAddress, config.ServerPublicKey, config.CipherName, config.LogDir)
 
 	return &transport, nil
 }
@@ -98,26 +98,16 @@ func CreateDefaultReplicantServer() replicant.ServerConfig {
 }
 
 func ParseArgsReplicantClient(args string, dialer proxy.Dialer) (*replicant.TransportClient, error) {
-	var config *replicant.ClientConfig
-
-	var ReplicantConfig replicant.ClientJSONConfig
-	if args == "" {
-		return nil, errors.New("must specify transport options when using replicant")
-	}
-	argsBytes := []byte(args)
-	unmarshalError := json.Unmarshal(argsBytes, &ReplicantConfig)
-	if unmarshalError != nil {
-		return nil, errors.New("could not unmarshal Replicant args")
-	}
-	var parseErr error
-	config, parseErr = replicant.DecodeClientConfig(ReplicantConfig.Config)
-	if parseErr != nil {
-		return nil, errors.New("could not parse config")
+	var config replicant.ClientConfig
+	bytes := []byte(args)
+	jsonError := json.Unmarshal(bytes, &config)
+	if jsonError != nil {
+		return nil, errors.New("replicant client options json decoding error")
 	}
 
 	transport := replicant.TransportClient{
-		Config:  *config,
-		Address: (*config).Address,
+		Config:  config,
+		Address: config.ServerAddress,
 		Dialer:  dialer,
 	}
 
@@ -126,28 +116,15 @@ func ParseArgsReplicantClient(args string, dialer proxy.Dialer) (*replicant.Tran
 
 //  target string, dialer proxy.Dialer
 func ParseArgsReplicantServer(args string) (*replicant.ServerConfig, error) {
-	var config *replicant.ServerConfig
+	var config replicant.ServerConfig
 
-	type replicantJsonConfig struct {
-		Config string
-	}
-	var ReplicantConfig replicantJsonConfig
-	if args == "" {
-		transport := CreateDefaultReplicantServer()
-		return &transport, nil
-	}
-	argsBytes := []byte(args)
-	unmarshalError := json.Unmarshal(argsBytes, &ReplicantConfig)
-	if unmarshalError != nil {
-		return nil, errors.New("could not unmarshal Replicant args")
-	}
-	var parseErr error
-	config, parseErr = replicant.DecodeServerConfig(ReplicantConfig.Config)
-	if parseErr != nil {
-		return nil, parseErr
+	bytes := []byte(args)
+	jsonError := json.Unmarshal(bytes, &config)
+	if jsonError != nil {
+		return nil, errors.New("starbridge server options json decoding error")
 	}
 
-	return config, nil
+	return &config, nil
 }
 
 func ParseArgsStarbridgeClient(args string, dialer proxy.Dialer) (*Starbridge.TransportClient, error) {
@@ -155,11 +132,12 @@ func ParseArgsStarbridgeClient(args string, dialer proxy.Dialer) (*Starbridge.Tr
 	bytes := []byte(args)
 	jsonError := json.Unmarshal(bytes, &config)
 	if jsonError != nil {
-		return nil, errors.New("starbridge options ")
+		return nil, errors.New("starbridge client options json decoding error")
 	}
+
 	transport := Starbridge.TransportClient{
 		Config:  config,
-		Address: config.Address,
+		Address: config.ServerAddress,
 		Dialer:  dialer,
 	}
 
@@ -320,7 +298,7 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer, enableLock
 	}
 }
 
-func CreateShadowConfigs(serverIP string, port string) error {
+func CreateShadowConfigs(address string) error {
 	keyExchange := ecdh.Generic(elliptic.P256())
 	clientEphemeralPrivateKey, clientEphemeralPublicKeyPoint, keyError := keyExchange.GenerateKey(rand.Reader)
 	if keyError != nil {
@@ -337,12 +315,14 @@ func CreateShadowConfigs(serverIP string, port string) error {
 		return keyByteError
 	}
 
-	privateKeyHex := hex.EncodeToString(privateKeyBytes)
-	publicKeyHex := hex.EncodeToString(publicKeyBytes)
+	privateKeyString := base64.StdEncoding.EncodeToString(privateKeyBytes)
+	publicKeyString := base64.StdEncoding.EncodeToString(publicKeyBytes)
 
 	shadowServerConfig := shadow.ServerConfig{
-		Password:   privateKeyHex,
-		CipherName: "DARKSTAR",
+		ServerAddress: 	  address,
+		ServerPrivateKey: privateKeyString,
+		CipherName:		  "darkstar",
+		Transport: 		  "shadow",
 	}
 
 	serverJsonBytes, marshalError := json.MarshalIndent(shadowServerConfig, "", "  ")
@@ -351,9 +331,10 @@ func CreateShadowConfigs(serverIP string, port string) error {
 	}
 
 	shadowClientConfig := shadow.ClientConfig{
-		Password:   publicKeyHex,
-		CipherName: "DARKSTAR",
-		Address:    serverIP + ":" + port,
+		ServerAddress:   address,
+		ServerPublicKey: publicKeyString,
+		CipherName: 	 "darkstar",
+		Transport: 		 "shadow",
 	}
 
 	clientJsonBytes, marshalError := json.MarshalIndent(shadowClientConfig, "", "  ")
@@ -374,7 +355,7 @@ func CreateShadowConfigs(serverIP string, port string) error {
 	return nil
 }
 
-func CreateStarbridgeConfigs(serverIP string, port string) error {
+func CreateStarbridgeConfigs(address string) error {
 	keyExchange := ecdh.Generic(elliptic.P256())
 	clientEphemeralPrivateKey, clientEphemeralPublicKeyPoint, keyError := keyExchange.GenerateKey(rand.Reader)
 	if keyError != nil {
@@ -391,16 +372,19 @@ func CreateStarbridgeConfigs(serverIP string, port string) error {
 		return keyByteError
 	}
 
-	privateKeyHex := hex.EncodeToString(privateKeyBytes)
-	publicKeyHex := hex.EncodeToString(publicKeyBytes)
+	privateKeyString := base64.StdEncoding.EncodeToString(privateKeyBytes)
+	publicKeyString := base64.StdEncoding.EncodeToString(publicKeyBytes)
 
 	starbridgeClientConfig := Starbridge.ClientConfig {
-		Address: serverIP + ":" + port,
-		ServerPersistentPublicKey: publicKeyHex,
+		ServerAddress: address,
+		ServerPersistentPublicKey: publicKeyString,
+		Transport: "starbridge",
 	}
 
 	starbridgeServerConfig := Starbridge.ServerConfig {
-		ServerPersistentPrivateKey: privateKeyHex,
+		ServerAddress: address,
+		ServerPersistentPrivateKey: privateKeyString,
+		Transport: "starbridge",
 	}
 
 	serverJsonBytes, marshalError := json.MarshalIndent(starbridgeServerConfig, "", "  ")
