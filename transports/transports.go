@@ -377,13 +377,13 @@ func CreateStarbridgeConfigs(address string) error {
 
 	starbridgeClientConfig := Starbridge.ClientConfig {
 		ServerAddress: address,
-		ServerPersistentPublicKey: publicKeyString,
+		ServerPublicKey: publicKeyString,
 		Transport: "starbridge",
 	}
 
 	starbridgeServerConfig := Starbridge.ServerConfig {
 		ServerAddress: address,
-		ServerPersistentPrivateKey: privateKeyString,
+		ServerPrivateKey: privateKeyString,
 		Transport: "starbridge",
 	}
 

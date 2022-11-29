@@ -7,6 +7,8 @@ github.com/OperatorFoundation/Shadow-go/shadow/v3 v3.0.6 h1:dyCx11QycNh4WRKLJ5Hp
 github.com/OperatorFoundation/Shadow-go/shadow/v3 v3.0.6/go.mod h1:bP/F3miVn98tyAZEpIh2XSdcu2s0Jm5ht+qXJrsUZlA=
 github.com/OperatorFoundation/Starbridge-go/Starbridge/v3 v3.0.10 h1:/UUe+4LR/XMESEjzT/78tk8DblZTxT9u/WYvadWRadc=
 github.com/OperatorFoundation/Starbridge-go/Starbridge/v3 v3.0.10/go.mod h1:l9aF3R49A6daR9ddoNE6ac6XsdHzulaC4rR6eOEK/0Y=
+github.com/OperatorFoundation/Starbridge-go/Starbridge/v3 v3.0.11 h1:ol4NzsH4OMX9IcFlvLxBh+LxHo2qt7sC26hrzFL95hU=
+github.com/OperatorFoundation/Starbridge-go/Starbridge/v3 v3.0.11/go.mod h1:l9aF3R49A6daR9ddoNE6ac6XsdHzulaC4rR6eOEK/0Y=
 github.com/OperatorFoundation/ghostwriter-go v1.0.6 h1:2E5D4qDKwsV+LQoKGtgIyjq5JvMiBZf8ySR8q0PP4vc=
 github.com/OperatorFoundation/ghostwriter-go v1.0.6/go.mod h1:+uejzC1RRxZwngnCArqZX3d7i6ZX4Si8jNG8G6oCIKQ=
 github.com/OperatorFoundation/go-bloom v1.0.1 h1:8q/rfgfG7OvwGkmzusIuV8PlS8MvA/T0kQ2MXm9371g=
