@@ -1,12 +1,11 @@
 github.com/OperatorFoundation/Optimizer-go/Optimizer/v3 v3.0.2 h1:025BXtTxZQlJvGXnsoy40ZHuim7/wSLE9FU+S6BllP0=
 github.com/OperatorFoundation/Optimizer-go/Optimizer/v3 v3.0.2/go.mod h1:LpUVIzoM7zuf1NihGjn5JVyybZ4+uW7Y9SLTiI4ziD4=
-github.com/OperatorFoundation/Replicant-go/Replicant/v3 v3.0.9 h1:6kdVwjYExPbwF/qbW/329dsJDhR8SjQWVZ5ZES41xEg=
 github.com/OperatorFoundation/Replicant-go/Replicant/v3 v3.0.9/go.mod h1:VGjZcGWvwhrYRxfw2TgIIkKK6rH61ynNH3CH0xN1YeQ=
+github.com/OperatorFoundation/Replicant-go/Replicant/v3 v3.0.13 h1:zIR15+v7ZLaTF9h/pKoM+JtW7qmdwtzvVPHG4NdYFaU=
+github.com/OperatorFoundation/Replicant-go/Replicant/v3 v3.0.13/go.mod h1:VGjZcGWvwhrYRxfw2TgIIkKK6rH61ynNH3CH0xN1YeQ=
 github.com/OperatorFoundation/Shadow-go/shadow/v3 v3.0.1/go.mod h1:tJskzmqFztA8KApTLj7i5IOSN0oLaUQsEwhPcTDcodQ=
 github.com/OperatorFoundation/Shadow-go/shadow/v3 v3.0.6 h1:dyCx11QycNh4WRKLJ5HpyLEZQUDXkYTFzkcNMQ0IAJI=
 github.com/OperatorFoundation/Shadow-go/shadow/v3 v3.0.6/go.mod h1:bP/F3miVn98tyAZEpIh2XSdcu2s0Jm5ht+qXJrsUZlA=
-github.com/OperatorFoundation/Starbridge-go/Starbridge/v3 v3.0.10 h1:/UUe+4LR/XMESEjzT/78tk8DblZTxT9u/WYvadWRadc=
-github.com/OperatorFoundation/Starbridge-go/Starbridge/v3 v3.0.10/go.mod h1:l9aF3R49A6daR9ddoNE6ac6XsdHzulaC4rR6eOEK/0Y=
 github.com/OperatorFoundation/Starbridge-go/Starbridge/v3 v3.0.11 h1:ol4NzsH4OMX9IcFlvLxBh+LxHo2qt7sC26hrzFL95hU=
 github.com/OperatorFoundation/Starbridge-go/Starbridge/v3 v3.0.11/go.mod h1:l9aF3R49A6daR9ddoNE6ac6XsdHzulaC4rR6eOEK/0Y=
 github.com/OperatorFoundation/ghostwriter-go v1.0.6 h1:2E5D4qDKwsV+LQoKGtgIyjq5JvMiBZf8ySR8q0PP4vc=
@@ -18,7 +17,6 @@ github.com/OperatorFoundation/go-shadowsocks2 v1.1.12 h1:dd1htkSpGAtFDg0qLALWKE9
 github.com/OperatorFoundation/go-shadowsocks2 v1.1.12/go.mod h1:yw8jel8UNDWkJNE3wwAfEyctdCw6DI1FWBrZgcuoBfI=
 github.com/OperatorFoundation/locket-go v1.0.4 h1:QvdqVznhDmCUqT23eihp3e0mJ9jK/nFpcAJSWrJSD1I=
 github.com/OperatorFoundation/locket-go v1.0.4/go.mod h1:1AhXjUWRgU3dXxPSsUcW8L2QUJGLaQ0umBqGpC36cEw=
-github.com/OperatorFoundation/monolith-go/monolith v1.0.10 h1:mK7X57x5LliwsPmRoWgdVhMK1u+ag3LaxemsYpQ279Y=
 github.com/OperatorFoundation/monolith-go/monolith v1.0.10/go.mod h1:czRPOIH/In5SEcnHndvit7O+Pq+rHxkrE5XqwYhIkqo=
 github.com/OperatorFoundation/shapeshifter-ipc/v3 v3.0.2/go.mod h1:N/8omY/NE0qGcbNhadLjgxmfwo3/Vg8XkOAnhpZ9BIM=
 github.com/aead/ecdh v0.2.0 h1:pYop54xVaq/CEREFEcukHRZfTdjiWvYIsZDXXrBapQQ=
@@ -26,7 +24,6 @@ github.com/aead/ecdh v0.2.0/go.mod h1:a9HHtXuSo8J1Js1MwLQx2mBhkXMT6YwUmVVEY4tTB8
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/deckarep/golang-set v1.7.1/go.mod h1:93vsz/8Wt4joVM7c2AVqh+YRMiUSc14yDtF28KmMOgQ=
-github.com/deckarep/golang-set v1.8.0 h1:sk9/l/KqpunDwP7pSjUg0keiOOLEnOBHzykLrsPppp4=
 github.com/deckarep/golang-set v1.8.0/go.mod h1:5nI87KwE7wgsBU1F4GKAw2Qod7p5kyS383rP6+o6qqo=
 github.com/kataras/golog v0.0.18/go.mod h1:jRYl7dFYqP8aQj9VkwdBUXYZSfUktm+YYg1arJILfyw=
 github.com/kataras/golog v0.1.7 h1:0TY5tHn5L5DlRIikepcaRR/6oInIr9AiWsxzt0vvlBE=

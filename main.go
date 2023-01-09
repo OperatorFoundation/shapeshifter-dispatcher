@@ -127,6 +127,8 @@ func main() {
 	// Flags for config generation
 	generateConfig := flag.Bool("generateConfig", false, "Generate a config for the specified transport")
 	serverAddress := flag.String("serverIP", "", "Specify the IP address of the server to use in the config")
+	toneburst := flag.Bool("toneburst", false, "Use the starburst toneburst for the Replicant config generation")
+	polish := flag.Bool("polish", false, "Use the Darkstar polish for the Replicant config generation")
 
 	// Additional command line flags added to shapeshifter-dispatcher
 	clientMode := flag.Bool("client", false, "Enable client mode")
@@ -145,6 +147,8 @@ func main() {
 				transports.CreateShadowConfigs(*serverAddress)
 			case "Starbridge":
 				transports.CreateStarbridgeConfigs(*serverAddress)
+			case "Replicant":
+				transports.CreateReplicantConfigs(*serverAddress, *toneburst, *polish)
 			default:
 				return
 		}

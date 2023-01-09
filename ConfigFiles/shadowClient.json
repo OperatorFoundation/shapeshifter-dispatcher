@@ -1,6 +1,6 @@
 {
   "serverAddress": "127.0.0.1:2222",
   "serverPublicKey": "6LukZ8KqZLQ7eOdaTVFkBVqMA8NS1AUxwqG17L/kHnQ=",
-  "cipherName": "darkstar",
-  "transport": "shadow"
+  "cipherName": "DARKSTAR",
+  "transport": "Shadow"
 }

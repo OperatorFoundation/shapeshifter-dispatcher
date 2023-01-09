@@ -99,7 +99,8 @@ func ServerSetupTCP(ptServerInfo pt_extras.ServerInfo, stateDir string, options 
 			for {
 				transportLn, LnError := listen()
 				if LnError != nil {
-					continue
+					print(LnError)
+					break
 				}
 
 				print(name)
