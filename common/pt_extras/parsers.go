@@ -27,6 +27,7 @@ package pt_extras
 import (
 	"errors"
 	"net"
+	"strings"
 
 	Optimizer "github.com/OperatorFoundation/Optimizer-go/Optimizer/v3"
 	"github.com/OperatorFoundation/shapeshifter-dispatcher/transports"
@@ -36,7 +37,7 @@ import (
 
 // target is the server address string
 func ArgsToDialer(name string, args string, dialer proxy.Dialer, enableLocket bool, logDir string) (Optimizer.TransportDialer, error) {
-	switch name {
+	switch strings.ToLower(name) {
 	case "shadow":
 		transport, err := transports.ParseArgsShadow(args, enableLocket, logDir)
 		if err != nil {
@@ -45,7 +46,7 @@ func ArgsToDialer(name string, args string, dialer proxy.Dialer, enableLocket bo
 		} else {
 			return transport, nil
 		}
-	case "Optimizer":
+	case "optimizer":
 		transport, err := transports.ParseArgsOptimizer(args, dialer, enableLocket, logDir)
 		if err != nil {
 			golog.Errorf("Could not parse options %s", err.Error())
@@ -53,7 +54,7 @@ func ArgsToDialer(name string, args string, dialer proxy.Dialer, enableLocket bo
 		} else {
 			return transport, nil
 		}
-	case "Replicant":
+	case "replicant":
 		transport, err := transports.ParseArgsReplicantClient(args, dialer)
 		if err != nil {
 			golog.Errorf("Could not parse options %s", err.Error())
@@ -61,7 +62,7 @@ func ArgsToDialer(name string, args string, dialer proxy.Dialer, enableLocket bo
 		} else {
 			return transport, nil
 		}
-	case "Starbridge":
+	case "starbridge":
 		transport, err := transports.ParseArgsStarbridgeClient(args, dialer)
 		if err != nil {
 			golog.Errorf("Could not parse options %s", err.Error())
@@ -77,15 +78,15 @@ func ArgsToDialer(name string, args string, dialer proxy.Dialer, enableLocket bo
 }
 
 func ArgsToListener(name string, stateDir string, options string, enableLocket bool, logDir string) (func() (net.Listener, error), error) {
-	switch name {
-	case "Replicant":
+	switch strings.ToLower(name) {
+	case "replicant":
 		config, err := transports.ParseArgsReplicantServer(options)
 		if err != nil {
 			return nil, errors.New("could not parse Replicant options")
 		}
 
 		return config.Listen, nil
-	case "Starbridge":
+	case "starbridge":
 		config, err := transports.ParseArgsStarbridgeServer(options)
 		if err != nil {
 			return nil, errors.New("could not parse Starbridge options")
@@ -100,6 +101,7 @@ func ArgsToListener(name string, stateDir string, options string, enableLocket b
 
 		return config.Listen, nil
 	default:
+		println("unsupported transport name: ", name)
 		return nil, errors.New("unknown transport")
 	}
 }

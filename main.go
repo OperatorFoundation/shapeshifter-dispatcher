@@ -142,14 +142,15 @@ func main() {
 	// Start validation of command line arguments
 
 	if *generateConfig {
-		switch *transport {
+		switch strings.ToLower(*transport) {
 			case "shadow":
 				transports.CreateShadowConfigs(*serverAddress)
-			case "Starbridge":
+			case "starbridge":
 				transports.CreateStarbridgeConfigs(*serverAddress)
-			case "Replicant":
+			case "replicant":
 				transports.CreateReplicantConfigs(*serverAddress, *toneburst, *polish)
 			default:
+				// FIXME: add print/log in case of wrong name
 				return
 		}
 	} 
@@ -260,6 +261,7 @@ func main() {
 		} else {
 			targetValidationError := validatetarget(isClient, targetHost, targetPort, target)
 			if targetValidationError != nil {
+				println("could not validate: ", targetValidationError.Error())
 				golog.Errorf("could not validate: %s", targetValidationError)
 				return
 			}
@@ -356,6 +358,7 @@ func main() {
 	if !launched {
 		// Initialization failed, the client or server setup routines should
 		// have logged, so just exit here.
+		println("no pluggable transports were launched")
 		os.Exit(-1)
 	}
 

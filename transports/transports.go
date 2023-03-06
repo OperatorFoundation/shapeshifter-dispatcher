@@ -36,6 +36,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"strings"
 
 	Optimizer "github.com/OperatorFoundation/Optimizer-go/Optimizer/v3"
 	replicant "github.com/OperatorFoundation/Replicant-go/Replicant/v3"
@@ -265,32 +266,33 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer, enableLock
 		return nil, errors.New("could not marshal Optimizer config")
 	}
 	jsonConfigString := string(jsonConfigBytes)
-	switch PartialConfig.Name {
+	switch strings.ToLower(PartialConfig.Name) {
 	case "shadow":
 		shadowTransport, parseErr := ParseArgsShadow(jsonConfigString, enableLocket, logDir)
 		if parseErr != nil {
 			return nil, errors.New("could not parse shadow Args")
 		}
 		return shadowTransport, nil
-	case "Replicant":
+	case "replicant":
 		replicantTransport, parseErr := ParseArgsReplicantClient(jsonConfigString, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse replicant Args")
 		}
 		return replicantTransport, nil
-	case "Starbridge":
+	case "starbridge":
 		starbridgeTransport, parseErr := ParseArgsStarbridgeClient(jsonConfigString, dialer)
 		if parseErr != nil {
 			return nil, errors.New("could not parse starbridge Args")
 		}
 		return starbridgeTransport, nil
-	case "Optimizer":
+	case "optimizer":
 		optimizerTransport, parseErr := ParseArgsOptimizer(jsonConfigString, dialer, enableLocket, logDir)
 		if parseErr != nil {
 			return nil, errors.New("could not parse Optimizer Args")
 		}
 		return optimizerTransport, nil
 	default:
+		println("unsupported transport name")
 		return nil, errors.New("unsupported transport name")
 	}
 }
