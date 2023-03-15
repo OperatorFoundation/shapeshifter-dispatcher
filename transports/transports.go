@@ -320,7 +320,7 @@ func CreateShadowConfigs(address string) error {
 	shadowServerConfig := shadow.ServerConfig{
 		ServerAddress: 	  address,
 		ServerPrivateKey: privateKeyString,
-		CipherName:		  "DARKSTAR",
+		CipherName:		  "darkstar",
 		Transport: 		  "Shadow",
 	}
 
@@ -332,7 +332,7 @@ func CreateShadowConfigs(address string) error {
 	shadowClientConfig := shadow.ClientConfig{
 		ServerAddress:   address,
 		ServerPublicKey: publicKeyString,
-		CipherName: 	 "DARKSTAR",
+		CipherName: 	 "darkstar",
 		Transport: 		 "Shadow",
 	}
 
