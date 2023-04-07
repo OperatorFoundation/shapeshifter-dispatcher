@@ -92,13 +92,6 @@ You can find your GOPATH with:
 
 #### Running
 
-Shapeshifter dispatcher has several modes of operations. A common way to get started is with transparent TCP mode:
-
-    <GOPATH>/bin/shapeshifter-dispatcher -transparent -server -state state -target 127.0.0.1:3333 -transports shadow -bindaddr shadow-127.0.0.1:2222 -optionsFile ConfigFiles/shadowServer.json -logLevel DEBUG -enableLogging
-
-
-    <GOPATH>/bin/shapeshifter-dispatcher -transparent -client -state state -transports shadow -proxylistenaddr 127.0.0.1:1443 -optionsFile ConfigFiles/shadowClient.json -logLevel DEBUG -enableLogging
-
 Use either -client or -server to place the proxy into client or server mode,
 respectively. Use -state to specify a directory to put transports state
 information. Use -transports to specify which transports to launch.  Use -optionsFile to specify the directory where your config file is located
@@ -143,7 +136,7 @@ to hold transport state. The destination that the server will proxy to is
 127.0.0.1, port 3333. The Replicant transport is enabled and bound to the address 127.0.0.1 and the port 2222. Logging is enabled and set to DEBUG level.
 To access the Log for debugging purposes, look at state/dispatcher.log
 
-To use Replicant, a config file is needed. A sample config file, ReplicantServerConfigV3.json, is provided purely for educational purposes and should not be used in actual production.
+To use Replicant, a config file is needed. A sample config file, located in ConfigFiles/ReplicantServerConfigV3.json, is provided purely for educational purposes and should not be used in actual production.
 
 ##### Client
 
@@ -156,7 +149,7 @@ command line above. For this demo to work, the dispatcher server needs to be
 running on this host and port. The Replicant transport is enabled and bound to the
 address 127.0.0.1 and the port 1443.
 
-To use Replicant, a config file is needed. A sample config file, ReplicantClientConfigV3.json, is provided purely for educational purposes and should not be used in actual production.
+To use Replicant, a config file is needed. A sample config file, located in ConfigFiles/ReplicantClientConfigV3.json, is provided purely for educational purposes and should not be used in actual production.
 
 Once the client is running, you can connect to the client address, which in this
 case is 127.0.0.1, port 1443. For instance, you can telnet to this address:
