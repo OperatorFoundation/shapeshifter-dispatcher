@@ -54,6 +54,8 @@ The dispatcher currently supports the following transports:
  * Replicant
  * Optimizer
  * shadow (Shadowsocks)
+ 
+ Note: obs4 is no longer supported.  We recommend using Shadow in it's place.
 
 #### Installation
 
