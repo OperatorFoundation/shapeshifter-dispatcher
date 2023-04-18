@@ -267,4 +267,4 @@ shapeshifter-dispatcher is descended from the Tor project's "obfs4proxy" tool.
  * David Fifield for goptlib
  * Adam Langley for the Go Elligator implementation.
  * Philipp Winter for the ScrambleSuit protocol.
- * Shadowsocks was developed by the Shadowsocks team. [whitepaper](https://shadowsocks.org/assets/whitepaper.pdf).
+ * [Shadowsocks](https://shadowsocks.org/guide/what-is-shadowsocks.html) was developed by the Shadowsocks team. 
