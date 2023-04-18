@@ -50,6 +50,7 @@ The dispatcher currently supports the following proxy modes:
  * Transparent UDP
  * STUN UDP
 
+The transports used by shapeshifter-dispatcher follow the Go Transport API in the [Pluggable Transports Specification v3.0](https://github.com/Pluggable-Transports/Pluggable-Transports-spec/blob/main/releases/PTSpecV3.0/Pluggable%20Transport%20Specification%20v3.0%20-%20Go%20Transport%20API%20v3.0.md).  
 The dispatcher currently supports the following transports:
  * Replicant
  * Optimizer
