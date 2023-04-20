@@ -12,8 +12,9 @@ github.com/OperatorFoundation/ghostwriter-go v1.0.6/go.mod h1:+uejzC1RRxZwngnCAr
 github.com/OperatorFoundation/go-bloom v1.0.1 h1:8q/rfgfG7OvwGkmzusIuV8PlS8MvA/T0kQ2MXm9371g=
 github.com/OperatorFoundation/go-bloom v1.0.1/go.mod h1:b6bJWAnYIhwDgFIIolHyeuTYbPWAYj1Lnnwvcoa7P38=
 github.com/OperatorFoundation/go-shadowsocks2 v1.1.0/go.mod h1:paPY4LTOVMxWJ4ojsR3dsEfOqXAhwwqZY44rN/QBS0s=
-github.com/OperatorFoundation/go-shadowsocks2 v1.1.12 h1:dd1htkSpGAtFDg0qLALWKE93B2W6o3VhZy7wIQjs07A=
 github.com/OperatorFoundation/go-shadowsocks2 v1.1.12/go.mod h1:yw8jel8UNDWkJNE3wwAfEyctdCw6DI1FWBrZgcuoBfI=
+github.com/OperatorFoundation/go-shadowsocks2 v1.1.13 h1:Ku4SZnq1Y0T7qGlQn0RJGA3BqtUZeO8o0Fr1jFRHARE=
+github.com/OperatorFoundation/go-shadowsocks2 v1.1.13/go.mod h1:yw8jel8UNDWkJNE3wwAfEyctdCw6DI1FWBrZgcuoBfI=
 github.com/OperatorFoundation/locket-go v1.0.4 h1:QvdqVznhDmCUqT23eihp3e0mJ9jK/nFpcAJSWrJSD1I=
 github.com/OperatorFoundation/locket-go v1.0.4/go.mod h1:1AhXjUWRgU3dXxPSsUcW8L2QUJGLaQ0umBqGpC36cEw=
 github.com/OperatorFoundation/monolith-go/monolith v1.0.10/go.mod h1:czRPOIH/In5SEcnHndvit7O+Pq+rHxkrE5XqwYhIkqo=
