@@ -297,7 +297,7 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer, enableLock
 	}
 }
 
-func CreateShadowConfigs(address string) error {
+func CreateShadowConfigs(address string, bindAddress *string) error {
 	keyExchange := ecdh.Generic(elliptic.P256())
 	clientEphemeralPrivateKey, clientEphemeralPublicKeyPoint, keyError := keyExchange.GenerateKey(rand.Reader)
 	if keyError != nil {
@@ -322,6 +322,7 @@ func CreateShadowConfigs(address string) error {
 		ServerPrivateKey: privateKeyString,
 		CipherName:		  "darkstar",
 		Transport: 		  "Shadow",
+		BindAddress: 	  bindAddress,
 	}
 
 	serverJsonBytes, marshalError := json.MarshalIndent(shadowServerConfig, "", "  ")
@@ -354,7 +355,7 @@ func CreateShadowConfigs(address string) error {
 	return nil
 }
 
-func CreateStarbridgeConfigs(address string) error {
+func CreateStarbridgeConfigs(address string, bindAddress *string) error {
 	keyExchange := ecdh.Generic(elliptic.P256())
 	clientEphemeralPrivateKey, clientEphemeralPublicKeyPoint, keyError := keyExchange.GenerateKey(rand.Reader)
 	if keyError != nil {
@@ -384,6 +385,7 @@ func CreateStarbridgeConfigs(address string) error {
 		ServerAddress: address,
 		ServerPrivateKey: privateKeyString,
 		Transport: "Starbridge",
+		BindAddress: bindAddress,
 	}
 
 	serverJsonBytes, marshalError := json.MarshalIndent(starbridgeServerConfig, "", "  ")
@@ -409,7 +411,7 @@ func CreateStarbridgeConfigs(address string) error {
 	return nil
 }
 
-func CreateReplicantConfigs(address string, isToneburst bool, isPolish bool) error {
+func CreateReplicantConfigs(address string, isToneburst bool, isPolish bool, bindAddress *string) error {
 	var polishClient *replicant.DarkStarPolishClientJsonConfig = nil 
 	var polishServer *replicant.DarkStarPolishServerJsonConfig = nil 
 	var toneburstClient *toneburst.StarburstConfig = nil
@@ -468,6 +470,7 @@ func CreateReplicantConfigs(address string, isToneburst bool, isPolish bool) err
 		Toneburst: *toneburstServer,
 		Polish: *polishServer,
 		Transport: "Replicant",
+		BindAddress: bindAddress,
 	}
 	
 	replicantClientConfig := replicant.ClientJsonConfig {

@@ -144,11 +144,11 @@ func main() {
 	if *generateConfig {
 		switch strings.ToLower(*transport) {
 			case "shadow":
-				transports.CreateShadowConfigs(*serverAddress)
+				transports.CreateShadowConfigs(*serverAddress, bindAddr)
 			case "starbridge":
-				transports.CreateStarbridgeConfigs(*serverAddress)
+				transports.CreateStarbridgeConfigs(*serverAddress, bindAddr)
 			case "replicant":
-				transports.CreateReplicantConfigs(*serverAddress, *toneburst, *polish)
+				transports.CreateReplicantConfigs(*serverAddress, *toneburst, *polish, bindAddr)
 			default:
 				// FIXME: add print/log in case of wrong name
 				return

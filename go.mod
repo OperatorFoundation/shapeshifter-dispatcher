@@ -4,9 +4,9 @@ go 1.17
 
 require (
 	github.com/OperatorFoundation/Optimizer-go/Optimizer/v3 v3.0.2
-	github.com/OperatorFoundation/Replicant-go/Replicant/v3 v3.0.18
-	github.com/OperatorFoundation/Shadow-go/shadow/v3 v3.0.12
-	github.com/OperatorFoundation/Starbridge-go/Starbridge/v3 v3.0.15
+	github.com/OperatorFoundation/Replicant-go/Replicant/v3 v3.0.19
+	github.com/OperatorFoundation/Shadow-go/shadow/v3 v3.0.13
+	github.com/OperatorFoundation/Starbridge-go/Starbridge/v3 v3.0.16
 	github.com/OperatorFoundation/go-shadowsocks2 v1.1.15
 	github.com/OperatorFoundation/locket-go v1.0.4
 	github.com/aead/ecdh v0.2.0
