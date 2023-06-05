@@ -437,10 +437,12 @@ func CreateReplicantConfigs(address string, isToneburst bool, isPolish bool, bin
 		publicKeyString := base64.StdEncoding.EncodeToString(publicKeyBytes)
 
 		polishClient = &replicant.DarkStarPolishClientJsonConfig {
+			ServerAddress: address,
 			ServerPublicKey: publicKeyString,
 		}
 
 		polishServer = &replicant.DarkStarPolishServerJsonConfig {
+			ServerAddress: address,
 			ServerPrivateKey: privateKeyString,
 		}
 
