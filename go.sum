@@ -1,8 +1,8 @@
 github.com/OperatorFoundation/Optimizer-go/Optimizer/v3 v3.0.2 h1:025BXtTxZQlJvGXnsoy40ZHuim7/wSLE9FU+S6BllP0=
 github.com/OperatorFoundation/Optimizer-go/Optimizer/v3 v3.0.2/go.mod h1:LpUVIzoM7zuf1NihGjn5JVyybZ4+uW7Y9SLTiI4ziD4=
 github.com/OperatorFoundation/Replicant-go/Replicant/v3 v3.0.19/go.mod h1:nKEZhzG+AdShUn/S4iagty1ZvrXYlfR61Yy5+L5QSiw=
-github.com/OperatorFoundation/Replicant-go/Replicant/v3 v3.0.20 h1:XS7T+sR3vVV50N7U0rbx3UKwCAXnk1n/srF22ggxLyM=
-github.com/OperatorFoundation/Replicant-go/Replicant/v3 v3.0.20/go.mod h1:nKEZhzG+AdShUn/S4iagty1ZvrXYlfR61Yy5+L5QSiw=
+github.com/OperatorFoundation/Replicant-go/Replicant/v3 v3.0.21 h1:Cv1ggPojq6HFGYhRHGTOb3yLch8/L9HamCi3H9ZUprc=
+github.com/OperatorFoundation/Replicant-go/Replicant/v3 v3.0.21/go.mod h1:nKEZhzG+AdShUn/S4iagty1ZvrXYlfR61Yy5+L5QSiw=
 github.com/OperatorFoundation/Shadow-go/shadow/v3 v3.0.1/go.mod h1:tJskzmqFztA8KApTLj7i5IOSN0oLaUQsEwhPcTDcodQ=
 github.com/OperatorFoundation/Shadow-go/shadow/v3 v3.0.13 h1:k3Zns/saaV+FtdECdHafGtip57x00LdFKqxBKfxRZxw=
 github.com/OperatorFoundation/Shadow-go/shadow/v3 v3.0.13/go.mod h1:cCIDt/tmWp7FeQOfs11B8ji9SG5PiFvPCf4d4pKoud4=
