@@ -332,34 +332,34 @@ func parsedTransport(otc map[string]interface{}, dialer proxy.Dialer, enableLock
 
 func CreateShadowConfigs(address string, bindAddress *string) error {
 	keyExchange := ecdh.Generic(elliptic.P256())
-	clientEphemeralPrivateKey, clientEphemeralPublicKeyPoint, keyError := keyExchange.GenerateKey(rand.Reader)
+	
+	ephemeralPrivateKey, ephemeralPublicKey, keyError := keyExchange.GenerateKey(rand.Reader)
 	if keyError != nil {
 		return keyError
 	}
 
-	privateKeyBytes, ok := clientEphemeralPrivateKey.([]byte)
+	point, ok := ephemeralPublicKey.(ecdh.Point)
+	if !ok {
+		return errors.New("could not convert client public key to point")
+	}
+
+	bytes := elliptic.Marshal(elliptic.P256(), point.X, point.Y)
+	if bytes == nil {
+		return errors.New("MarshalCompressed returned nil")
+	}
+
+	privateKeyBytes, ok := ephemeralPrivateKey.([]byte)
 	if !ok {
 		return errors.New("could not convert private key to bytes")
 	}
 
-	publicKeyBytes, keyByteError := shadowsocks.PublicKeyToBytes(clientEphemeralPublicKeyPoint)
+	publicKeyBytes, keyByteError := shadowsocks.PublicKeyToKeychainFormatBytes(ephemeralPublicKey)
 	if keyByteError != nil {
 		return keyByteError
 	}
-
-	// add an identifier byte at the beginning to signify key type for cross compatibility
-	var privateKeyBytesWithIdentifierBuffer = make([]byte, 33)
-	var publicKeyBytesWithIdentifierBuffer = make([]byte, 33)
-
-	// 2 signifies P256KeyAgreement type
-	privateKeyBytesWithIdentifierBuffer[0] = 2
-	copy(privateKeyBytesWithIdentifierBuffer[1:], privateKeyBytes)
-
-	publicKeyBytesWithIdentifierBuffer[0] = 2
-	copy(publicKeyBytesWithIdentifierBuffer[1:], publicKeyBytes)
 	
-	privateKeyString := base64.StdEncoding.EncodeToString(privateKeyBytesWithIdentifierBuffer)
-	publicKeyString := base64.StdEncoding.EncodeToString(publicKeyBytesWithIdentifierBuffer)
+	privateKeyString := base64.StdEncoding.EncodeToString(privateKeyBytes)
+	publicKeyString := base64.StdEncoding.EncodeToString(publicKeyBytes)
 
 	shadowServerConfig := shadow.ServerConfig{
 		ServerAddress: 	  address,
@@ -400,35 +400,35 @@ func CreateShadowConfigs(address string, bindAddress *string) error {
 }
 
 func CreateStarbridgeConfigs(address string, bindAddress *string) error {
-	keyExchange := ecdh.Generic(elliptic.P256())
-	clientEphemeralPrivateKey, clientEphemeralPublicKeyPoint, keyError := keyExchange.GenerateKey(rand.Reader)
+		keyExchange := ecdh.Generic(elliptic.P256())
+	
+	ephemeralPrivateKey, ephemeralPublicKey, keyError := keyExchange.GenerateKey(rand.Reader)
 	if keyError != nil {
 		return keyError
 	}
 
-	privateKeyBytes, ok := clientEphemeralPrivateKey.([]byte)
+	point, ok := ephemeralPublicKey.(ecdh.Point)
+	if !ok {
+		return errors.New("could not convert client public key to point")
+	}
+
+	bytes := elliptic.Marshal(elliptic.P256(), point.X, point.Y)
+	if bytes == nil {
+		return errors.New("MarshalCompressed returned nil")
+	}
+
+	privateKeyBytes, ok := ephemeralPrivateKey.([]byte)
 	if !ok {
 		return errors.New("could not convert private key to bytes")
 	}
 
-	publicKeyBytes, keyByteError := shadowsocks.PublicKeyToBytes(clientEphemeralPublicKeyPoint)
+	publicKeyBytes, keyByteError := shadowsocks.PublicKeyToKeychainFormatBytes(ephemeralPublicKey)
 	if keyByteError != nil {
 		return keyByteError
 	}
-
-	// add an identifier byte at the beginning to signify key type for cross compatibility
-	var privateKeyBytesWithIdentifierBuffer = make([]byte, 33)
-	var publicKeyBytesWithIdentifierBuffer = make([]byte, 33)
-
-	// 2 signifies P256KeyAgreement type
-	privateKeyBytesWithIdentifierBuffer[0] = 2
-	copy(privateKeyBytesWithIdentifierBuffer[1:], privateKeyBytes)
-
-	publicKeyBytesWithIdentifierBuffer[0] = 2
-	copy(publicKeyBytesWithIdentifierBuffer[1:], publicKeyBytes)
 	
-	privateKeyString := base64.StdEncoding.EncodeToString(privateKeyBytesWithIdentifierBuffer)
-	publicKeyString := base64.StdEncoding.EncodeToString(publicKeyBytesWithIdentifierBuffer)
+	privateKeyString := base64.StdEncoding.EncodeToString(privateKeyBytes)
+	publicKeyString := base64.StdEncoding.EncodeToString(publicKeyBytes)
 
 	starbridgeClientConfig := Starbridge.ClientConfig {
 		ServerAddress: address,
@@ -472,35 +472,35 @@ func CreateReplicantConfigs(address string, isToneburst bool, isPolish bool, bin
 	var toneburstClient *toneburst.StarburstConfig = nil
 	var toneburstServer *toneburst.StarburstConfig = nil
 	if isPolish {
-		keyExchange := ecdh.Generic(elliptic.P256())
-		clientEphemeralPrivateKey, clientEphemeralPublicKeyPoint, keyError := keyExchange.GenerateKey(rand.Reader)
-		if keyError != nil {
-			return keyError
-		}
+			keyExchange := ecdh.Generic(elliptic.P256())
+	
+	ephemeralPrivateKey, ephemeralPublicKey, keyError := keyExchange.GenerateKey(rand.Reader)
+	if keyError != nil {
+		return keyError
+	}
 
-		privateKeyBytes, ok := clientEphemeralPrivateKey.([]byte)
-		if !ok {
-			return errors.New("could not convert private key to bytes")
-		}
+	point, ok := ephemeralPublicKey.(ecdh.Point)
+	if !ok {
+		return errors.New("could not convert client public key to point")
+	}
 
-		publicKeyBytes, keyByteError := shadowsocks.PublicKeyToBytes(clientEphemeralPublicKeyPoint)
-		if keyByteError != nil {
-			return keyByteError
-		}
+	bytes := elliptic.Marshal(elliptic.P256(), point.X, point.Y)
+	if bytes == nil {
+		return errors.New("MarshalCompressed returned nil")
+	}
 
-		// add an identifier byte at the beginning to signify key type for cross compatibility
-		var privateKeyBytesWithIdentifierBuffer = make([]byte, 33)
-		var publicKeyBytesWithIdentifierBuffer = make([]byte, 33)
+	privateKeyBytes, ok := ephemeralPrivateKey.([]byte)
+	if !ok {
+		return errors.New("could not convert private key to bytes")
+	}
 
-		// 2 signifies P256KeyAgreement type
-		privateKeyBytesWithIdentifierBuffer[0] = 2
-		copy(privateKeyBytesWithIdentifierBuffer[1:], privateKeyBytes)
-
-		publicKeyBytesWithIdentifierBuffer[0] = 2
-		copy(publicKeyBytesWithIdentifierBuffer[1:], publicKeyBytes)
-		
-		privateKeyString := base64.StdEncoding.EncodeToString(privateKeyBytesWithIdentifierBuffer)
-		publicKeyString := base64.StdEncoding.EncodeToString(publicKeyBytesWithIdentifierBuffer)
+	publicKeyBytes, keyByteError := shadowsocks.PublicKeyToKeychainFormatBytes(ephemeralPublicKey)
+	if keyByteError != nil {
+		return keyByteError
+	}
+	
+	privateKeyString := base64.StdEncoding.EncodeToString(privateKeyBytes)
+	publicKeyString := base64.StdEncoding.EncodeToString(publicKeyBytes)
 
 		polishClient = &replicant.DarkStarPolishClientJsonConfig {
 			ServerAddress: address,
