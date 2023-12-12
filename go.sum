@@ -12,6 +12,17 @@ github.com/OperatorFoundation/go-bloom v1.0.1 h1:8q/rfgfG7OvwGkmzusIuV8PlS8MvA/T
 github.com/OperatorFoundation/go-bloom v1.0.1/go.mod h1:b6bJWAnYIhwDgFIIolHyeuTYbPWAYj1Lnnwvcoa7P38=
 github.com/OperatorFoundation/go-shadowsocks2 v1.2.1 h1:hyf+kZq2rb/Kjw440hZUuedV0UG4DeB4irW6c0cPpOE=
 github.com/OperatorFoundation/go-shadowsocks2 v1.2.1/go.mod h1:lH6+PiEc2/aDpMqZrLzMz+o2dlE1rPME6GYZN1j4Bsg=
+github.com/OperatorFoundation/go-shadowsocks2 v1.2.2 h1:jqtVy4jPlkbe6hEPONnjNGhDhvykxeBXuLdSkay6caY=
+github.com/OperatorFoundation/go-shadowsocks2 v1.2.2/go.mod h1:lH6+PiEc2/aDpMqZrLzMz+o2dlE1rPME6GYZN1j4Bsg=
+github.com/OperatorFoundation/go-shadowsocks2 v1.2.3 h1:VJFzisi0xqatJf606PyUrhOrW1UXaa6APFfPHF0W9CE=
+github.com/OperatorFoundation/go-shadowsocks2 v1.2.3/go.mod h1:lH6+PiEc2/aDpMqZrLzMz+o2dlE1rPME6GYZN1j4Bsg=
+github.com/OperatorFoundation/go-shadowsocks2 v1.2.4 h1:C5FnXf7z7FAsc09sho/Zo0o1VfWXnmpKvbRVm0oPBcw=
+github.com/OperatorFoundation/go-shadowsocks2 v1.2.4/go.mod h1:lH6+PiEc2/aDpMqZrLzMz+o2dlE1rPME6GYZN1j4Bsg=
+github.com/OperatorFoundation/go-shadowsocks2 v1.2.5 h1:uxffhIRczK1zo5L2ersnFZmHaV3VebPMNyI5+agvAoQ=
+github.com/OperatorFoundation/go-shadowsocks2 v1.2.5/go.mod h1:lH6+PiEc2/aDpMqZrLzMz+o2dlE1rPME6GYZN1j4Bsg=
+github.com/OperatorFoundation/go-shadowsocks2 v1.2.6 h1:uzcprNm0bC0jaexSBtc6hbhB7uQ6pswNd1706tsycyY=
+github.com/OperatorFoundation/go-shadowsocks2 v1.2.6/go.mod h1:lH6+PiEc2/aDpMqZrLzMz+o2dlE1rPME6GYZN1j4Bsg=
+github.com/OperatorFoundation/go-shadowsocks2 v1.2.7/go.mod h1:lH6+PiEc2/aDpMqZrLzMz+o2dlE1rPME6GYZN1j4Bsg=
 github.com/OperatorFoundation/locket-go v1.0.4 h1:QvdqVznhDmCUqT23eihp3e0mJ9jK/nFpcAJSWrJSD1I=
 github.com/OperatorFoundation/locket-go v1.0.4/go.mod h1:1AhXjUWRgU3dXxPSsUcW8L2QUJGLaQ0umBqGpC36cEw=
 github.com/aead/ecdh v0.2.0 h1:pYop54xVaq/CEREFEcukHRZfTdjiWvYIsZDXXrBapQQ=
