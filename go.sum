@@ -4,6 +4,8 @@ github.com/OperatorFoundation/Replicant-go/Replicant/v3 v3.0.23 h1:g0kC1BDonLwNs
 github.com/OperatorFoundation/Replicant-go/Replicant/v3 v3.0.23/go.mod h1:QVlygHzbNc/fX+OHurCRC0AFwISJAUQbPaqdEfAkUio=
 github.com/OperatorFoundation/Shadow-go/shadow/v3 v3.0.23 h1:k4ME+1xQtOmaq8p49G3IJZnGbsA6WjBz6yEvSfCXgak=
 github.com/OperatorFoundation/Shadow-go/shadow/v3 v3.0.23/go.mod h1:rKx0VzSBJU7xTOSBeuDK4hLT66Tm+m1KeYG7HgdhJ90=
+github.com/OperatorFoundation/Shadow-go/shadow/v3 v3.0.24 h1:avA+zXg2dJ5+vMuHkLqD+4TCJcadAdkEAgXR1M/5sLk=
+github.com/OperatorFoundation/Shadow-go/shadow/v3 v3.0.24/go.mod h1:LYS5gLS5A0uDw7awTooMq1KFojd/4NzdAFS6Qp9OJ6A=
 github.com/OperatorFoundation/Starbridge-go/Starbridge/v3 v3.0.17 h1:F7IpGVx5URu+s1v9JqioSz+1AE2O+QvQZ8Vl0q6JH8w=
 github.com/OperatorFoundation/Starbridge-go/Starbridge/v3 v3.0.17/go.mod h1:CbJW3yjWzIzHMEChQ4X6gvXeSf/CCpKOYQltQU8DC/s=
 github.com/OperatorFoundation/ghostwriter-go v1.0.6 h1:2E5D4qDKwsV+LQoKGtgIyjq5JvMiBZf8ySR8q0PP4vc=
@@ -23,6 +25,8 @@ github.com/OperatorFoundation/go-shadowsocks2 v1.2.5/go.mod h1:lH6+PiEc2/aDpMqZr
 github.com/OperatorFoundation/go-shadowsocks2 v1.2.6 h1:uzcprNm0bC0jaexSBtc6hbhB7uQ6pswNd1706tsycyY=
 github.com/OperatorFoundation/go-shadowsocks2 v1.2.6/go.mod h1:lH6+PiEc2/aDpMqZrLzMz+o2dlE1rPME6GYZN1j4Bsg=
 github.com/OperatorFoundation/go-shadowsocks2 v1.2.7/go.mod h1:lH6+PiEc2/aDpMqZrLzMz+o2dlE1rPME6GYZN1j4Bsg=
+github.com/OperatorFoundation/go-shadowsocks2 v1.2.8 h1:tp1+fr25pdTxgyKt1VVqqZDRTB/jZBQdRktdKzAP5dk=
+github.com/OperatorFoundation/go-shadowsocks2 v1.2.8/go.mod h1:lH6+PiEc2/aDpMqZrLzMz+o2dlE1rPME6GYZN1j4Bsg=
 github.com/OperatorFoundation/locket-go v1.0.4 h1:QvdqVznhDmCUqT23eihp3e0mJ9jK/nFpcAJSWrJSD1I=
 github.com/OperatorFoundation/locket-go v1.0.4/go.mod h1:1AhXjUWRgU3dXxPSsUcW8L2QUJGLaQ0umBqGpC36cEw=
 github.com/aead/ecdh v0.2.0 h1:pYop54xVaq/CEREFEcukHRZfTdjiWvYIsZDXXrBapQQ=
