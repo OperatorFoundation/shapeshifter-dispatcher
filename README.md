@@ -1,4 +1,4 @@
-# The Operator Foundation
+### The Operator Foundation
 
 [Operator](https://operatorfoundation.org) makes useable tools to help people around the world with censorship, security, and privacy.
 
@@ -32,7 +32,7 @@ shapeshifting technology and has a graphical user interface, consider
 [Moonbounce](https://github.com/OperatorFoundation/Moonbounce), an application for macOS which incorporates shapeshifting without
 the need to write code or use the command line.
 
-### Shapeshifter Dispatcher
+# Shapeshifter Dispatcher
 
 This is the repository for the shapeshifter-dispatcher command line proxy tool.
 If you are looking for the transports is provides, they are here:
